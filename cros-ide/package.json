@@ -1,0 +1,160 @@
+{
+  "name": "cros-ide",
+	"displayName": "cros-ide",
+	"description": "Connect to Chrome OS DUTs over VNC",
+	"version": "0.0.1",
+	"engines": {
+		"vscode": "^1.60.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:cros-ide.addHost",
+		"onCommand:cros-ide.deleteHost",
+		"onCommand:cros-ide.connectToHostForScreen",
+		"onCommand:cros-ide.connectToHostForShell",
+		"onCommand:cros-ide.refreshCrosfleet",
+		"onCommand:cros-ide.addFleetHost",
+		"onView:static-devices",
+		"onView:fleet-devices"
+	],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "cros-ide.connectToHostForScreen",
+				"title": "CrOS: Connect to Host (VNC)",
+				"icon": "$(window)"
+			},
+			{
+				"command": "cros-ide.connectToHostForShell",
+				"title": "CrOS: Connect to Host (Shell)",
+				"icon": "$(terminal)"
+			},
+			{
+				"command": "cros-ide.addHost",
+				"title": "CrOS: Add New Host",
+				"icon": "$(add)"
+			},
+			{
+				"command": "cros-ide.deleteHost",
+				"title": "CrOS: Delete Host",
+				"icon": "$(remove)"
+			},
+			{
+				"command": "cros-ide.refreshCrosfleet",
+				"title": "CrOS: Refresh crosfleet devices",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "cros-ide.addFleetHost",
+				"title": "CrOS: Add crosfleet Host",
+				"icon": "$(add)"
+			}
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "cros-devices",
+					"title": "CrOS Remote Testing",
+					"icon": "media/cros-device.svg"
+				}
+			]
+		},
+		"views": {
+			"cros-devices": [
+				{
+					"id": "static-devices",
+					"name": "my devices"
+				},
+				{
+					"id": "fleet-devices",
+					"name": "crosfleet devices"
+				}
+			]
+		},
+		"menus": {
+			"view/title": [
+				{
+					"command": "cros-ide.addHost",
+					"when": "view == static-devices",
+					"group": "navigation"
+				},
+				{
+					"command": "cros-ide.addFleetHost",
+					"when": "view == fleet-devices",
+					"group": "navigation"
+				},
+				{
+					"command": "cros-ide.refreshCrosfleet",
+					"when": "view == fleet-devices",
+					"group": "navigation"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "cros-ide.connectToHostForScreen",
+					"when": "view == static-devices || view == fleet-devices",
+					"group": "inline@1"
+				},
+				{
+					"command": "cros-ide.connectToHostForShell",
+					"when": "view == static-devices || view == fleet-devices",
+					"group": "inline@2"
+				},
+				{
+					"command": "cros-ide.deleteHost",
+					"when": "view == static-devices || view == fleet-devices",
+					"group": "inline@3"
+				}
+			]
+		},
+		"viewsWelcome": [
+			{
+				"view": "static-devices",
+				"contents": "No host added yet.\n[Add New Host](command:cros-ide.addHost)"
+			}
+		],
+		"configuration": {
+			"title": "Chrome OS",
+			"properties": {
+				"cros.hosts": {
+					"type": "array",
+					"scope": "machine-overridable",
+					"description": "List of devices under testing",
+					"items": {
+						"type": "string"
+					}
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run package",
+		"compile": "webpack",
+		"watch": "webpack --watch",
+		"package": "webpack --mode production --devtool hidden-source-map",
+		"compile-tests": "tsc -p . --outDir out",
+		"watch-tests": "tsc -p . -w --outDir out",
+		"pretest": "npm run compile-tests && npm run compile && npm run lint",
+		"lint": "eslint src --ext ts",
+		"test": "node ./out/test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.63.1",
+		"@types/glob": "^7.1.4",
+		"@types/mocha": "^9.0.0",
+		"@types/node": "14.x",
+		"@typescript-eslint/eslint-plugin": "^5.1.0",
+		"@typescript-eslint/parser": "^5.1.0",
+		"eslint": "^8.7.0",
+		"glob": "^7.1.7",
+		"mocha": "^9.1.3",
+		"typescript": "^4.5.5",
+		"ts-loader": "^9.2.5",
+		"webpack": "^5.52.1",
+		"webpack-cli": "^4.8.0",
+		"@vscode/test-electron": "^1.6.2"
+	}
+}
