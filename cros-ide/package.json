@@ -18,7 +18,8 @@
 		"onCommand:cros-ide.refreshCrosfleet",
 		"onCommand:cros-ide.addFleetHost",
 		"onView:static-devices",
-		"onView:fleet-devices"
+		"onView:fleet-devices",
+		"onLanguage:cpp"
 	],
 	"main": "./dist/extension.js",
 	"contributes": {

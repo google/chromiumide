@@ -4,6 +4,7 @@
 import * as vscode from 'vscode';
 import childProcess = require('child_process');
 import { crosfleetDutLease, crosfleetLeases, crosfleetDutAbandon } from './crosfleet';
+import * as crosLint from './cros_lint';
 import { resolve } from 'path';
 import { rejects } from 'assert';
 
@@ -111,6 +112,8 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.window.registerTreeDataProvider('static-devices', staticDevicesProvider),
 		vscode.window.registerTreeDataProvider('fleet-devices', fleetDevicesProvider),
 	);
+
+	crosLint.activate(context)
 }
 
 async function promptHost(title: string): Promise<string | undefined> {
