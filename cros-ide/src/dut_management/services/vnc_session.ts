@@ -65,8 +65,8 @@ export class VncSession {
         {
           enableScripts: true,
           // https://code.visualstudio.com/api/extension-guides/webview#retaincontextwhenhidden
-          retainContextWhenHidden: true
-        }
+          retainContextWhenHidden: true,
+        },
     );
     panel.webview.html = VncSession.getWebviewContent(localPort);
     return panel;

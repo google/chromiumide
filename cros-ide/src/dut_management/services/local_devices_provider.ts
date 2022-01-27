@@ -11,7 +11,6 @@ import * as dut_manager from '../dut_manager';
 import * as dutServices from './dut_services';
 
 export class LocalDevicesProvider implements vscode.TreeDataProvider<string> {
-
   private readonly cachedVersions = new Map<string, string>();
 
   private onDidChangeTreeDataEmitter = new vscode.EventEmitter<string | undefined | null | void>();

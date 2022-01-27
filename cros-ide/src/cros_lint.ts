@@ -20,7 +20,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 function updateCrosLintDiagnostics(document: vscode.TextDocument, collection: vscode.DiagnosticCollection): void {
-  if (document && document.uri.scheme === "file") {
+  if (document && document.uri.scheme === 'file') {
     childProcess.exec(`cros lint ${document.uri.fsPath}`, (_error, stdout, stderr) => {
       parseCrosLint(stdout, stderr, document, collection);
     });
@@ -36,7 +36,7 @@ function parseCrosLint(stdout: string, stderr: string, document: vscode.TextDocu
   let match: RegExpExecArray | null;
   // stdout and stderr are merged, because we saw that warnings can go to either.
   // TODO(b/214322467): Figure out when we should use stderr and when stdout.
-  while ((match = lineRE.exec(stdout + "\n" + stderr)) !== null) {
+  while ((match = lineRE.exec(stdout + '\n' + stderr)) !== null) {
     let file = match[1];
     let line = parseInt(match[2]);
     let message = match[3];
@@ -45,9 +45,9 @@ function parseCrosLint(stdout: string, stderr: string, document: vscode.TextDocu
         severity: vscode.DiagnosticSeverity.Warning,
         range: new vscode.Range(
             new vscode.Position(line - 1, 0),
-            new vscode.Position(line - 1, Number.MAX_VALUE)
+            new vscode.Position(line - 1, Number.MAX_VALUE),
         ),
-        message: message
+        message: message,
       };
       diagnostics.push(diagnostic);
     }

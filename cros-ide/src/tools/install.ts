@@ -22,7 +22,7 @@ function assertInsideChroot() {
 const GS_PREFIX = 'gs://chromeos-velocity/ide/cros-ide';
 
 async function execute(cmd: string, showStdout?: boolean) {
-  const { stdout, stderr } = await util.promisify(childProcess.exec)(cmd);
+  const {stdout, stderr} = await util.promisify(childProcess.exec)(cmd);
   process.stderr.write(stderr);
   if (showStdout) {
     process.stdout.write(stdout);
@@ -33,7 +33,7 @@ async function execute(cmd: string, showStdout?: boolean) {
 async function latestArchive() {
   // The result of `gsutil ls` is lexicographically sorted.
   const stdout = await execute(`gsutil ls ${GS_PREFIX}`);
-  const archives = stdout.trim().split("\n").map(url => {
+  const archives = stdout.trim().split('\n').map(url => {
     return Archive.parse(url);
   })
   archives.sort(Archive.compareFn);
@@ -134,7 +134,7 @@ async function buildAndUpload() {
     await execute(`gsutil cp ${td}/${localName} ${url}`);
   } finally {
     if (td) {
-      await fs.promises.rmdir(td, { recursive: true });
+      await fs.promises.rmdir(td, {recursive: true});
     }
   }
 }
@@ -152,7 +152,7 @@ async function install() {
     await execute(`code --install-extension ${dst}`, true);
   } finally {
     if (td) {
-      await fs.promises.rmdir(td, { recursive: true });
+      await fs.promises.rmdir(td, {recursive: true});
     }
   }
 }

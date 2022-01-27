@@ -25,13 +25,9 @@ module.exports = {
     'max-len': 0,
     'camelcase': 0,
     'semi': 0,
-    'object-curly-spacing': 0,
     'arrow-parens': 0,
-    'comma-dangle': 0,
-    'quotes': 0,
     'no-throw-literal': 0,
     'prefer-const': 0,
     'no-unused-vars': 0,
-    'padded-blocks': 0,
   },
 };

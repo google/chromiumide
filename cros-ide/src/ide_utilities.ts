@@ -20,7 +20,7 @@ export async function execFile(file: string, args: ReadonlyArray<string> | undef
         reject(error);
         return;
       }
-      resolve({ stdout, stderr });
+      resolve({stdout, stderr});
     });
   });
 }
