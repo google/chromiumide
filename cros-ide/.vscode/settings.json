@@ -22,4 +22,14 @@
 
   "files.insertFinalNewline": true,
   "files.trimTrailingWhitespace": true,
+
+  // Use eslint for linter and code-styler
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  // Languages to be validated by eslint on vscode
+  "eslint.validate": [
+    "javascript",
+    "typescript"
+  ]
 }

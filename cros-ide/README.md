@@ -67,6 +67,11 @@ URL: https://github.com/eslint/eslint\
 Remarks:\
 License: MIT
 
+Name: eslint-config-google\
+URL: https://github.com/google/eslint-config-google\
+Remarks:\
+License: Apache-2.0
+
 Name: glob\
 URL: https://github.com/isaacs/node-glob\
 Remarks: Unrestrictive license along the lines of MIT\
