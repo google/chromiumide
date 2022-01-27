@@ -111,7 +111,7 @@ export function activateDutManager(context: vscode.ExtensionContext) {
         }
       }
 
-      //Try deleting crossfleet first. If not found, then try deleting from "my devices"
+      // Try deleting crossfleet first. If not found, then try deleting from "my devices"
       if (!fleetDevicesProvider.removeTreeItem(host)) {
         const configRoot = ideutil.getConfigRoot();
         const oldHosts = configRoot.get<string[]>('hosts') || [];
@@ -166,11 +166,11 @@ function crosfleetBoard(lease: Lease): string | undefined {
 
 type LeaseOpts = {
   board?: string;
-  //dev?: boolean;
-  //dims?: {key: string, value: string}[];
-  //host?: string;
+  // dev?: boolean;
+  // dims?: {key: string, value: string}[];
+  // host?: string;
   minutes?: number;
-  //model?: string;
+  // model?: string;
   reason?: string;
 };
 

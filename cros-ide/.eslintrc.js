@@ -32,7 +32,6 @@ module.exports = {
     'quotes': 0,
     'no-throw-literal': 0,
     'prefer-const': 0,
-    'spaced-comment': 0,
     'no-unused-vars': 0,
     'padded-blocks': 0,
   },
