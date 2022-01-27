@@ -13,7 +13,9 @@ type ExecFileResult = {
   stderr: string
 };
 
-export async function execFile(file: string, args: ReadonlyArray<string> | undefined | null): Promise<ExecFileResult> {
+export async function execFile(
+    file: string,
+    args: ReadonlyArray<string> | undefined | null): Promise<ExecFileResult> {
   return new Promise((resolve, reject) => {
     childProcess.execFile(file, args, (error, stdout, stderr) => {
       if (error !== null) {
@@ -41,8 +43,11 @@ export function getConfigRoot(): vscode.WorkspaceConfiguration {
   return vscode.workspace.getConfiguration('cros');
 }
 
-export function createTerminalForHost(host: string, namePrefix: string, extensionUri: vscode.Uri, extraOptions: string): vscode.Terminal {
-  const testingRsa = vscode.Uri.joinPath(extensionUri, 'resources', 'testing_rsa');
+export function createTerminalForHost(
+    host: string, namePrefix: string, extensionUri: vscode.Uri,
+    extraOptions: string): vscode.Terminal {
+  const testingRsa =
+      vscode.Uri.joinPath(extensionUri, 'resources', 'testing_rsa');
   const terminal = vscode.window.createTerminal(`${namePrefix} ${host}`);
   const splitHost = host.split(':');
   let portOption = '';
@@ -50,6 +55,8 @@ export function createTerminalForHost(host: string, namePrefix: string, extensio
     host = splitHost[0];
     portOption = `-p ${splitHost[1]}`;
   }
-  terminal.sendText(`ssh -i ${testingRsa.fsPath} ${extraOptions} ${portOption} root@${host}; exit $?`);
+  terminal.sendText(
+      `ssh -i ${testingRsa.fsPath} ${extraOptions} ${portOption} ` +
+      `root@${host}; exit $?`);
   return terminal;
 }

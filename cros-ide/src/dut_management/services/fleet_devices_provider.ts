@@ -18,7 +18,8 @@ type CrosfleetDutInfo = {
 export class FleetDevicesProvider implements vscode.TreeDataProvider<string> {
   private leases: Map<string, CrosfleetDutInfo>;
 
-  private onDidChangeTreeDataEmitter = new vscode.EventEmitter<string | undefined | null | void>();
+  private onDidChangeTreeDataEmitter =
+    new vscode.EventEmitter<string | undefined | null | void>();
   readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
 
   constructor() {
@@ -65,7 +66,8 @@ export class FleetDevicesProvider implements vscode.TreeDataProvider<string> {
   }
 
   getTreeItem(host: string): dutManager.DeviceInfo {
-    return new dutManager.DeviceInfo(host, this.leases.get(host)?.version || '');
+    return new dutManager.DeviceInfo(
+        host, this.leases.get(host)?.version || '');
   }
 
   getChildren(parent?: string): string[] {

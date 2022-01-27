@@ -6,9 +6,9 @@ import * as vscode from 'vscode';
 
 export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
-    vscode.languages.registerDocumentLinkProvider(
-      '*',
-      new ShortLinkProvider()));
+      vscode.languages.registerDocumentLinkProvider(
+          '*',
+          new ShortLinkProvider()));
 }
 
 /**
@@ -23,17 +23,18 @@ class ShortLinkProvider implements vscode.DocumentLinkProvider {
   //  - whitespace
   //  - match to '(', because links are often used in "TODO(link)"
   private readonly linkPattern =
-      /(?<=^|\s|\()\b([a-z]{1,5})\/([^)\s.,;'\"]+)/g;
+    /(?<=^|\s|\()\b([a-z]{1,5})\/([^)\s.,;'\"]+)/g;
 
   public provideDocumentLinks(
-    document: vscode.TextDocument, token: vscode.CancellationToken)
+      document: vscode.TextDocument, token: vscode.CancellationToken)
     : vscode.ProviderResult<vscode.DocumentLink[]> {
     // TODO(b/216429126): add caching
     return this.analyzeDocument(document);
   }
 
   // TODO(b/216429126): add unit tests
-  private analyzeDocument(document: vscode.TextDocument): vscode.DocumentLink[] {
+  private analyzeDocument(
+      document: vscode.TextDocument): vscode.DocumentLink[] {
     const links: vscode.DocumentLink[] = [];
     const text = document.getText();
     let match: RegExpMatchArray | null;
@@ -45,8 +46,8 @@ class ShortLinkProvider implements vscode.DocumentLinkProvider {
         const linkStart = document.positionAt(match.index);
         const linkEnd = document.positionAt((match.index) + match[0].length);
         links.push(new vscode.DocumentLink(
-          new vscode.Range(linkStart, linkEnd),
-          vscode.Uri.parse(`http://${host}/${path}`)));
+            new vscode.Range(linkStart, linkEnd),
+            vscode.Uri.parse(`http://${host}/${path}`)));
       }
     }
     return links;

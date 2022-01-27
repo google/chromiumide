@@ -89,7 +89,8 @@ export function activateDutManager(context: vscode.ExtensionContext) {
             }
 
             // Create a new terminal.
-            const terminal = ideutil.createTerminalForHost(host, 'CrOS: Shell', context.extensionUri, '');
+            const terminal = ideutil.createTerminalForHost(
+                host, 'CrOS: Shell', context.extensionUri, '');
             terminal.show();
           }),
       vscode.commands.registerCommand('cros-ide.addHost',
@@ -102,7 +103,8 @@ export function activateDutManager(context: vscode.ExtensionContext) {
             const configRoot = ideutil.getConfigRoot();
             const hosts = configRoot.get<string[]>('hosts') || [];
             hosts.push(host);
-            configRoot.update('hosts', hosts, vscode.ConfigurationTarget.Global);
+            configRoot.update(
+                'hosts', hosts, vscode.ConfigurationTarget.Global);
           }),
       vscode.commands.registerCommand('cros-ide.deleteHost',
           async (host?: string) => {
@@ -115,12 +117,14 @@ export function activateDutManager(context: vscode.ExtensionContext) {
               }
             }
 
-            // Try deleting crossfleet first. If not found, then try deleting from "my devices"
+            // Try deleting crossfleet first. If not found, then try deleting
+            // from "my devices"
             if (!fleetDevicesProvider.removeTreeItem(host)) {
               const configRoot = ideutil.getConfigRoot();
               const oldHosts = configRoot.get<string[]>('hosts') || [];
               const newHosts = oldHosts.filter((h) => (h !== host));
-              configRoot.update('hosts', newHosts, vscode.ConfigurationTarget.Global);
+              configRoot.update(
+                  'hosts', newHosts, vscode.ConfigurationTarget.Global);
             }
           }),
       vscode.commands.registerCommand('cros-ide.refreshCrosfleet',
@@ -133,8 +137,11 @@ export function activateDutManager(context: vscode.ExtensionContext) {
             await crosfleetDutLease({board});
             // HACK: copy over binaries.
             // TODO: Removing prebuilts till we have an alterative solution
-            // const prebuilt = vscode.Uri.joinPath(context.extensionUri, 'resources', 'novnc-prebuilt.tar.gz');
-            // await util.execFile(`ssh ${lease.DUT.Hostname + '.cros'} tar xz -C /usr/local < ${prebuilt.fsPath}`);
+            // const prebuilt = vscode.Uri.joinPath(
+            //     context.extensionUri, 'resources', 'novnc-prebuilt.tar.gz');
+            // await util.execFile(
+            //     `ssh ${lease.DUT.Hostname + '.cros'} ` +
+            //     `tar xz -C /usr/local < ${prebuilt.fsPath}`);
             // fleetDevicesProvider.updateCache();
           }),
       vscode.workspace.onDidChangeConfiguration((e) => {
@@ -142,8 +149,10 @@ export function activateDutManager(context: vscode.ExtensionContext) {
           staticDevicesProvider.onConfigChanged();
         }
       }),
-      vscode.window.registerTreeDataProvider('static-devices', staticDevicesProvider),
-      vscode.window.registerTreeDataProvider('fleet-devices', fleetDevicesProvider),
+      vscode.window.registerTreeDataProvider(
+          'static-devices', staticDevicesProvider),
+      vscode.window.registerTreeDataProvider(
+          'fleet-devices', fleetDevicesProvider),
   );
 }
 

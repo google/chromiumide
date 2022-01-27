@@ -19,13 +19,15 @@ export class VncSession {
   private onDidDisposeEmitter = new vscode.EventEmitter<void>();
   readonly onDidDispose = this.onDidDisposeEmitter.event;
 
-  constructor(private readonly host: string, readonly extensionUri: vscode.Uri) {
+  constructor(private readonly host: string,
+              readonly extensionUri: vscode.Uri) {
     // Here we do the following:
     // 1. Choose a local port
     // 2. Start an SSH session for SSH tunnel and to start kmsvnc and novnc
     // 3. Create tab to display VNC contents
     this.localPort = VncSession.nextAvailablePort++;
-    this.terminal = VncSession.startVncServer(host, this.localPort, extensionUri);
+    this.terminal =
+        VncSession.startVncServer(host, this.localPort, extensionUri);
     this.panel = VncSession.createWebview(host, this.localPort);
 
     // Dispose the session when the panel is closed.
@@ -49,15 +51,18 @@ export class VncSession {
     this.panel.reveal();
   }
 
-  private static startVncServer(host: string, localPort: number, extensionUri: vscode.Uri): vscode.Terminal {
-    const terminal = ideutil.createTerminalForHost(host, 'CrOS: VNC forwarding', extensionUri, `-L ${localPort}:localhost:6080`);
+  private static startVncServer(host: string, localPort: number,
+      extensionUri: vscode.Uri): vscode.Terminal {
+    const terminal =ideutil.createTerminalForHost(host,
+        'CrOS: VNC forwarding', extensionUri, `-L ${localPort}:localhost:6080`);
     terminal.sendText('fuser -k 5900/tcp 6080/tcp');
     terminal.sendText('kmsvnc &');
     terminal.sendText('novnc &');
     return terminal;
   }
 
-  private static createWebview(host: string, localPort: number): vscode.WebviewPanel {
+  private static createWebview(
+      host: string, localPort: number): vscode.WebviewPanel {
     const panel = vscode.window.createWebviewPanel(
         'vncclient',
         `CrOS VNC Client: ${host}`,

@@ -13,7 +13,8 @@ import * as dutServices from './dut_services';
 export class LocalDevicesProvider implements vscode.TreeDataProvider<string> {
   private readonly cachedVersions = new Map<string, string>();
 
-  private onDidChangeTreeDataEmitter = new vscode.EventEmitter<string | undefined | null | void>();
+  private onDidChangeTreeDataEmitter =
+    new vscode.EventEmitter<string | undefined | null | void>();
   readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
 
   constructor() {

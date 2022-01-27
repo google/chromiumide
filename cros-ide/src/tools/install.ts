@@ -127,7 +127,9 @@ async function buildAndUpload() {
     const localName = (await fs.promises.readdir(td))[0];
     const localVersion = versionFromFilename(localName);
     if (compareVersion(latestInGs.version, localVersion) >= 0) {
-      throw new Error(`${localName} is older than the latest published version ${latestInGs.name}. Update the version and rerun the program.`);
+      throw new Error(
+          `${localName} is older than the latest published version ` +
+          `${latestInGs.name}. Update the version and rerun the program.`);
     }
     const url = new Archive(localName, hash).url();
     // TODO(oka): use execFile.
@@ -167,7 +169,9 @@ async function main() {
     await install();
   } catch (e) {
     const message = (e as Error).message;
-    throw new Error(`${message}\nRead quickstart.md and run the script in proper environment`);
+    throw new Error(
+        `${message}\n` +
+        'Read quickstart.md and run the script in proper environment');
   }
 }
 

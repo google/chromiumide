@@ -22,7 +22,6 @@ module.exports = {
     // These rules should be enabled but are temporary disabled until the
     // violations are removed from the code.
     'require-jsdoc': 0,
-    'max-len': 0,
     'arrow-parens': 0,
     'no-throw-literal': 0,
   },
