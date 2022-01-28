@@ -18,6 +18,8 @@
     "onCommand:cros-ide.connectToHostForShell",
     "onCommand:cros-ide.refreshCrosfleet",
     "onCommand:cros-ide.addFleetHost",
+    "onCommand:cros-ide.codeSearchOpenCurrentFile",
+    "onCommand:cros-ide.codeSearchSearchForSelection",
     "onView:static-devices",
     "onView:fleet-devices",
     "onView:boards-packages",
@@ -60,6 +62,14 @@
         "command": "cros-ide.refreshBoardsPackages",
         "title": "CrOS: Refresh Boards and Packages",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "cros-ide.codeSearchOpenCurrentFile",
+        "title": "Open in Code Search"
+      },
+      {
+        "command": "cros-ide.codeSearchSearchForSelection",
+        "title": "Search for selection in Code Search"
       }
     ],
     "viewsContainers": {
@@ -88,6 +98,14 @@
       ]
     },
     "menus": {
+      "editor/context": [
+        {
+          "command": "cros-ide.codeSearchOpenCurrentFile"
+        },
+        {
+          "command" : "cros-ide.codeSearchSearchForSelection"
+        }
+      ],
       "view/title": [
         {
           "command": "cros-ide.addHost",
