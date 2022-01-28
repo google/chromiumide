@@ -11,10 +11,8 @@ Go to the [QuickStart Guide](https://chromium.googlesource.com/chromiumos/ide_to
 
 ## Publishing the extension
 
-* Outside chroot, run `npm run publish`. It will build the extension and upload it to
+* Inside chroot, run `npm run publish`. It will build the extension and upload it to
   Cloud storage under [chromeos-velocity](https://pantheon.corp.google.com/storage/browser?project=google.com:chromeos-velocity).
-
-  TODO(oka): Make the command work inside chroot.
 
 ## Features
 
