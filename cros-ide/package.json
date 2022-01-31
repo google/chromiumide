@@ -25,7 +25,9 @@
     "onView:static-devices",
     "onView:fleet-devices",
     "onView:boards-packages",
-    "onLanguage:cpp"
+    "onLanguage:cpp",
+    "onLanguage:python",
+    "onLanguage:shellscript"
   ],
   "main": "./dist/extension.js",
   "contributes": {

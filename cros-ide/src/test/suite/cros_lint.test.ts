@@ -50,7 +50,7 @@ suite('Cros Lint Test Suite', () => {
     const uri = vscode.Uri.from({scheme: scheme, path: 'cros-disks/aaa.h'});
     const textDocument = await vscode.workspace.openTextDocument(uri);
     const diagnostics =
-      crosLint.parseCrosLint(crosLintOutput, '', textDocument);
+      crosLint.parseCrosLintCpp(crosLintOutput, '', textDocument);
     assert.ok(diagnostics);
     assert.strictEqual(diagnostics.length, 2);
     const [copyrightWarn, namespaceWarn] = diagnostics;
