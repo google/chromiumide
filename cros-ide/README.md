@@ -7,7 +7,7 @@ This plugin consolidates commonly used tools for Chromium OS Development.
 
 ## Getting Started with Development
 
-Go to the [QuickStart Guide](https://chromium.googlesource.com/chromiumos/ide_tooling/+/main/docs/quickstart.md)
+Go to the [QuickStart Guide](https://chromium.googlesource.com/chromiumos/chromite/+/HEAD/ide_tooling/docs/quickstart.md)
 
 ## Publishing the extension
 

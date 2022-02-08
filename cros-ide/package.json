@@ -4,7 +4,7 @@
   "description": "Connect to Chrome OS DUTs over VNC",
   "version": "0.0.2",
   "publisher": "cros-velocity",
-  "repository": "https://chromium.googlesource.com/chromiumos/ide_tooling",
+  "repository": "https://chromium.googlesource.com/chromiumos/chromite/+/HEAD/ide_tooling",
   "engines": {
     "vscode": "^1.63.1"
   },

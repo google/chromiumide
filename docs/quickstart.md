@@ -35,7 +35,7 @@ Select SSH target `cros` and open your working directory under
 Open terminal in the VSCode connected to `cros`, and run
 
 ```
-/home/$USER/chromiumos/ide_tooling/cros-ide/install.sh
+~/chromiumos/chromite/ide_tooling/cros-ide/install.sh
 ```
 
   TODO(oka): Publish the extension to official marketplace to ease installation.
