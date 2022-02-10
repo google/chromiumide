@@ -56,4 +56,95 @@ suite('Short Link Provider Test Suite', () => {
     );
     assert.deepStrictEqual(crbug.range, expectedCrbugRange);
   });
+
+  test('Bug tracker with number', async () => {
+    const links = await getLinks('TODO(chromium:123313): see also b:6527146.');
+    assert.ok(links);
+    assert.strictEqual(links.length, 2);
+    const expectedLinks = [
+      new vscode.DocumentLink(
+          new vscode.Range(
+              new vscode.Position(0, 5),
+              new vscode.Position(0, 20)),
+          vscode.Uri.parse('http://crbug/123313'),
+      ),
+      new vscode.DocumentLink(
+          new vscode.Range(
+              new vscode.Position(0, 32),
+              new vscode.Position(0, 41)),
+          vscode.Uri.parse('http://b/6527146'),
+      ),
+    ];
+    assert.deepStrictEqual(links, expectedLinks);
+  });
+
+  test('Todo with ldap', async () => {
+    const links = await getLinks('// TODO(hiroshi): create a chat app.');
+    assert.ok(links);
+    assert.strictEqual(links.length, 1);
+    const expectedLinks = [
+      new vscode.DocumentLink(
+          new vscode.Range(
+              new vscode.Position(0, 8),
+              new vscode.Position(0, 15)),
+          vscode.Uri.parse('http://teams/hiroshi'),
+      ),
+    ];
+    assert.deepStrictEqual(links, expectedLinks);
+  });
+
+  test('crrev and crbug', async () => {
+    const links = await getLinks('TODO(crbug.com/123456) crrev/c/3406219\n' +
+         'crrev.com/c/3406220');
+    assert.ok(links);
+    assert.strictEqual(links.length, 3);
+    const expectedLinks = [
+      new vscode.DocumentLink(
+          new vscode.Range(
+              new vscode.Position(0, 5),
+              new vscode.Position(0, 21)),
+          vscode.Uri.parse('http://crbug.com/123456'),
+      ),
+      new vscode.DocumentLink(
+          new vscode.Range(
+              new vscode.Position(0, 23),
+              new vscode.Position(0, 38)),
+          vscode.Uri.parse('http://crrev/c/3406219'),
+      ),
+      new vscode.DocumentLink(
+          new vscode.Range(
+              new vscode.Position(1, 0),
+              new vscode.Position(1, 19)),
+          vscode.Uri.parse('http://crrev.com/c/3406220'),
+      ),
+    ];
+    assert.deepStrictEqual(links, expectedLinks);
+  });
+
+  test('Mixed link types', async () => {
+    // Test that we can extract links matching different regular expressions.
+    const links = await getLinks(
+        'Duplicate of b/123456.\n' +
+        'TODO(sundar): fight spam\n' +
+        'TODO(chromium:123456): some text');
+    assert.ok(links);
+    // Verify only the number of results. The order of links depends on
+    // the order in which the extractors are run, so verifying an array would
+    // make the test fragile.
+    assert.strictEqual(links.length, 3);
+  });
+
+  test('Negative examples', async () => {
+    // Note, that VS Code provides links for things starting with http[s],
+    // so we should ignore such links.
+    const links = await getLinks(
+        'Text http://www.bing.com/ more text\n' +
+        'TODO(http://b/123456)\n' +
+        'Text http://crrev/c/123456 more text\n' +
+        'Text http://crbug/123456 more text\n' +
+        'Text usb:1234556 more text\n' +
+        'Text 70:88:6b:92:34:70 more text');
+    assert.ok(links);
+    assert.deepStrictEqual(links, []);
+  });
 });
