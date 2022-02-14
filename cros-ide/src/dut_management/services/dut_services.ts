@@ -5,15 +5,16 @@
 /**
  * Common libs specific to DUT management.
  */
+import * as commonUtil from '../../common/common_util';
 import * as ideutil from '../../ide_utilities';
 import * as dutManager from '../dut_manager';
 
 const BUILDER_PATH_RE = /CHROMEOS_RELEASE_BUILDER_PATH=(.*)/;
 
 export async function crosfleetLeases(): Promise<dutManager.Leases> {
-  const out = await ideutil.execFile('crosfleet', ['dut', 'leases', '-json']);
+  const out = await commonUtil.exec('crosfleet', ['dut', 'leases', '-json']);
   // TODO: validation...
-  return JSON.parse(out.stdout) as dutManager.Leases;
+  return JSON.parse(out) as dutManager.Leases;
 }
 
 export async function queryHostVersion(host: string): Promise<string> {
@@ -26,5 +27,5 @@ export async function queryHostVersion(host: string): Promise<string> {
 }
 
 export async function crosfleetDutAbandon(host: string) {
-  await ideutil.execFile('crosfleet', ['dut', 'abandon', host]);
+  await commonUtil.exec('crosfleet', ['dut', 'abandon', host]);
 }

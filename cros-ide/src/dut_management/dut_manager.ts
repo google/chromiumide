@@ -6,6 +6,7 @@
  * This contains the GUI and functionality for managing DUTs
  */
 import * as vscode from 'vscode';
+import * as commonUtil from '../common/common_util';
 import * as ideutil from '../ide_utilities';
 import * as fleetProvider from './services/fleet_devices_provider';
 import * as vnc from './services/vnc_session';
@@ -203,6 +204,6 @@ async function crosfleetDutLease(opts?: LeaseOpts): Promise<Lease> {
   if (opts?.reason !== undefined) {
     args.push('-reason', opts?.reason);
   }
-  const out = await ideutil.execFile('crosfleet', args);
-  return JSON.parse(out.stdout) as Lease;
+  const out = await commonUtil.exec('crosfleet', args);
+  return JSON.parse(out) as Lease;
 }

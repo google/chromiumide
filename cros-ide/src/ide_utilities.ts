@@ -8,25 +8,6 @@
 import * as vscode from 'vscode';
 import * as childProcess from 'child_process';
 
-type ExecFileResult = {
-  stdout: string;
-  stderr: string
-};
-
-export async function execFile(
-    file: string,
-    args: ReadonlyArray<string> | undefined | null): Promise<ExecFileResult> {
-  return new Promise((resolve, reject) => {
-    childProcess.execFile(file, args, (error, stdout, stderr) => {
-      if (error !== null) {
-        reject(error);
-        return;
-      }
-      resolve({stdout, stderr});
-    });
-  });
-}
-
 export function runSSH(host: string, args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
     childProcess.execFile('ssh', [host].concat(args), (error, stdout) => {
