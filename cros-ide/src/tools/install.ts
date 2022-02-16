@@ -17,10 +17,21 @@ function assertInsideChroot() {
   }
 }
 
+let exec = commonUtil.exec;
+
+export function setExecForTesting(
+    fakeExec: (name: string, args: string[]) => Promise<string>): () => void {
+  const original = exec;
+  exec = fakeExec;
+  return () => {
+    exec = original;
+  };
+}
+
 const GS_PREFIX = 'gs://chromeos-velocity/ide/cros-ide';
 
 async function execute(name: string, args: string[], showStdout?: boolean) {
-  return await commonUtil.exec(
+  return await exec(
       name, args, log => process.stderr.write(log), {logStdout: showStdout});
 }
 
@@ -84,7 +95,6 @@ interface Version {
   patch: number
 }
 
-// TODO(oka): test this function.
 function compareVersion(first: Version, second: Version): number {
   if (first.major !== second.major) {
     return first.major - second.major;
@@ -99,7 +109,6 @@ function compareVersion(first: Version, second: Version): number {
 }
 
 // Get version from filename such as "cros-ide-0.0.1.vsix"
-// TODO(oka): test this function.
 // TODO(oka): check invalid input.
 function versionFromFilename(name: string): Version {
   const suffix = name.split('-').pop()!;
@@ -111,7 +120,7 @@ function versionFromFilename(name: string): Version {
   };
 }
 
-async function buildAndUpload() {
+export async function buildAndUpload() {
   const latestInGs = await latestArchive();
   const hash = await cleanCommitHash();
   let td: string | undefined;
@@ -123,10 +132,9 @@ async function buildAndUpload() {
     if (compareVersion(latestInGs.version, localVersion) >= 0) {
       throw new Error(
           `${localName} is older than the latest published version ` +
-          `${latestInGs.name}. Update the version and rerun the program.`);
+        `${latestInGs.name}. Update the version and rerun the program.`);
     }
     const url = new Archive(localName, hash).url();
-    // TODO(oka): use execFile.
     await execute('gsutil', ['cp', `${td}/${localName}`, url]);
   } finally {
     if (td) {
@@ -135,9 +143,7 @@ async function buildAndUpload() {
   }
 }
 
-async function install() {
-  assertInsideChroot();
-
+export async function install() {
   const src = await latestArchive();
   let td: string | undefined;
   try {
@@ -160,12 +166,13 @@ async function main() {
     return;
   }
   try {
+    assertInsideChroot();
     await install();
   } catch (e) {
     const message = (e as Error).message;
     throw new Error(
         `${message}\n` +
-        'Read quickstart.md and run the script in proper environment');
+      'Read quickstart.md and run the script in proper environment');
   }
 }
 
