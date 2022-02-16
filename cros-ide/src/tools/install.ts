@@ -6,11 +6,9 @@
  * Script to manage installation of the extension.
  */
 
-import * as childProcess from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import * as util from 'util';
 import * as commonUtil from '../common/common_util';
 
 function assertInsideChroot() {
@@ -21,18 +19,14 @@ function assertInsideChroot() {
 
 const GS_PREFIX = 'gs://chromeos-velocity/ide/cros-ide';
 
-async function execute(cmd: string, showStdout?: boolean) {
-  const {stdout, stderr} = await util.promisify(childProcess.exec)(cmd);
-  process.stderr.write(stderr);
-  if (showStdout) {
-    process.stdout.write(stdout);
-  }
-  return stdout;
+async function execute(name: string, args: string[], showStdout?: boolean) {
+  return await commonUtil.exec(
+      name, args, process.stderr.write, {logStdout: showStdout});
 }
 
 async function latestArchive(): Promise<Archive> {
   // The result of `gsutil ls` is lexicographically sorted.
-  const stdout = await execute(`gsutil ls ${GS_PREFIX}`);
+  const stdout = await execute('gsutil', ['ls', GS_PREFIX]);
   const archives = stdout.trim().split('\n').map(url => {
     return Archive.parse(url);
   });
@@ -41,7 +35,7 @@ async function latestArchive(): Promise<Archive> {
 }
 
 async function gitIsDirty() {
-  const stdout = await execute(`git diff --stat`);
+  const stdout = await execute('git', ['diff', '--stat']);
   return stdout !== '';
 }
 
@@ -50,8 +44,8 @@ async function cleanCommitHash() {
   if (await gitIsDirty()) {
     throw new Error('dirty git status; run the command in clean environment');
   }
-  const wantHash = await execute('git rev-parse cros/main');
-  const hash = await execute('git rev-parse HEAD');
+  const wantHash = await execute('git', ['rev-parse', 'cros/main']);
+  const hash = await execute('git', ['rev-parse', 'HEAD']);
 
   if (process.env.IDE_IGNORE_CROS_MAIN_FOR_TESTING) {
     // Skip check for manual testing of the script.
@@ -123,8 +117,8 @@ async function buildAndUpload() {
   let td: string | undefined;
   try {
     td = await fs.promises.mkdtemp(os.tmpdir() + '/');
-    await execute(`npx vsce@1.103.1 package -o ${td}/`);
-    const localName = (await fs.promises.readdir(td))[0];
+    await execute('npx', ['vsce@1.103.1', 'package', '-o', `${td}/`]);
+    const localName: string = (await fs.promises.readdir(td))[0];
     const localVersion = versionFromFilename(localName);
     if (compareVersion(latestInGs.version, localVersion) >= 0) {
       throw new Error(
@@ -133,7 +127,7 @@ async function buildAndUpload() {
     }
     const url = new Archive(localName, hash).url();
     // TODO(oka): use execFile.
-    await execute(`gsutil cp ${td}/${localName} ${url}`);
+    await execute('gsutil', ['cp', `${td}/${localName}`, url]);
   } finally {
     if (td) {
       await fs.promises.rmdir(td, {recursive: true});
@@ -150,8 +144,8 @@ async function install() {
     td = await fs.promises.mkdtemp(os.tmpdir() + '/');
     const dst = path.join(td, src.name);
 
-    await execute(`gsutil cp ${src.url()} ${dst}`);
-    await execute(`code --install-extension ${dst}`, true);
+    await execute('gsutil', ['cp', src.url(), dst]);
+    await execute('code', ['--install-extension', dst], true);
   } finally {
     if (td) {
       await fs.promises.rmdir(td, {recursive: true});
@@ -175,7 +169,9 @@ async function main() {
   }
 }
 
-main().catch(e => {
-  console.error(e);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch(e => {
+    console.error(e);
+    process.exit(1);
+  });
+}
