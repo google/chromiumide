@@ -120,22 +120,18 @@ function versionFromFilename(name: string): Version {
   };
 }
 
-export async function buildAndUpload() {
-  const latestInGs = await latestArchive();
-  const hash = await cleanCommitHash();
+async function build(tempDir: string, hash: string): Promise<Archive> {
+  await execute('npx', ['vsce@1.103.1', 'package', '-o', `${tempDir}/`]);
+  const localName: string = (await fs.promises.readdir(tempDir))[0];
+  return new Archive(localName, hash);
+}
+
+async function withTempDir(
+    f: (tempDir: string) => Promise<void>): Promise<void> {
   let td: string | undefined;
   try {
     td = await fs.promises.mkdtemp(os.tmpdir() + '/');
-    await execute('npx', ['vsce@1.103.1', 'package', '-o', `${td}/`]);
-    const localName: string = (await fs.promises.readdir(td))[0];
-    const localVersion = versionFromFilename(localName);
-    if (compareVersion(latestInGs.version, localVersion) >= 0) {
-      throw new Error(
-          `${localName} is older than the latest published version ` +
-        `${latestInGs.name}. Update the version and rerun the program.`);
-    }
-    const url = new Archive(localName, hash).url();
-    await execute('gsutil', ['cp', `${td}/${localName}`, url]);
+    await f(td);
   } finally {
     if (td) {
       await fs.promises.rmdir(td, {recursive: true});
@@ -143,20 +139,30 @@ export async function buildAndUpload() {
   }
 }
 
+export async function buildAndUpload() {
+  const latestInGs = await latestArchive();
+  const hash = await cleanCommitHash();
+
+  await withTempDir(async td => {
+    const built = await build(td, hash);
+    if (compareVersion(latestInGs.version, built.version) >= 0) {
+      throw new Error(
+          `${built.name} is older than the latest published version ` +
+        `${latestInGs.name}. Update the version and rerun the program.`);
+    }
+    await execute('gsutil', ['cp', path.join(td, built.name), built.url()]);
+  });
+}
+
 export async function install() {
   const src = await latestArchive();
-  let td: string | undefined;
-  try {
-    td = await fs.promises.mkdtemp(os.tmpdir() + '/');
+
+  await withTempDir(async td => {
     const dst = path.join(td, src.name);
 
     await execute('gsutil', ['cp', src.url(), dst]);
     await execute('code', ['--install-extension', dst], true);
-  } finally {
-    if (td) {
-      await fs.promises.rmdir(td, {recursive: true});
-    }
-  }
+  });
 }
 
 async function main() {
