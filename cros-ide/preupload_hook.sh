@@ -4,11 +4,13 @@
 # found in the LICENSE file.
 
 # Run tests to ensure the extension works.
-# TODO(oka): Consider writing the script in Typescript if the file becomes big.
-
 set -e
+
+# Ignore changes outside of ide_tooling/cros_ide.
+if ! [[ "$*" =~ /chromite/ide_tooling/cros-ide/ ]]; then
+  exit 0
+fi
 
 cd "$(dirname "$0")" || exit 1
 
-# Build
-npm run package
+npx ts-node ./src/tools/preupload_hook.ts
