@@ -21,7 +21,7 @@ export function runSSH(host: string, args: string[]): Promise<string> {
 }
 
 export function getConfigRoot(): vscode.WorkspaceConfiguration {
-  return vscode.workspace.getConfiguration('cros');
+  return vscode.workspace.getConfiguration('cros-ide');
 }
 
 export function createTerminalForHost(

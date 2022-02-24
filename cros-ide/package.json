@@ -165,9 +165,9 @@
       }
     ],
     "configuration": {
-      "title": "Chrome OS",
+      "title": "CrOS IDE",
       "properties": {
-        "cros.hosts": {
+        "cros-ide.hosts": {
           "type": "array",
           "scope": "machine-overridable",
           "description": "List of devices under testing",
@@ -175,11 +175,16 @@
             "type": "string"
           }
         },
-        "cros.codesearch": {
+        "cros-ide.codeSearch": {
           "type": "string",
           "enum": ["public", "internal", "gitiles"],
-          "description": "CodeSearch instance to open files in",
+          "description": "Code Search instance to open files in",
           "default": "public"
+        },
+        "cros-ide.features.testCoverage": {
+          "type": "boolean",
+          "description": "Enable Test Coverage",
+          "default": false
         }
       }
     },

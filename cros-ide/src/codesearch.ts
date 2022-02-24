@@ -24,7 +24,7 @@ function openCurrentFile(textEditor: vscode.TextEditor) {
   const fullpath = textEditor.document.fileName;
 
   // Which CodeSearch to use, options are public, internal, or gitiles.
-  const csInstance = ideUtilities.getConfigRoot().get<string>('codesearch');
+  const csInstance = ideUtilities.getConfigRoot().get<string>('codeSearch');
 
   const line = textEditor.selection.active.line + 1;
 
