@@ -9,6 +9,7 @@
 
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
+import * as os from 'os';
 
 export function isInsideChroot(): boolean {
   return fs.existsSync('/etc/cros_chroot_version');
@@ -122,4 +123,17 @@ export async function exec(name: string, args: string[],
       resolve(response);
     });
   });
+}
+
+export async function withTempDir(
+    f: (tempDir: string) => Promise<void>): Promise<void> {
+  let td: string | undefined;
+  try {
+    td = await fs.promises.mkdtemp(os.tmpdir() + '/');
+    await f(td);
+  } finally {
+    if (td) {
+      await fs.promises.rmdir(td, {recursive: true});
+    }
+  }
 }

@@ -82,6 +82,10 @@
       {
         "command": "cros-ide.crosWorkonStop",
         "title": "CrOS: Stop Working on a Package"
+      },
+      {
+        "command": "cros-ide.selectBoard",
+        "title": "CrOS: Select target board"
       }
     ],
     "viewsContainers": {
@@ -167,13 +171,9 @@
     "configuration": {
       "title": "CrOS IDE",
       "properties": {
-        "cros-ide.hosts": {
-          "type": "array",
-          "scope": "machine-overridable",
-          "description": "List of devices under testing",
-          "items": {
-            "type": "string"
-          }
+        "cros-ide.board": {
+          "type": "string",
+          "description": "The board to use on commands such as emerge"
         },
         "cros-ide.codeSearch": {
           "type": "string",
@@ -185,6 +185,14 @@
           "type": "boolean",
           "description": "Enable Test Coverage",
           "default": false
+        },
+        "cros-ide.hosts": {
+          "type": "array",
+          "scope": "machine-overridable",
+          "description": "List of devices under testing",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

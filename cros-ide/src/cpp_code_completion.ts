@@ -3,9 +3,10 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as commonUtil from './common/common_util';
-import * as ideutil from './ide_utilities';
 import * as process from 'process';
+
+import * as commonUtil from './common/common_util';
+import * as ideUtilities from './ide_utilities';
 
 export function activate(context: vscode.ExtensionContext) {
   const manager = new commonUtil.JobManager<void>();
@@ -42,7 +43,7 @@ async function generateCompilationDatabase(
   if (!project) {
     return;
   }
-  const board = await getTargetBoard();
+  const board = await ideUtilities.getOrSelectTargetBoard();
   if (!board) {
     return;
   }
@@ -53,36 +54,29 @@ async function generateCompilationDatabase(
   await manager.offer(async () => {
     // TODO(oka): Show that compilation is in progress in status bar.
     try {
-      await commonUtil.exec('cros_workon',
-          ['--board', board, 'start', project], ideutil.getLogger().append);
+      await commonUtil.exec('cros_workon', ['--board', board, 'start', project],
+          ideUtilities.getLogger().append);
 
       await commonUtil.exec('env',
           ['USE=compilation_database', `emerge-${board}`, project],
-          ideutil.getLogger().append, {logStdout: true});
+          ideUtilities.getLogger().append, {logStdout: true});
 
       // Make the generated compilation database available from clangd.
       await commonUtil.exec(
           'ln', ['-sf', `/build/${board}/build/compilation_database/` +
         `${project}/compile_commands_chroot.json`,
           `${process.env.HOME}/chromiumos/src/platform2/compile_commands.json`],
-          ideutil.getLogger().append);
+          ideUtilities.getLogger().append);
     } catch (e) {
       console.error(e);
     }
   });
 }
 
-async function getTargetBoard(): Promise<string | null> {
-  // TODO(oka): Make the board selectable by the user.
-  return 'amd64-generic';
-}
-
 // Get project name from filename.
 function getProject(filename: string): string | null {
   return platform2Project(filename);
 }
-
-const platform2 = '/platform2/';
 
 // Known source code location to project name mapping which supports
 // compilation database generation.
@@ -92,8 +86,10 @@ const knownMapping: Map<string, string> = new Map([
   ['shill', 'chromeos-base/shill'],
 ]);
 
+const platform2 = '/platform2/';
+
 // Get platform2 project or return null.
-function platform2Project(filepath: string) :string | null {
+function platform2Project(filepath: string): string | null {
   const i = filepath.indexOf(platform2);
   if (i === -1) {
     return null;

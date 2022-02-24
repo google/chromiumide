@@ -7,7 +7,6 @@
  */
 
 import * as fs from 'fs';
-import * as os from 'os';
 import * as path from 'path';
 import * as commonUtil from '../common/common_util';
 
@@ -158,24 +157,11 @@ async function build(tempDir: string, hash?: string): Promise<Archive> {
   return new Archive(localName, hash);
 }
 
-async function withTempDir(
-    f: (tempDir: string) => Promise<void>): Promise<void> {
-  let td: string | undefined;
-  try {
-    td = await fs.promises.mkdtemp(os.tmpdir() + '/');
-    await f(td);
-  } finally {
-    if (td) {
-      await fs.promises.rmdir(td, {recursive: true});
-    }
-  }
-}
-
 export async function buildAndUpload() {
   const latestInGs = await findArchive();
   const hash = await cleanCommitHash();
 
-  await withTempDir(async td => {
+  await commonUtil.withTempDir(async td => {
     const built = await build(td, hash);
     if (compareVersion(latestInGs.version, built.version) >= 0) {
       throw new Error(
@@ -187,7 +173,7 @@ export async function buildAndUpload() {
 }
 
 export async function installDev() {
-  await withTempDir(async td => {
+  await commonUtil.withTempDir(async td => {
     const built = await build(td);
     const src = path.join(td, built.name);
     await execute('code', ['--install-extension', src], true);
@@ -197,7 +183,7 @@ export async function installDev() {
 export async function install(forceVersion?: Version) {
   const src = await findArchive(forceVersion);
 
-  await withTempDir(async td => {
+  await commonUtil.withTempDir(async td => {
     const dst = path.join(td, src.name);
 
     await execute('gsutil', ['cp', src.url(), dst]);
