@@ -14,7 +14,11 @@ const BUILDER_PATH_RE = /CHROMEOS_RELEASE_BUILDER_PATH=(.*)/;
 export async function crosfleetLeases(): Promise<dutManager.Leases> {
   const out = await commonUtil.exec('crosfleet', ['dut', 'leases', '-json']);
   // TODO: validation...
-  return JSON.parse(out) as dutManager.Leases;
+  const leases = JSON.parse(out) as dutManager.Leases;
+  if (!leases.Leases) {
+    leases.Leases = [];
+  }
+  return leases;
 }
 
 export async function queryHostVersion(host: string): Promise<string> {

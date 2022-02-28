@@ -84,7 +84,23 @@ export class JobManager<T> {
  * @param opt Optional parameters. Set opt.logStdout to true to log stdout in
  * addition to stderr.
  */
-export async function exec(name: string, args: string[],
+export function exec(name: string, args: string[],
+    log?: (line: string) => void,
+    opt?: { logStdout?: boolean }): Promise<string> {
+  return execPtr(name, args, log, opt);
+}
+
+let execPtr = realExec;
+
+export function setExecForTesting(fakeExec: typeof exec): () => void {
+  const original = execPtr;
+  execPtr = fakeExec;
+  return () => {
+    execPtr = original;
+  };
+}
+
+function realExec(name: string, args: string[],
     log?: (line: string) => void,
     opt?: { logStdout?: boolean }): Promise<string> {
   return new Promise((resolve, reject) => {
