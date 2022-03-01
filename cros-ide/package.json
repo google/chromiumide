@@ -36,32 +36,38 @@
       {
         "command": "cros-ide.connectToHostForScreen",
         "title": "CrOS: Connect to Host (VNC)",
-        "icon": "$(window)"
+        "icon": "$(window)",
+        "enablement": "cros-ide.features.dutManager"
       },
       {
         "command": "cros-ide.connectToHostForShell",
         "title": "CrOS: Connect to Host (Shell)",
-        "icon": "$(terminal)"
+        "icon": "$(terminal)",
+        "enablement": "cros-ide.features.dutManager"
       },
       {
         "command": "cros-ide.addHost",
         "title": "CrOS: Add New Host",
-        "icon": "$(add)"
+        "icon": "$(add)",
+        "enablement": "cros-ide.features.dutManager"
       },
       {
         "command": "cros-ide.deleteHost",
         "title": "CrOS: Delete Host",
-        "icon": "$(remove)"
+        "icon": "$(remove)",
+        "enablement": "cros-ide.features.dutManager"
       },
       {
         "command": "cros-ide.refreshCrosfleet",
         "title": "CrOS: Refresh crosfleet devices",
-        "icon": "$(refresh)"
+        "icon": "$(refresh)",
+        "enablement": "cros-ide.features.dutManager"
       },
       {
         "command": "cros-ide.addFleetHost",
         "title": "CrOS: Add crosfleet Host",
-        "icon": "$(add)"
+        "icon": "$(add)",
+        "enablement": "cros-ide.features.dutManager"
       },
       {
         "command": "cros-ide.refreshBoardsPackages",
@@ -93,7 +99,7 @@
       "activitybar": [
         {
           "id": "cros-devices",
-          "title": "CrOS Remote Testing",
+          "title": "CrOS Development",
           "icon": "media/cros-device.svg"
         }
       ]
@@ -102,11 +108,13 @@
       "cros-devices": [
         {
           "id": "static-devices",
-          "name": "my devices"
+          "name": "my devices",
+          "when": "config.cros-ide.features.dutManager"
         },
         {
           "id": "fleet-devices",
-          "name": "crosfleet devices"
+          "name": "crosfleet devices",
+          "when": "config.cros-ide.features.dutManager"
         },
         {
           "id": "boards-packages",
@@ -185,6 +193,11 @@
           ],
           "description": "Code Search instance to open files in",
           "default": "public"
+        },
+        "cros-ide.features.dutManager": {
+          "type": "boolean",
+          "description": "Enable DUT Manager",
+          "default": false
         },
         "cros-ide.features.testCoverage": {
           "type": "boolean",

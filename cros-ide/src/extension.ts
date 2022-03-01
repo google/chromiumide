@@ -20,7 +20,6 @@ import * as targetBoard from './target_board';
 import * as workon from './workon';
 
 export function activate(context: vscode.ExtensionContext) {
-  dutManager.activateDutManager(context);
   crosLint.activate(context);
   boardsPackages.activate();
   shortLinkProvider.activate(context);
@@ -28,6 +27,10 @@ export function activate(context: vscode.ExtensionContext) {
   workon.activate(context);
   cppCodeCompletion.activate(context);
   targetBoard.activate(context);
+
+  if (ideUtilities.getConfigRoot().get<boolean>('features.dutManager')) {
+    dutManager.activateDutManager(context);
+  }
 
   if (ideUtilities.getConfigRoot().get<boolean>('features.testCoverage')) {
     coverage.activate(context);
