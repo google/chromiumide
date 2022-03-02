@@ -46,6 +46,15 @@ Here is the steps to release a new version of a package file, to be installed by
 
 [chromeos-velocity]: https://pantheon.corp.google.com/storage/browser?project=google.com:chromeos-velocity
 
+## Hiding features under development
+Incomplete features can be hidden. We do this by introducting configurations settings,
+which are false by default, and using them to guard `activate` function and UI elements
+with `when` clauses. See http://crrev.com/c/3499666 for an example.
+
+To enable a features go to File > Preference > Settings (Ctrl+,) and then
+Extensions > CrOS (CrOS IDE must be activated first). After enabling a feature, run
+'Developer: Reload Window' (Ctrl+R) to make sure it is loaded correctly.
+
 ## FAQs
 
 * How to check that my VSCode is connected to chroot?
