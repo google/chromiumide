@@ -37,37 +37,37 @@
         "command": "cros-ide.connectToHostForScreen",
         "title": "CrOS: Connect to Host (VNC)",
         "icon": "$(window)",
-        "enablement": "cros-ide.features.dutManager"
+        "enablement": "config.cros-ide.features.dutManager"
       },
       {
         "command": "cros-ide.connectToHostForShell",
         "title": "CrOS: Connect to Host (Shell)",
         "icon": "$(terminal)",
-        "enablement": "cros-ide.features.dutManager"
+        "enablement": "config.cros-ide.features.dutManager"
       },
       {
         "command": "cros-ide.addHost",
         "title": "CrOS: Add New Host",
         "icon": "$(add)",
-        "enablement": "cros-ide.features.dutManager"
+        "enablement": "config.cros-ide.features.dutManager"
       },
       {
         "command": "cros-ide.deleteHost",
         "title": "CrOS: Delete Host",
         "icon": "$(remove)",
-        "enablement": "cros-ide.features.dutManager"
+        "enablement": "config.cros-ide.features.dutManager"
       },
       {
         "command": "cros-ide.refreshCrosfleet",
         "title": "CrOS: Refresh crosfleet devices",
         "icon": "$(refresh)",
-        "enablement": "cros-ide.features.dutManager"
+        "enablement": "config.cros-ide.features.dutManager"
       },
       {
         "command": "cros-ide.addFleetHost",
         "title": "CrOS: Add crosfleet Host",
         "icon": "$(add)",
-        "enablement": "cros-ide.features.dutManager"
+        "enablement": "config.cros-ide.features.dutManager"
       },
       {
         "command": "cros-ide.refreshBoardsPackages",
