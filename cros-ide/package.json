@@ -184,6 +184,10 @@
       {
         "view": "static-devices",
         "contents": "No host added yet.\n[Add New Host](command:cros-ide.addHost)"
+      },
+      {
+        "view": "boards-packages",
+        "contents": "No boards have been set up yet. Visit [the developer guide](https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md#Select-a-board) to learn how to select a board and initialize the build."
       }
     ],
     "configuration": {
