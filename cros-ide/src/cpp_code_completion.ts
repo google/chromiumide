@@ -63,14 +63,11 @@ async function generateCompilationDatabase(
   // Generating the database is time consuming involving execution of external
   // processes, so we ensure it to run only one at a time using the manager.
   await manager.offer(async () => {
-    // TODO(oka): Show that compilation is in progress in status bar.
     try {
       await commonUtil.exec('cros_workon', ['--board', board, 'start', pkg],
           ideUtilities.getLogger().append);
 
-      await commonUtil.exec('env',
-          ['USE=compilation_database', `emerge-${board}`, pkg],
-          ideUtilities.getLogger().append, {logStdout: true});
+      await runEmerge(board, pkg);
 
       // Make the generated compilation database available from clangd.
       await commonUtil.exec(
@@ -84,6 +81,19 @@ async function generateCompilationDatabase(
       ideUtilities.getLogger().appendLine((e as Error).message);
       console.error(e);
     }
+  });
+}
+
+/** Runs emerge and shows a spinning progress indicator in the status bar. */
+async function runEmerge(board: string, pkg: string): Promise<string> {
+  return vscode.window.withProgress({
+    location: vscode.ProgressLocation.Window,
+    title: `Building refs for ${pkg}`,
+    cancellable: false,
+  }, (progress, token) => {
+    return commonUtil.exec('env',
+        ['USE=compilation_database', `emerge-${board}`, pkg],
+        ideUtilities.getLogger().append, {logStdout: true});
   });
 }
 
