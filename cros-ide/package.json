@@ -234,6 +234,17 @@
           "items": {
             "type": "string"
           }
+        },
+        "cros-ide.clangdSupport.crosWorkonPrompt": {
+          "type": "string",
+          "scope": "resource",
+          "enum": [
+            "Always",
+            "Never",
+            "Once"
+          ],
+          "description": "Automatically run cros_workon, without prompting the user",
+          "default": "Once"
         }
       }
     },

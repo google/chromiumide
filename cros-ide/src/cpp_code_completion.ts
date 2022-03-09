@@ -64,8 +64,14 @@ async function generateCompilationDatabase(
   // processes, so we ensure it to run only one at a time using the manager.
   await manager.offer(async () => {
     try {
-      await commonUtil.exec('cros_workon', ['--board', board, 'start', pkg],
-          ideUtilities.getLogger().append);
+      const {shouldRun, userConsent} = await shouldRunCrosWorkon(board, pkg);
+      if (shouldRun && !userConsent) {
+        return;
+      }
+      if (shouldRun) {
+        await commonUtil.exec('cros_workon', ['--board', board, 'start', pkg],
+            ideUtilities.getLogger().append);
+      }
 
       const {error} = await runEmerge(board, pkg);
       if (error !== undefined) {
@@ -86,6 +92,83 @@ async function generateCompilationDatabase(
       console.error(e);
     }
   });
+}
+
+async function workonList(board: string): Promise<string[]> {
+  const out = await commonUtil.exec('cros_workon', ['--board', board, 'list']);
+  return out.split('\n').filter(x => x !== '');
+}
+
+export type PersistentConsent = 'Never' | 'Always'
+export type UserConsent = PersistentConsent | 'Once';
+export type UserChoice = PersistentConsent | 'Yes'
+
+const NEVER: PersistentConsent = 'Never';
+const ALWAYS: PersistentConsent = 'Always';
+const YES: UserChoice = 'Yes';
+
+async function getUserConsent(current: UserConsent, ask: () => Thenable<UserChoice | undefined>):
+    Promise<{ok: boolean, remember?: PersistentConsent}> {
+  switch (current) {
+    case NEVER:
+      return {ok: false};
+    case ALWAYS:
+      return {ok: true};
+  }
+  const choice = await ask();
+  switch (choice) {
+    case YES:
+      return {ok: true};
+    case NEVER:
+      return {ok: false, remember: NEVER};
+    case ALWAYS:
+      return {ok: true, remember: ALWAYS};
+    default:
+      return {ok: false};
+  }
+}
+
+const AUTO_CROS_WORKON_CONFIG = 'clangdSupport.crosWorkonPrompt';
+
+/**
+ * Returns whether to run cros_workon start for the board and pkg. If the package is already being
+ * worked on, it returns shouldRun = false. Otherwise, in addition to shouldRun = true, it tries
+ * getting user consent to run the command and fills userConsent.
+ */
+async function shouldRunCrosWorkon(board: string, pkg: string): Promise<{
+  shouldRun: boolean,
+  userConsent?: boolean,
+}> {
+  if ((await workonList(board)).includes(pkg)) {
+    return {
+      shouldRun: false,
+    };
+  }
+
+  const currentChoice = ideUtilities.getConfigRoot().get<UserConsent>(
+      AUTO_CROS_WORKON_CONFIG) || 'Once';
+
+  const showPrompt = async () => {
+    const choice = await Promise.race([
+      vscode.window.showInformationMessage(`Generating cross references requires 'cros_workon ` +
+        `--board=${board} start ${pkg}'. Proceed?`, {}, YES, ALWAYS, NEVER),
+      // Make sure showPrompt returns. showInformationMessage doesn't resolve nor reject if the
+      // prompt is dismissed due to timeout (about 15 seconds).
+      new Promise(resolve => {
+        setTimeout(() => resolve(undefined), 30 * 1000);
+      }),
+    ]);
+    return choice as UserChoice | undefined;
+  };
+  const {ok, remember} = await getUserConsent(currentChoice, showPrompt);
+  if (remember) {
+    ideUtilities.getConfigRoot().update(AUTO_CROS_WORKON_CONFIG, remember,
+        vscode.ConfigurationTarget.Global);
+  }
+  return {
+    shouldRun: true,
+    userConsent: ok,
+  };
 }
 
 /** Runs emerge and shows a spinning progress indicator in the status bar. */
@@ -167,3 +250,8 @@ export async function getPackage(filepath: string,
   }
   return res;
 }
+
+export const TEST_ONLY = {
+  ALWAYS, NEVER, YES,
+  getUserConsent,
+};

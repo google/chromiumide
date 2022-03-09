@@ -34,4 +34,79 @@ suite('Code completion', () => {
       ), null, 'not exist');
     });
   });
+
+  test('Get user consent', async () => {
+    const {
+      ALWAYS, NEVER, YES,
+      getUserConsent,
+    } = cppCodeCompletion.TEST_ONLY;
+    type TestCase = {
+      name: string,
+      current: cppCodeCompletion.UserConsent
+      ask: () => Promise<cppCodeCompletion.UserChoice | undefined>,
+      want: {
+        ok: boolean,
+        remember?: cppCodeCompletion.PersistentConsent,
+      },
+    }
+    const testCases: TestCase[] = [
+      {
+        name: 'Once and always',
+        current: 'Once',
+        ask: async () => ALWAYS,
+        want: {
+          ok: true,
+          remember: ALWAYS,
+        },
+      },
+      {
+        name: 'Once and yes',
+        current: 'Once',
+        ask: async () => YES,
+        want: {
+          ok: true,
+        },
+      },
+      {
+        name: 'Once and never',
+        current: 'Once',
+        ask: async () => NEVER,
+        want: {
+          ok: false,
+          remember: NEVER,
+        },
+      },
+      {
+        name: 'Once and no answer',
+        current: 'Once',
+        ask: async () => undefined,
+        want: {
+          ok: false,
+        },
+      },
+      {
+        name: 'Always',
+        current: ALWAYS,
+        ask: async () => {
+          throw new Error('Unexpectedly asked');
+        },
+        want: {
+          ok: true,
+        },
+      },
+      {
+        name: 'Never',
+        current: NEVER,
+        ask: async () => {
+          throw new Error('Unexpectedly asked');
+        },
+        want: {
+          ok: false,
+        },
+      },
+    ];
+    for (const tc of testCases) {
+      assert.deepStrictEqual(await getUserConsent(tc.current, tc.ask), tc.want, tc.name);
+    }
+  });
 });
