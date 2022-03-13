@@ -30,7 +30,7 @@ export async function activate() {
 
 // TODO: Write a unit test for watching packages.
 async function createPackageWatches() {
-  const boards = await cros.getSetupBoards();
+  const boards = await cros.getSetupBoardsAlphabetic();
   const crosWorkonDir = path.join(os.homedir(), 'chromiumos/.config/cros_workon/');
   fs.watch(crosWorkonDir, (eventType, fileName) => {
     // Multiple files can be changed. This restrictions limits the number of refreshes to one.
@@ -78,7 +78,7 @@ class BoardPackageProvider implements vscode.TreeDataProvider<ChrootItem> {
 
   async getChildren(element?: ChrootItem): Promise<ChrootItem[]> {
     if (element === undefined) {
-      return (await cros.getSetupBoards()).map(x => new Board(x));
+      return (await cros.getSetupBoardsAlphabetic()).map(x => new Board(x));
     }
     if (element && element instanceof Board) {
       return (await cros.getWorkedOnPackages(element.name)).map(x =>

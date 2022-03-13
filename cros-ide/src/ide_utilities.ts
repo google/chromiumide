@@ -57,7 +57,7 @@ export async function getOrSelectTargetBoard(): Promise<string | null> {
  */
 export async function selectAndUpdateTargetBoard(
     config: {suggestMostRecent: boolean}): Promise<string | null> {
-  const boards = await cros.getSetupBoards();
+  const boards = await cros.getSetupBoardsRecentFirst();
   if (boards.length === 0) {
     await vscode.window.showErrorMessage('No board has been setup; run ' +
         'setup_board for a board you want to work on.');

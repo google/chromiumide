@@ -10,22 +10,37 @@ import * as commonUtil from './common_util';
  * @returns Boards that have been set up, ordered by access time (newest to
  * oldest).
  */
-export async function getSetupBoards(rootDir: string = '/'): Promise<string[]> {
+export async function getSetupBoardsRecentFirst(rootDir: string = '/'): Promise<string[]> {
+  return getSetupBoardsOrdered(
+      rootDir,
+      async (dir) => fs.promises.stat(dir),
+      (a, b) => b.atimeMs - a.atimeMs);
+}
+
+/**
+ * @returns Boards that have been set up in alphabetic order.
+ */
+export async function getSetupBoardsAlphabetic(rootDir: string = '/'): Promise<string[]> {
+  return getSetupBoardsOrdered(
+      rootDir,
+      async (dir) => dir,
+      (a, b) => a.localeCompare(b));
+}
+
+async function getSetupBoardsOrdered<T>(
+    rootDir: string = '/',
+    keyFn: (dir: string) => Promise<T>,
+    compareFn: (a: T, b: T) => number): Promise<string[]> {
   const build = path.join(rootDir, 'build');
   const dirs = await fs.promises.readdir(build);
-  const dirStat: Array<[string, fs.Stats]> = [];
+  const dirStat: Array<[string, T]> = [];
   for (const dir of dirs) {
     if (dir === 'bin') {
       continue;
     }
-    dirStat.push([dir, await fs.promises.stat(path.join(build, dir))]);
+    dirStat.push([dir, await keyFn(path.join(build, dir))]);
   }
-  dirStat.sort(([, a], [, b]) => {
-    if (a.atimeMs === b.atimeMs) {
-      return 0;
-    }
-    return a.atimeMs < b.atimeMs ? 1 : -1;
-  });
+  dirStat.sort(([, a], [, b]) => compareFn(a, b));
   return dirStat.map(([x]) => x);
 }
 
