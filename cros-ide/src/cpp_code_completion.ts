@@ -10,12 +10,12 @@ import * as commonUtil from './common/common_util';
 import * as ideUtilities from './ide_utilities';
 
 export function activate(context: vscode.ExtensionContext) {
-  const manager = new commonUtil.JobManager<void>();
+  const compildationDatabase = new CompilationDatabase();
 
   context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(
       editor => {
         if (editor?.document.languageId === 'cpp') {
-          generateCompilationDatabase(manager, editor.document);
+          compildationDatabase.generate(editor.document);
         }
       },
   ));
@@ -24,14 +24,14 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(
       document => {
         if (document.fileName.match(/\.gni?$/)) {
-          generateCompilationDatabase(manager, document);
+          compildationDatabase.generate(document);
         }
       },
   ));
 
   const document = vscode.window.activeTextEditor?.document;
   if (document) {
-    generateCompilationDatabase(manager, document);
+    compildationDatabase.generate(document);
   }
 }
 
@@ -42,56 +42,77 @@ export interface PackageInfo {
 
 const MNT_HOST_SOURCE = '/mnt/host/source'; // realpath of ~/chromiumos
 
-// Generate compilation database for clangd.
-// TODO(oka): Add unit test.
-async function generateCompilationDatabase(
-    manager: commonUtil.JobManager<void>,
-    document: vscode.TextDocument,
-) {
-  const packageInfo = await getPackage(document.fileName);
-  if (!packageInfo) {
-    return;
-  }
-  const {sourceDir, pkg} = packageInfo;
+class CompilationDatabase {
+  private enabled = true;
+  private readonly manager = new commonUtil.JobManager<void>();
 
-  const board = await ideUtilities.getOrSelectTargetBoard();
-  if (!board) {
-    return;
-  }
+  constructor() {}
 
-  // Below, we create compilation database based on the project and the board.
-  // Generating the database is time consuming involving execution of external
-  // processes, so we ensure it to run only one at a time using the manager.
-  await manager.offer(async () => {
-    try {
-      const {shouldRun, userConsent} = await shouldRunCrosWorkon(board, pkg);
-      if (shouldRun && !userConsent) {
-        return;
-      }
-      if (shouldRun) {
-        await commonUtil.exec('cros_workon', ['--board', board, 'start', pkg],
-            ideUtilities.getLogger().append);
-      }
-
-      const {error} = await runEmerge(board, pkg);
-      if (error !== undefined) {
-        vscode.window.showErrorMessage(error);
-        return;
-      }
-
-      // Make the generated compilation database available from clangd.
-      await commonUtil.exec(
-          'ln', ['-sf', `/build/${board}/build/compilation_database/` +
-        `${pkg}/compile_commands_chroot.json`,
-          path.join(MNT_HOST_SOURCE, sourceDir, 'compile_commands.json')],
-          ideUtilities.getLogger().append);
-    } catch (e) {
-      // TODO(oka): show error message for user to manually resolve problem
-      // (e.g. compile error).
-      ideUtilities.getLogger().appendLine((e as Error).message);
-      console.error(e);
+  // Generate compilation database for clangd.
+  // TODO(oka): Add unit test.
+  async generate(document: vscode.TextDocument) {
+    if (!this.enabled) {
+      return;
     }
-  });
+    const packageInfo = await getPackage(document.fileName);
+    if (!packageInfo) {
+      return;
+    }
+    const {sourceDir, pkg} = packageInfo;
+
+    const board = await ideUtilities.getOrSelectTargetBoard();
+    if (!board) {
+      return;
+    }
+
+    // Below, we create compilation database based on the project and the board.
+    // Generating the database is time consuming involving execution of external
+    // processes, so we ensure it to run only one at a time using the manager.
+    await this.manager.offer(async () => {
+      if (!this.enabled) {
+        return; // early return from queued job.
+      }
+      try {
+        const {shouldRun, userConsent} = await shouldRunCrosWorkon(board, pkg);
+        if (shouldRun && !userConsent) {
+          return;
+        }
+        if (shouldRun) {
+          await commonUtil.exec('cros_workon', ['--board', board, 'start', pkg],
+              ideUtilities.getLogger().append);
+        }
+
+        const {error} = await runEmerge(board, pkg);
+        if (error !== undefined) {
+          vscode.window.showErrorMessage(error);
+          return;
+        }
+
+        const filepath =
+          `/build/${board}/build/compilation_database/${pkg}/compile_commands_chroot.json`;
+        if (!fs.existsSync(filepath)) {
+          const dismiss = 'Dismiss';
+          const dialog = vscode.window.showErrorMessage('Compilation database not found. ' +
+            `Configure ${pkg} to generate it. Example: https://crrev.com/c/2909734`, dismiss);
+          const answer = await commonUtil.withTimeout(dialog, 30 * 1000);
+          if (answer === dismiss) {
+            this.enabled = false;
+          }
+          return;
+        }
+
+        // Make the generated compilation database available from clangd.
+        await commonUtil.exec(
+            'ln', ['-sf', filepath, path.join(MNT_HOST_SOURCE, sourceDir, 'compile_commands.json')],
+            ideUtilities.getLogger().append);
+      } catch (e) {
+        // TODO(oka): show error message for user to manually resolve problem
+        // (e.g. compile error).
+        ideUtilities.getLogger().appendLine((e as Error).message);
+        console.error(e);
+      }
+    });
+  }
 }
 
 async function workonList(board: string): Promise<string[]> {
