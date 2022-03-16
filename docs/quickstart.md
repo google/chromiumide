@@ -85,6 +85,11 @@ You need to reload the VS Code to activate the extension. Either simply restart
 the IDE, or open the command palette (Ctrl+Shift+P) and type "Developer: Reload
 Window".
 
+## Updating
+
+You can update the extension by running
+`~/chromiumos/chromite/ide_tooling/cros-ide/install.sh` again.
+
 # Features
 
 ### Code Completion and Navigation
