@@ -28,7 +28,7 @@ async function execute(name: string, args: string[], showStdout?: boolean) {
  *
  * @throws Error if specified version is not found.
  */
-async function findArchive(version?: Version): Promise<Archive> {
+export async function findArchive(version?: Version): Promise<Archive> {
   // The result of `gsutil ls` is lexicographically sorted.
   const stdout = await execute('gsutil', ['ls', GS_PREFIX]);
   const archives = stdout.trim().split('\n').map(url => {
@@ -100,7 +100,7 @@ export interface Version {
   patch: number
 }
 
-function compareVersion(first: Version, second: Version): number {
+export function compareVersion(first: Version, second: Version): number {
   if (first.major !== second.major) {
     return first.major - second.major;
   }
@@ -124,7 +124,7 @@ function versionFromFilename(name: string): Version {
  * Get version from string such as "0.0.1".
  * @throws Error on invalid input.
  */
-function versionFromString(s: string): Version {
+export function versionFromString(s: string): Version {
   const version = s.trim().split('.').map(Number);
   if (version.length !== 3 || version.some(isNaN)) {
     throw new Error(`Invalid version format ${s}`);
@@ -136,7 +136,7 @@ function versionFromString(s: string): Version {
   };
 }
 
-function versionToString(v: Version): string {
+export function versionToString(v: Version): string {
   return `${v.major}.${v.minor}.${v.patch}`;
 }
 

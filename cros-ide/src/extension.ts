@@ -9,6 +9,7 @@
  */
 import * as vscode from 'vscode';
 import * as boardsPackages from './boards_packages';
+import * as checkUpdates from './check_updates';
 import * as codesearch from './codesearch';
 import * as coverage from './coverage';
 import * as cppCodeCompletion from './cpp_code_completion';
@@ -33,4 +34,6 @@ export function activate(context: vscode.ExtensionContext) {
   if (ideUtilities.getConfigRoot().get<boolean>('underDevelopment.testCoverage')) {
     coverage.activate(context);
   }
+
+  checkUpdates.run(context);
 }
