@@ -74,8 +74,9 @@ export class Analytics {
    * Send event as query. Does not wait for its response.
   */
   send(event: Event, options = optionsGA) {
-    // Do not send event if userId fails to initialize or user is not a googler
-    if (!this.userId || this.userId === metricsUtils.externalUserIdStub()) {
+    // Disable sending metrics at all until privacy review is approved.
+    // Do not send event if userId fails to initialize or user is not a googler.
+    if (true || !this.userId || this.userId === metricsUtils.externalUserIdStub()) {
       return;
     }
 
