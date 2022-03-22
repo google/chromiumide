@@ -93,7 +93,8 @@ class CompilationDatabase {
         if (!fs.existsSync(filepath)) {
           const dismiss = 'Dismiss';
           const dialog = vscode.window.showErrorMessage('Compilation database not found. ' +
-            `Configure ${pkg} to generate it. Example: https://crrev.com/c/2909734`, dismiss);
+            `Update the ebuild file for ${pkg} to generate it. ` +
+            `Example: https://crrev.com/c/2909734`, dismiss);
           const answer = await commonUtil.withTimeout(dialog, 30 * 1000);
           if (answer === dismiss) {
             this.enabled = false;
