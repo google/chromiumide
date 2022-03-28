@@ -17,12 +17,14 @@ type CrosfleetDutInfo = {
 
 export class FleetDevicesProvider implements vscode.TreeDataProvider<string> {
   private leases: Map<string, CrosfleetDutInfo>;
+  private readonly testingRsaPath: string;
 
   private onDidChangeTreeDataEmitter =
     new vscode.EventEmitter<string | undefined | null | void>();
   readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
 
-  constructor() {
+  constructor(testingRsaPath: string) {
+    this.testingRsaPath = testingRsaPath;
     this.leases = new Map();
     this.updateCache();
   }
@@ -48,11 +50,11 @@ export class FleetDevicesProvider implements vscode.TreeDataProvider<string> {
       const p = (async () => {
         let version = '???';
         try {
-          version = await dutServices.queryHostVersion(dut.hostname);
+          version = await dutServices.queryHostVersion(dut.hostname, this.testingRsaPath);
         } catch (_) { }
         dut.version = version;
         this.onDidChangeTreeDataEmitter.fire();
-      })().catch((e) => {});
+      })().catch((e) => { });
       updateJobs.push(p);
     }
     return Promise.all(updateJobs);

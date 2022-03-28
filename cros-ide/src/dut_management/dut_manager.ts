@@ -11,6 +11,7 @@ import * as ideutil from '../ide_utilities';
 import * as fleetProvider from './services/fleet_devices_provider';
 import * as vnc from './services/vnc_session';
 import * as localProvider from './services/local_devices_provider';
+import * as fs from 'fs';
 
 type Tag = {
   key: string;
@@ -48,16 +49,19 @@ export class DeviceInfo extends vscode.TreeItem {
 }
 
 export async function activateDutManager(context: vscode.ExtensionContext) {
+  // TODO: reenable when we start work on crosfleet
   // We need 'version', because without args crosfleet exits with error 2.
-  const crosfleetVersion = await commonUtil.exec('crosfleet', ['version']);
-  if (crosfleetVersion instanceof Error) {
-    vscode.window.showWarningMessage(`DUT manager will not work,` +
-        ` because running 'crosfleet' failed: ${crosfleetVersion}`);
-    return;
-  }
+  // const crosfleetVersion = await commonUtil.exec('crosfleet', ['version']);
+  // if (crosfleetVersion instanceof Error) {
+  //   vscode.window.showWarningMessage(`DUT manager will not work,` +
+  //       ` because running 'crosfleet' failed: ${crosfleetVersion}`);
+  //   return;
+  // }
 
-  const staticDevicesProvider = new localProvider.LocalDevicesProvider();
-  const fleetDevicesProvider = new fleetProvider.FleetDevicesProvider();
+  rsaKeyFixPermission(context);
+  const testRsaPath = ideutil.getTestingRsaPath(context);
+  const localDevicesProvider = new localProvider.LocalDevicesProvider(testRsaPath);
+  const fleetDevicesProvider = new fleetProvider.FleetDevicesProvider(testRsaPath);
   const sessions = new Map<string, vnc.VncSession>();
 
   context.subscriptions.push(
@@ -80,7 +84,7 @@ export async function activateDutManager(context: vscode.ExtensionContext) {
             }
 
             // Create a new session and store it to sessions.
-            const newSession = new vnc.VncSession(host, context.extensionUri);
+            const newSession = new vnc.VncSession(host, context);
             sessions.set(host, newSession);
             newSession.onDidDispose(() => {
               sessions.delete(host!);
@@ -99,7 +103,7 @@ export async function activateDutManager(context: vscode.ExtensionContext) {
 
             // Create a new terminal.
             const terminal = ideutil.createTerminalForHost(
-                host, 'CrOS: Shell', context.extensionUri, '');
+                host, 'CrOS: Shell', context);
             terminal.show();
           }),
       vscode.commands.registerCommand('cros-ide.addHost',
@@ -128,7 +132,7 @@ export async function activateDutManager(context: vscode.ExtensionContext) {
 
             // Try deleting crossfleet first. If not found, then try deleting
             // from "my devices"
-            if (!fleetDevicesProvider.removeTreeItem(host)) {
+            if (!await fleetDevicesProvider.removeTreeItem(host)) {
               const configRoot = ideutil.getConfigRoot();
               const oldHosts = configRoot.get<string[]>('hosts') || [];
               const newHosts = oldHosts.filter((h) => (h !== host));
@@ -144,25 +148,28 @@ export async function activateDutManager(context: vscode.ExtensionContext) {
           async () => {
             const board = await promptBoard('Model');
             await crosfleetDutLease({board});
-            // HACK: copy over binaries.
-            // TODO: Removing prebuilts till we have an alterative solution
-            // const prebuilt = vscode.Uri.joinPath(
-            //     context.extensionUri, 'resources', 'novnc-prebuilt.tar.gz');
-            // await util.execFile(
-            //     `ssh ${lease.DUT.Hostname + '.cros'} ` +
-            //     `tar xz -C /usr/local < ${prebuilt.fsPath}`);
-            // fleetDevicesProvider.updateCache();
+            fleetDevicesProvider.updateCache();
           }),
       vscode.workspace.onDidChangeConfiguration((e) => {
-        if (e.affectsConfiguration('cros')) {
-          staticDevicesProvider.onConfigChanged();
+        if (e.affectsConfiguration('cros-ide')) {
+          localDevicesProvider.onConfigChanged();
         }
       }),
       vscode.window.registerTreeDataProvider(
-          'static-devices', staticDevicesProvider),
+          'static-devices', localDevicesProvider),
       vscode.window.registerTreeDataProvider(
           'fleet-devices', fleetDevicesProvider),
   );
+}
+
+/**
+  * Ensures that test_rsa key perms are 0600, otherwise cannot be used for ssh
+  */
+async function rsaKeyFixPermission(context: vscode.ExtensionContext) {
+  const rsaKeyPath = ideutil.getTestingRsaPath(context);
+  await fs.promises.chmod(rsaKeyPath, '0600').catch((err) => {
+    vscode.window.showErrorMessage('Fatal: unable to update testing_rsa permission: ' + rsaKeyPath);
+  });
 }
 
 async function promptHost(title: string): Promise<string | undefined> {

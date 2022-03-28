@@ -14,26 +14,52 @@ export function getConfigRoot(): vscode.WorkspaceConfiguration {
 }
 
 export function createTerminalForHost(
-    host: string, namePrefix: string, extensionUri: vscode.Uri,
-    extraOptions: string): vscode.Terminal {
-  const testingRsa =
-      vscode.Uri.joinPath(extensionUri, 'resources', 'testing_rsa');
+    host: string, namePrefix: string, context: vscode.ExtensionContext,
+    extraOptions?: string): vscode.Terminal {
   const terminal = vscode.window.createTerminal(`${namePrefix} ${host}`);
-  const splitHost = host.split(':');
-  let portOption = '';
-  if (splitHost.length === 2) {
-    host = splitHost[0];
-    portOption = `-p ${splitHost[1]}`;
-  }
+
   terminal.sendText(
-      `ssh -i ${testingRsa.fsPath} ${extraOptions} ${portOption} ` +
-      `root@${host}; exit $?`);
+      // eslint-disable-next-line max-len
+      'ssh '.concat(sshFormatArgs(host, `; exit $?`, getTestingRsaPath(context), extraOptions).join(' ')),
+  );
   return terminal;
 }
 
 const loggerInstance = vscode.window.createOutputChannel('CrOS IDE');
 export function getLogger(): vscode.OutputChannel {
   return loggerInstance;
+}
+
+export function getTestingRsaPath(context: vscode.ExtensionContext): string {
+  return vscode.Uri.
+      joinPath(context.extensionUri, 'resources', 'testing_rsa').fsPath;
+}
+
+/**
+ *
+ * @param host hostname, which can be in the format of 'hostname' or 'hostname:port'
+ * @param cmd CLI command to execute
+ * @param testingRsaPath absolute path to the testingRSA key
+ * @param extraOptions additional CLI options for your command
+ * @returns formatted SSH command
+ */
+export function sshFormatArgs(host: string, cmd: string, testingRsaPath: string,
+    extraOptions ?: string): string[] {
+  let port = '22';
+  const [hostname, portname] = host.split(':');
+  if (portname != null) {
+    host = hostname;
+    port = portname;
+  }
+
+  let args = ['-i', testingRsaPath];
+  // eslint-disable-next-line max-len
+  const trailingArgs = ['-o StrictHostKeyChecking=no', '-o UserKnownHostsFile=/dev/null', '-p', port, `root@${host}`, cmd];
+  if (extraOptions != null) {
+    args.push(extraOptions);
+  }
+  args = args.concat(trailingArgs);
+  return args;
 }
 
 // Config section name for the target board.

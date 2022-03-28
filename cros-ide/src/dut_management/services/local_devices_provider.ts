@@ -12,12 +12,14 @@ import * as dutServices from './dut_services';
 
 export class LocalDevicesProvider implements vscode.TreeDataProvider<string> {
   private readonly cachedVersions = new Map<string, string>();
+  private readonly testingRsaPath: string;
 
   private onDidChangeTreeDataEmitter =
     new vscode.EventEmitter<string | undefined | null | void>();
   readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
 
-  constructor() {
+  constructor(testingRsaPath: string) {
+    this.testingRsaPath = testingRsaPath;
     this.queryVersions();
   }
 
@@ -47,7 +49,7 @@ export class LocalDevicesProvider implements vscode.TreeDataProvider<string> {
       (async () => {
         let version = '???';
         try {
-          version = await dutServices.queryHostVersion(host);
+          version = await dutServices.queryHostVersion(host, this.testingRsaPath);
         } catch (_) { }
         this.cachedVersions.set(host, version);
         this.onDidChangeTreeDataEmitter.fire();
