@@ -65,11 +65,11 @@ function crosWorkonStop(pkg: Package) {
 }
 
 async function crosWorkon(boardName: string, cmd: string, pkgName: string) {
-  try {
-    await commonUtil.exec('cros_workon', [`--board=${boardName}`, cmd, pkgName]);
-  } catch (e) {
-    // TODO(b/223535757): Show stderr in the message.
-    vscode.window.showErrorMessage('cros_workon failed: ' + e);
+  const {exitStatus, stderr} =
+      await commonUtil.exec('cros_workon', [`--board=${boardName}`, cmd, pkgName],
+          undefined, {ignoreNonZeroExit: true});
+  if (exitStatus !== 0) {
+    vscode.window.showErrorMessage(`cros_workon failed: ${stderr}`);
   }
 }
 
