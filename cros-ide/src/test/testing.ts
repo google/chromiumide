@@ -52,7 +52,7 @@ export class FakeExec {
     for (const handler of (this.handlers.get(name) || [])) {
       const stdout = await handler(args);
       if (stdout !== undefined) {
-        return {stdout};
+        return {exitStatus: 0, stdout, stderr: ''};
       }
     }
     throw new Error(`${name} ${args.join(' ')}: not handled`);

@@ -77,7 +77,20 @@ export class JobManager<T> {
 }
 
 export interface ExecResult {
-  stdout: string
+  exitStatus: number,
+  stdout: string,
+  stderr: string
+}
+
+export interface ExecOptions {
+  /** If true, stdout should be logged in addition to stderr, which is always logged. */
+  logStdout?: boolean,
+
+  /**
+   * If the command exits with non-zero code, exec should return normally.
+   * This changes the default behaviour, which is to throw an error.
+   */
+  ignoreNonZeroExit?: boolean,
 }
 
 /**
@@ -90,7 +103,7 @@ export interface ExecResult {
  */
 export function exec(name: string, args: string[],
     log?: (line: string) => void,
-    opt?: { logStdout?: boolean }): Promise<ExecResult> {
+    opt?: ExecOptions): Promise<ExecResult> {
   return execPtr(name, args, log, opt);
 }
 
@@ -106,13 +119,14 @@ export function setExecForTesting(fakeExec: typeof exec): () => void {
 
 function realExec(name: string, args: string[],
     log?: (line: string) => void,
-    opt?: { logStdout?: boolean }): Promise<ExecResult> {
+    opt?: ExecOptions): Promise<ExecResult> {
   return new Promise((resolve, reject) => {
     const command = childProcess.spawn(name, args);
 
     let remainingStdout = '';
     let remainingStderr = '';
     let stdout = '';
+    let stderr = '';
     command.stdout.on('data', data => {
       if (log && opt && opt.logStdout) {
         remainingStdout += data;
@@ -122,25 +136,29 @@ function realExec(name: string, args: string[],
       }
       stdout += data;
     });
-    if (log) {
-      command.stderr.on('data', data => {
+
+    command.stderr.on('data', data => {
+      if (log) {
         remainingStderr += data;
         const i = remainingStderr.lastIndexOf('\n');
         log(remainingStderr.substring(0, i + 1));
         remainingStderr = remainingStderr.substring(i + 1);
-      });
-    }
-    command.on('close', (code) => {
+      }
+      stderr += data;
+    });
+
+    command.on('close', (exitStatus) => {
       if (log && opt && opt.logStdout && remainingStdout) {
         log(remainingStdout + '\n');
       }
       if (log && remainingStderr) {
         log(remainingStderr + '\n');
       }
-      if (code !== 0) {
-        reject(new Error(`Exit code: ${code}`));
+      if (!(opt && opt.ignoreNonZeroExit) && exitStatus !== 0) {
+        reject(new Error(`Exit status: ${exitStatus}`));
       }
-      resolve({stdout});
+
+      resolve({exitStatus, stdout, stderr});
     });
     // 'error' happens when the command is not available
     command.on('error', (err) => {

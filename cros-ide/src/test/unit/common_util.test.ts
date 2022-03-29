@@ -105,13 +105,35 @@ describe('Logging exec', () => {
     assert.strictEqual(logs.length, 'foo\nbar\n'.length);
   });
 
-  it('throws error on non-zero exit code', async () => {
+  it('throws error on non-zero exit status', async () => {
     let logs = '';
     const p = commonUtil.exec('sh',
         ['-c', 'echo foo 1>&2; exit 1'], log => {
           logs += log;
         }, {logStdout: true});
     await assert.rejects(p);
+    assert.strictEqual(logs, 'foo\n');
+  });
+
+  it('throws error on non-zero exit status when no flags are specified', async () => {
+    let logs = '';
+    const p = commonUtil.exec('sh',
+        ['-c', 'echo foo 1>&2; exit 1'], log => {
+          logs += log;
+        });
+    await assert.rejects(p);
+    assert.strictEqual(logs, 'foo\n');
+  });
+
+  it('ignores non-zero exit status if ignoreNonZeroExit flag is true', async () => {
+    let logs = '';
+    const {exitStatus, stdout, stderr} = await commonUtil.exec('sh',
+        ['-c', 'echo foo 1>&2; echo bar; exit 1'], log => {
+          logs += log;
+        }, {ignoreNonZeroExit: true});
+    assert.strictEqual(exitStatus, 1);
+    assert.strictEqual(stdout, 'bar\n');
+    assert.strictEqual(stderr, 'foo\n');
     assert.strictEqual(logs, 'foo\n');
   });
 
