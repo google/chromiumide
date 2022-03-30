@@ -4,7 +4,6 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as commonUtil from './common_util';
 
 /**
  * @returns Boards that have been set up, ordered by access time (newest to
@@ -48,13 +47,4 @@ async function getSetupBoardsOrdered<T>(
   }
   dirStat.sort(([, a], [, b]) => compareFn(a, b));
   return dirStat.map(([x]) => x);
-}
-
-/**
- * @returns Packages that are worked on.
- */
-export async function getWorkedOnPackages(board: string): Promise<string[]> {
-  const stdout = await commonUtil.exec(
-      'cros_workon', ['--board', board, 'list']);
-  return stdout.split('\n').filter(x => x.trim() !== '');
 }

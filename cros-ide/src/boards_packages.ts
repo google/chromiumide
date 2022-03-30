@@ -88,7 +88,7 @@ class BoardPackageProvider implements vscode.TreeDataProvider<ChrootItem> {
       return (await cros.getSetupBoardsAlphabetic()).map(x => new Board(x));
     }
     if (element && element instanceof Board) {
-      return (await cros.getWorkedOnPackages(element.name)).map(x =>
+      return (await getWorkedOnPackages(element.name)).map(x =>
         new Package(element, x));
     }
     return Promise.resolve([]);
@@ -122,4 +122,12 @@ class Package extends ChrootItem {
 
   contextValue = 'package';
   iconPath = new vscode.ThemeIcon('package');
+}
+
+/**
+ * @returns Packages that are worked on.
+ */
+async function getWorkedOnPackages(board: string): Promise<string[]> {
+  const stdout = await commonUtil.exec('cros_workon', ['--board', board, 'list']);
+  return stdout.split('\n').filter(x => x.trim() !== '');
 }
