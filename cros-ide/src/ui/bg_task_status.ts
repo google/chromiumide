@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as ideUtilities from './ide_utilities';
+import * as ideUtilities from '../ide_utilities';
 
 export function activate(context: vscode.ExtensionContext): StatusManager {
   vscode.commands.registerCommand('cros-ide.showIdeLog', () => {

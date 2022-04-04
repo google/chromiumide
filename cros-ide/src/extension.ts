@@ -8,7 +8,6 @@
  * Keep this minimal - breakout GUI and App-Behavior to separate files.
  */
 import * as vscode from 'vscode';
-import * as bgTaskStatus from './bg_task_status';
 import * as boardsPackages from './boards_packages';
 import * as checkUpdates from './check_updates';
 import * as codesearch from './codesearch';
@@ -16,12 +15,13 @@ import * as coverage from './coverage';
 import * as cppCodeCompletion from './cpp_code_completion';
 import * as crosLint from './cros_lint';
 import * as dutManager from './dut_management/dut_manager';
-import * as feedback from './metrics/feedback';
 import * as ideUtilities from './ide_utilities';
+import * as feedback from './metrics/feedback';
 import * as metrics from './metrics/metrics';
 import * as shortLinkProvider from './short_link_provider';
 import * as suggestExtension from './suggest_extension';
 import * as targetBoard from './target_board';
+import * as bgTaskStatus from './ui/bg_task_status';
 
 export function activate(context: vscode.ExtensionContext) {
   crosLint.activate(context);
