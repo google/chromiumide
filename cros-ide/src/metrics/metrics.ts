@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import * as https from 'https';
+import * as os from 'os';
 import * as queryString from 'querystring';
 import * as metricsUtils from './metrics_util';
 
@@ -42,7 +43,8 @@ export class Analytics {
     const uid = await metricsUtils.readOrCreateUserId();
     // Send metrics to testing-purpose Google Analytics property if user is a cros-ide team member,
     // to avoid polluting user data when debugging extension during development.
-    const tid = ideDevelopers.includes(uid)? trackingIdTesting : trackingIdReal;
+    const tid = ideDevelopers.includes(os.userInfo().username)?
+      trackingIdTesting : trackingIdReal;
     return new Analytics(tid, uid);
   }
 
