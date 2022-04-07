@@ -9,7 +9,41 @@ import * as vscode from 'vscode';
 import * as ideUtilities from '../ide_utilities';
 import * as metricsUtils from './metrics_util';
 
+const informationMessageTitle = 'We would like to collect metrics to have a better understanding ' +
+    'and improve on your experience!';
+
+const informationMessageDetail =
+    'This includes data on install, uninstall, and command invocation events, to obtain insights ' +
+    'on how users are using our extension and their satisfaction level.\n' +
+    'Working directories of these events will be recorded to help us identifying repositories / ' +
+    'projects that the extension is less popular and/or helpful so we can improve on user ' +
+    'experience for the teams specifically.\n' +
+    'The data is pseudonymous. i.e. it is associated to a randomly generated unique user ID ' +
+    'which resets every 180 days automatically, and you can also reset it from the Command ' +
+    'Palette.\n' +
+    'Raw data is only accessible by the modern IDE team. However, aggregated data (e.g. trend ' +
+    'of number of users against time) might be shared with broader audience for retrospective or ' +
+    'advertising purpose.\n' +
+    'You can opt-in or out of metrics collection anytime in settings (> extension > CrOS IDE).\n' +
+    'Metrics from external (non-googler) users will not be collected.' +
+    '\n' +
+    'Would you like to assist us by turning on metrics collection?';
+
 export function activate(context: vscode.ExtensionContext) {
+  const showMessage = ideUtilities.getConfigRoot().get<boolean>('metrics.showMessage');
+  if (showMessage) {
+    vscode.window.showInformationMessage(informationMessageTitle,
+        {detail: informationMessageDetail, modal: true}, 'Yes')
+        .then(selection => {
+          if (selection && selection === 'Yes') {
+            ideUtilities.getConfigRoot().update(
+                'metrics.collectMetrics', true, vscode.ConfigurationTarget.Global);
+          }
+        });
+    ideUtilities.getConfigRoot().update(
+        'metrics.showMessage', false, vscode.ConfigurationTarget.Global);
+  }
+
   vscode.commands.registerCommand('cros-ide.resetUserID', () => {
     metricsUtils.resetUserId();
   });
