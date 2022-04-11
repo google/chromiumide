@@ -4,24 +4,26 @@
 
 import * as vscode from 'vscode';
 import * as commonUtil from '../common/common_util';
-import * as ideUtilities from '../ide_utilities';
 import * as bgTaskStatus from '../ui/bg_task_status';
 
 export function activate(context: vscode.ExtensionContext,
     statusManager: bgTaskStatus.StatusManager) {
+  const log = vscode.window.createOutputChannel('CrOS IDE: Liner');
+  vscode.commands.registerCommand(SHOW_LOG_COMMAND.command, () => log.show());
+
   const collection = vscode.languages.createDiagnosticCollection('cros-lint');
   if (vscode.window.activeTextEditor) {
     updateCrosLintDiagnostics(
-        vscode.window.activeTextEditor.document, collection, statusManager);
+        vscode.window.activeTextEditor.document, collection, statusManager, log);
   }
   // TODO(ttylenda): Add integration test to verify that we run linters on events.
   context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(
       document => {
-        updateCrosLintDiagnostics(document, collection, statusManager);
+        updateCrosLintDiagnostics(document, collection, statusManager, log);
       }));
   context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(
       document => {
-        updateCrosLintDiagnostics(document, collection, statusManager);
+        updateCrosLintDiagnostics(document, collection, statusManager, log);
       }));
   context.subscriptions.push(vscode.workspace.onDidCloseTextDocument(
       document => {
@@ -66,22 +68,25 @@ const lintConfigs = new Map<string, LintConfig>([
 const LINTER_TASK_ID = 'Linter';
 
 const SHOW_LOG_COMMAND: vscode.Command = {
-  title: '', command: 'cros-ide.showIdeLog',
+  command: 'cros-ide.showLintLog',
+  title: '',
 };
 
+// TODO(ttylenda): Consider making it a class and move statusManager and log to the constructor.
 async function updateCrosLintDiagnostics(
     document: vscode.TextDocument,
     collection: vscode.DiagnosticCollection,
-    statusManager: bgTaskStatus.StatusManager): Promise<void> {
+    statusManager: bgTaskStatus.StatusManager,
+    log: vscode.OutputChannel): Promise<void> {
   if (document && document.uri.scheme === 'file') {
     const lintConfig = lintConfigs.get(document.languageId);
     if (lintConfig) {
       const res = await commonUtil.exec(
           lintConfig.executable, lintConfig.arguments(document.uri.fsPath),
-          ideUtilities.getLogger().append,
+          log.append,
           {ignoreNonZeroExit: true, logStdout: true});
       if (res instanceof Error) {
-        ideUtilities.getLogger().append(res.message),
+        log.append(res.message);
         statusManager.setTask(LINTER_TASK_ID,
             {status: bgTaskStatus.TaskStatus.ERROR, command: SHOW_LOG_COMMAND});
         return;

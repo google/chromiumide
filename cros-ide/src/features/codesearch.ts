@@ -45,8 +45,8 @@ class CodeSearch {
     // so we need to spawn a shell.
     const res = await commonUtil.exec('sh',
         ['-c', `${generateCsPath} --show "--${csInstance}" --line=${line} "${fullpath}"`],
-        undefined,
-        {ignoreNonZeroExit: true});
+        ideUtilities.getUiLogger().append,
+        {logStdout: true, ignoreNonZeroExit: true});
 
     if (res instanceof Error) {
       vscode.window.showErrorMessage('Could not run generate_cs_path:' + res);

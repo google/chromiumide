@@ -12,7 +12,10 @@ import * as ideUtilities from '../ide_utilities';
 
 export function activate(context: vscode.ExtensionContext,
     statusManager: bgTaskStatus.StatusManager) {
-  const compildationDatabase = new CompilationDatabase(statusManager);
+  const log = vscode.window.createOutputChannel('CrOS IDE: C++ Support');
+  vscode.commands.registerCommand(SHOW_LOG_COMMAND.command, () => log.show());
+
+  const compildationDatabase = new CompilationDatabase(statusManager, log);
 
   context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(
       editor => {
@@ -44,17 +47,18 @@ export interface PackageInfo {
 
 const MNT_HOST_SOURCE = '/mnt/host/source'; // realpath of ~/chromiumos
 
-const STATUS_BAR_TASK_ID = 'cpp_code_completion';
+const STATUS_BAR_TASK_ID = 'C++ Support';
 
-const SHOW_LOG_COMMAND: vscode.Command = {
-  title: '', command: 'cros-ide.showIdeLog',
-};
+const SHOW_LOG_COMMAND: vscode.Command = {command: 'cros-ide.showCppLog', title: ''};
 
 class CompilationDatabase {
   private enabled = true;
   private readonly manager = new commonUtil.JobManager<void>();
 
-  constructor(private readonly statusManager: bgTaskStatus.StatusManager) {}
+  constructor(
+    private readonly statusManager: bgTaskStatus.StatusManager,
+    private readonly log: vscode.OutputChannel,
+  ) {}
 
   // Generate compilation database for clangd.
   // TODO(oka): Add unit test.
@@ -90,7 +94,7 @@ class CompilationDatabase {
         }
         if (shouldRun) {
           const res = await commonUtil.exec('cros_workon', ['--board', board, 'start', pkg],
-              ideUtilities.getLogger().append);
+              this.log.append);
           if (res instanceof Error) {
             throw res;
           }
@@ -119,7 +123,7 @@ class CompilationDatabase {
         // Make the generated compilation database available from clangd.
         const res = await commonUtil.exec(
             'ln', ['-sf', filepath, path.join(MNT_HOST_SOURCE, sourceDir, 'compile_commands.json')],
-            ideUtilities.getLogger().append);
+            this.log.append);
         if (res instanceof Error) {
           throw res;
         }
@@ -127,7 +131,7 @@ class CompilationDatabase {
         this.statusManager.setTask(STATUS_BAR_TASK_ID,
             {status: bgTaskStatus.TaskStatus.OK, command: SHOW_LOG_COMMAND});
       } catch (e) {
-        ideUtilities.getLogger().appendLine((e as Error).message);
+        this.log.appendLine((e as Error).message);
         console.error(e);
         this.statusManager.setTask(STATUS_BAR_TASK_ID,
             {status: bgTaskStatus.TaskStatus.ERROR, command: SHOW_LOG_COMMAND});
@@ -145,11 +149,11 @@ class CompilationDatabase {
     // so we don't have to do it here.
     const progress = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
     progress.text = `$(sync~spin)Building refs for ${pkg}`;
-    progress.command = 'cros-ide.showIdeLog';
+    progress.command = SHOW_LOG_COMMAND;
     progress.show();
     const res = await commonUtil.exec('env',
         ['USE=compilation_database', `emerge-${board}`, pkg],
-        ideUtilities.getLogger().append, {logStdout: true});
+        this.log.append, {logStdout: true});
     progress.dispose();
     this.statusManager.deleteTask(task);
     return (res instanceof Error) ? res : undefined;

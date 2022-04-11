@@ -13,7 +13,7 @@ import * as ideUtilities from '../ide_utilities';
  */
 export function activate(context: vscode.ExtensionContext): StatusManager {
   vscode.commands.registerCommand('cros-ide.showIdeLog', () => {
-    ideUtilities.getLogger().show();
+    ideUtilities.getUiLogger().show();
   });
 
   const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right);
