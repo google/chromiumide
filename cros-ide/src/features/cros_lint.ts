@@ -14,11 +14,10 @@ export function activate(context: vscode.ExtensionContext,
     updateCrosLintDiagnostics(
         vscode.window.activeTextEditor.document, collection, statusManager);
   }
-  context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(
-      editor => {
-        if (editor) {
-          updateCrosLintDiagnostics(editor.document, collection, statusManager);
-        }
+  // TODO(ttylenda): Add integration test to verify that we run linters on events.
+  context.subscriptions.push(vscode.workspace.onDidOpenTextDocument(
+      document => {
+        updateCrosLintDiagnostics(document, collection, statusManager);
       }));
   context.subscriptions.push(vscode.workspace.onDidSaveTextDocument(
       document => {
