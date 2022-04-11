@@ -53,3 +53,21 @@ UserKnownHostsFile /dev/null
   CrOS source code checkout.
 
 Then you can connect to chroot by `ssh cros`.
+
+## Troubleshooting
+
+### VSCode waits forever on connecting to CrOS chroot
+
+There is a known issue where VSCode SSH remote development extension fails to
+recognize keyboard-interactive authentication prompts, which are used by
+cros-sdk-proxy to prompt for sudo password, when the VSCode setting
+`remote.SSH.useLocalServer` is off.
+
+Solution: Please try turning on `remote.SSH.useLocalServer`. You can also try
+updating cros-sdk-proxy to get a [workaround] for the issue.
+
+Bugs: [CrOS IDE], [VSCode SSH remote development extension]
+
+[workaround]: https://chromium-review.googlesource.com/c/chromiumos/chromite/+/3578137
+[CrOS IDE]: https://issuetracker.google.com/issues/227606493
+[VSCode SSH remote development extension]: https://github.com/microsoft/vscode-remote-release/issues/6594
