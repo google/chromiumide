@@ -5,6 +5,8 @@
 /**
  * Keep all general utility functions here, or in common_util.
  */
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from './common/common_util';
 import * as cros from './common/cros';
@@ -135,4 +137,35 @@ async function selectBoard(
   return await vscode.window.showQuickPick(boards, {
     title: 'Target board',
   }) || null;
+}
+
+/**
+ * Returns VSCode executable given appRoot and the name of the executable under bin directory.
+ * Returns Error if executable is not found.
+ */
+function findExecutable(appRoot: string, name: string): string | Error {
+  let dir = appRoot;
+  while (dir !== '/') {
+    const exe = path.join(dir, 'bin', name);
+    if (fs.existsSync(exe)) {
+      return exe;
+    }
+    dir = path.dirname(dir);
+  }
+  return new Error(`${name} was not found for ${appRoot}`);
+}
+
+/**
+ * Returns VSCode executable path, or error in case it's not found.
+ */
+export function vscodeExecutablePath(
+    appRoot = vscode.env.appRoot, appName = vscode.env.appName): string | Error {
+  if (appName === 'code-server') {
+    return findExecutable(appRoot, 'code-server');
+  } else if (appName === 'Visual Studio Code') {
+    return findExecutable(appRoot, 'remote-cli/code');
+  } else if (appName === 'Visual Studio Code - Insiders') {
+    return findExecutable(appRoot, 'remote-cli/code-insiders');
+  }
+  return new Error(`vscode app name not recognized: ${appName}`);
 }
