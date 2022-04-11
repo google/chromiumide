@@ -169,7 +169,7 @@ export async function installDev(exe: string) {
   await commonUtil.withTempDir(async td => {
     const built = await build(td);
     const src = path.join(td, built.name);
-    await execute(exe, ['--install-extension', src], true);
+    await execute(exe, ['--force', '--install-extension', src], true);
   });
 }
 

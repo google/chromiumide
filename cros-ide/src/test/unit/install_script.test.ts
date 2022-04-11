@@ -232,7 +232,7 @@ gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.2.vsix@253d24b6b54fa72d21f622b8
           return '';
         }),
     ).on('code', lazyHandler(() => exactMatch(
-        ['--install-extension', `${tempDir}cros-ide-0.0.2.vsix`], async () => {
+        ['--force', '--install-extension', `${tempDir}cros-ide-0.0.2.vsix`], async () => {
           installed = true;
           return '';
         }),
