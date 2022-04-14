@@ -31,7 +31,6 @@ class CodeSearch {
     // so we need to obtain them every time the user opens a CS link.
     private readonly getConfigRoot:
         () => vscode.WorkspaceConfiguration = ideUtilities.getConfigRoot,
-    private readonly openExternal: (uri: vscode.Uri) => void = vscode.env.openExternal,
   ) {}
 
   async openCurrentFile(textEditor: vscode.TextEditor) {
@@ -66,7 +65,7 @@ class CodeSearch {
     }
 
     // trimEnd() to get rid of the newline.
-    this.openExternal(vscode.Uri.parse(stdout.trimEnd()));
+    vscode.env.openExternal(vscode.Uri.parse(stdout.trimEnd()));
     metrics.send({
       category: 'codesearch',
       action: 'open current file',
@@ -90,7 +89,7 @@ class CodeSearch {
     const uri =
         vscode.Uri.parse(csBase)
             .with({path: '/search', query: `q=${selectedText}`});
-    this.openExternal(uri);
+    vscode.env.openExternal(uri);
     metrics.send({
       category: 'codesearch',
       action: 'search selection',

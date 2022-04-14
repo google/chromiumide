@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as assert from 'assert';
+import 'jasmine';
 import * as vscode from 'vscode';
 import * as codesearch from '../../features/codesearch';
 
@@ -44,39 +44,29 @@ describe('CodeSearch: searching for selection', () => {
   });
 
   it('in public CS', async () => {
+    // TODO(ttylenda): Figure our how to stub WorkspaceConfiguration better.
     const config = new FakeWorkspaceConfiguration('public').asVscodeType();
-    // TODO(ttylenda): Consider using a library to create test doubles (here and in other tests).
-    let capturedUri: vscode.Uri|undefined;
+    const openExternal = spyOn(vscode.env, 'openExternal');
 
-    const codeSearch = new CodeSearch(
-        () => config,
-        (uri: vscode.Uri) => {
-          capturedUri = uri;
-        },
-    );
+    const codeSearch = new CodeSearch(() => config);
 
     // TODO(ttylenda): Call the VSCode command instead calling the TS method.
     codeSearch.searchSelection(textEditor);
 
-    assert.deepStrictEqual(capturedUri,
-        vscode.Uri.parse('https://source.chromium.org/search?q=people'));
+    const expectedUri = vscode.Uri.parse('https://source.chromium.org/search?q=people');
+    expect(openExternal).toHaveBeenCalledWith(expectedUri);
   });
 
   it('in internal CS', async () => {
     const config = new FakeWorkspaceConfiguration('internal').asVscodeType();
-    let capturedUri: vscode.Uri|undefined;
+    const openExternal = spyOn(vscode.env, 'openExternal');
 
-    const codeSearch = new CodeSearch(
-        () => config,
-        (uri: vscode.Uri) => {
-          capturedUri = uri;
-        },
-    );
+    const codeSearch = new CodeSearch(() => config);
 
     codeSearch.searchSelection(textEditor);
 
-    assert.deepStrictEqual(capturedUri,
-        vscode.Uri.parse('https://source.corp.google.com/search?q=people'));
+    const expectedUri = vscode.Uri.parse('https://source.corp.google.com/search?q=people');
+    expect(openExternal).toHaveBeenCalledWith(expectedUri);
   });
 });
 
