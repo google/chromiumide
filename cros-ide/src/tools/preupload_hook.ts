@@ -53,6 +53,7 @@ async function main(commitHash: string | undefined) {
 if (require.main === module) {
   main(process.env.PRESUBMIT_COMMIT).catch(e => {
     console.error(e);
+    // eslint-disable-next-line no-process-exit
     process.exit(1);
   });
 }

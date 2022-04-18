@@ -3,42 +3,22 @@
 // found in the LICENSE file.
 
 module.exports = {
-  'env': {
-    'browser': true,
-    'es2021': true,
+  env: {
+    browser: true,
+    es2021: true,
   },
-  'extends': [
-    'google',
-  ],
-  'parser': '@typescript-eslint/parser',
-  'parserOptions': {
-    'ecmaVersion': 'latest',
-    'sourceType': 'module',
+  extends: ['./node_modules/gts/'],
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
   },
-  'plugins': [
-    '@typescript-eslint',
-  ],
-  'rules': {
-    // These rules should be enabled but are temporary disabled until the
-    // violations are removed from the code.
-    'require-jsdoc': 0,
-    'arrow-parens': 0,
-    'max-len': [
-      'error',
-      {
-        code: 100,
-        ignoreStrings: true,
-        ignoreTemplateLiterals: true,
-        ignoreRegExpLiterals: true,
-      },
-    ],
-    'no-throw-literal': 0,
-    'no-invalid-this': 0,
-    'valid-jsdoc': 0, // has been deprecated in ESLint v5.10.0.
+  rules: {
+    // Latest Google TypeScript style guide does not mention column limits,
+    // but just relies on the code formatter to do it nicely.
+    // Thus disable the line width check in eslint.
+    'max-len': 'off',
 
-    // Disables the original "no-unused-vars" for JavaScript and enables the
-    // one for TypeScript.
-    'no-unused-vars': 'off',
+    // Allow unused function arguments prefixed by an underscore.
     '@typescript-eslint/no-unused-vars': ['error', {
       'vars': 'all',
       'args': 'after-used',

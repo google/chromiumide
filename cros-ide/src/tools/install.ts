@@ -313,6 +313,7 @@ async function main() {
 if (require.main === module) {
   main().catch(e => {
     console.error(e);
+    // eslint-disable-next-line no-process-exit
     process.exit(1);
   });
 }

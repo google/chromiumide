@@ -305,7 +305,8 @@
     "compile": "webpack",
     "package": "webpack --mode production --devtool hidden-source-map",
     "compile-tests": "tsc -p . --outDir out",
-    "lint": "eslint src --ext ts",
+    "lint": "gts lint",
+    "fix": "gts fix",
     "test": "rm -rf out && npm run compile-tests && npm run compile && npm run lint && xvfb-run -a node ./out/test/runTest.js",
     "unit-test": "npm run compile-tests && node ./node_modules/mocha/bin/_mocha -u tdd --timeout 5000 --colors ./out/test/unit",
     "publish": "./install.sh --upload"
@@ -322,6 +323,7 @@
     "eslint": "^7",
     "eslint-config-google": "^0.14.0",
     "glob": "^7.1.7",
+    "gts": "^3.1.0",
     "jasmine": "^4.1.0",
     "ts-loader": "^9.2.6",
     "typescript": "^4.5.5",

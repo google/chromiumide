@@ -29,6 +29,11 @@ Remarks: Unrestrictive license along the lines of MIT\
 Used for unit-tests\
 License: ISC
 
+Name: gts\
+URL: https://github.com/google/gts\
+Remarks:\
+License: Apache-2.0
+
 Name: Jasmine\
 URL: https://jasmine.github.io/\
 Remarks:\

@@ -121,6 +121,7 @@ export class Analytics {
     // Disable sending metrics at all until privacy review is approved.
     // Do not send event if userId fails to initialize or user is not a googler, or user opt-out of
     // metrics collection.
+    // eslint-disable-next-line no-constant-condition
     if (true || !this.userId || this.userId === metricsUtils.externalUserIdStub() ||
         !ideUtilities.getConfigRoot().get<boolean>('metrics.collectMetrics')) {
       return;
