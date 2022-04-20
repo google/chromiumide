@@ -7,7 +7,11 @@ module.exports = {
     browser: true,
     es2021: true,
   },
-  extends: ['./node_modules/gts/'],
+  extends: [
+    './node_modules/gts/',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
+  ],
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
@@ -27,5 +31,11 @@ module.exports = {
         argsIgnorePattern: '^_',
       },
     ],
+
+    'import/first': 'error',
+    'import/order': 'error',
+  },
+  settings: {
+    'import/core-modules': ['vscode'],
   },
 };

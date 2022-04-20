@@ -3,10 +3,10 @@
 // found in the LICENSE file.
 
 import * as fs from 'fs';
-import * as glob from 'glob';
 import * as path from 'path';
 import * as util from 'util';
 import * as vscode from 'vscode';
+import * as glob from 'glob';
 
 export function activate(_context: vscode.ExtensionContext) {
   // Highlight colors were copied from Code Search.

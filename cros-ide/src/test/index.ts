@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as glob from 'glob';
 import * as path from 'path';
+import * as glob from 'glob';
 
 const Jasmine = require('jasmine');
 

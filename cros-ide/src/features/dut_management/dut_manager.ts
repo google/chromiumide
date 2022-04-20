@@ -5,6 +5,7 @@
 /**
  * This contains the GUI and functionality for managing DUTs
  */
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../common/common_util';
 import * as ideUtil from '../../ide_util';
@@ -12,7 +13,6 @@ import * as metrics from '../../features/metrics/metrics';
 import * as fleetProvider from './services/fleet_devices_provider';
 import * as vnc from './services/vnc_session';
 import * as localProvider from './services/local_devices_provider';
-import * as fs from 'fs';
 
 type Tag = {
   key: string;

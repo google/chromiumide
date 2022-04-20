@@ -6,8 +6,8 @@ import * as fs from 'fs';
 import * as https from 'https';
 import * as os from 'os';
 import * as path from 'path';
-import * as uuid from 'uuid';
 import * as vscode from 'vscode';
+import * as uuid from 'uuid';
 
 // Rotate user ID every 180 days or less.
 const expirationInMs = 180 * 24 * 60 * 60 * 1000;
