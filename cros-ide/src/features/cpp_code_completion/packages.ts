@@ -32,7 +32,13 @@ export class Packages {
     try {
       realpath = await fs.promises.realpath(filepath);
     } catch (_e) {
-      return null;
+      // If filepath is an absolute path, assume it's a realpath. This is
+      // convenient for testing, where the file may not exist.
+      if (path.isAbsolute(filepath)) {
+        realpath = filepath;
+      } else {
+        return null;
+      }
     }
     let relPath = path.relative(this.mntHostSource, realpath);
     if (relPath.startsWith('..') || path.isAbsolute(relPath)) {

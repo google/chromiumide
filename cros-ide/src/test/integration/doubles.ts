@@ -32,6 +32,32 @@ function newVscodeSpy() {
     window: jasmine.createSpyObj<SpiableVscodeWindow>('vscode.window', [
       'showInformationMessage',
     ]),
+    workspace: jasmine.createSpyObj<typeof vscode.workspace>(
+      'vscode.workspace',
+      ['getConfiguration']
+    ),
+  };
+}
+
+const VSCODE_EMITTERS = newVscodeEmitters();
+
+/**
+ * Emitters for events in the 'vscode' module.
+ */
+export type VscodeEmitters = typeof VSCODE_EMITTERS;
+
+function newVscodeEmitters() {
+  return {
+    window: {
+      // TODO(oka): Add more `onDid...` event emitters here.
+      onDidChangeActiveTextEditor: new vscode.EventEmitter<
+        vscode.TextEditor | undefined
+      >(),
+    },
+    workspace: {
+      // Add more `onDid...` and `onWill...` event emitters here.
+      onDidSaveTextDocument: new vscode.EventEmitter<vscode.TextDocument>(),
+    },
   };
 }
 
@@ -39,26 +65,50 @@ function newVscodeSpy() {
  * Installs a double for the vscode namespace and returns handlers to interact
  * with it.
  */
-export function installVscodeDouble(): {vscodeSpy: VscodeSpy} {
+export function installVscodeDouble(): {
+  vscodeSpy: VscodeSpy;
+  vscodeEmitters: VscodeEmitters;
+} {
   const vscodeSpy = cleanState(() => newVscodeSpy());
+  const vscodeEmitters = cleanState(() => newVscodeEmitters());
 
   const original = {
-    window: vscode.window,
     env: vscode.env,
+    window: vscode.window,
+    workspace: vscode.workspace,
   };
   const real = vscode;
   beforeEach(() => {
-    real.window = vscodeSpy.window as unknown as typeof vscode.window;
-    real.env = vscodeSpy.env as unknown as typeof vscode.env;
+    real.env = vscodeSpy.env;
+    real.window = buildNamespace(vscodeSpy.window, vscodeEmitters.window);
+    real.workspace = buildNamespace(
+      vscodeSpy.workspace,
+      vscodeEmitters.workspace
+    );
   });
   afterEach(() => {
-    real.window = original.window;
     real.env = original.env;
+    real.window = original.window;
+    real.workspace = original.workspace;
   });
 
   return {
     vscodeSpy,
+    vscodeEmitters,
   };
+}
+
+function buildNamespace(
+  spies: jasmine.SpyObj<unknown>,
+  emitters: {[key: string]: vscode.EventEmitter<unknown>}
+) {
+  return Object.fromEntries([
+    ...Object.entries(spies).map(([key, spy]) => [
+      key,
+      (...args: unknown[]) => (spy as jasmine.Spy)(...args),
+    ]),
+    ...Object.entries(emitters).map(([key, emitter]) => [key, emitter.event]),
+  ]);
 }
 
 type StateInitializer<T> = (() => Promise<T>) | (() => T);

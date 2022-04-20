@@ -3,82 +3,73 @@
 // found in the LICENSE file.
 
 import * as assert from 'assert';
-import * as cppCodeCompletion from '../../../features/cpp_code_completion/cpp_code_completion';
+import 'jasmine';
+import * as util from 'util';
+import * as vscode from 'vscode';
+import {CompdbService} from '../../../features/cpp_code_completion/compdb_service';
+import {CompilationDatabase} from '../../../features/cpp_code_completion/cpp_code_completion';
+import {
+  PackageInfo,
+  Packages,
+} from '../../../features/cpp_code_completion/packages';
+import * as bgTaskStatus from '../../../ui/bg_task_status';
+import {installVscodeDouble} from '../doubles';
+import {FakeOutputChannel} from '../fakes/output_channel';
+import {fakeGetConfiguration} from '../fakes/workspace_configuration';
+
+class SpiedCompdbService implements CompdbService {
+  readonly requests: Array<{board: string; packageInfo: PackageInfo}> = [];
+
+  async generate(board: string, packageInfo: PackageInfo) {
+    this.requests.push({board, packageInfo});
+  }
+  isEnabled(): boolean {
+    return true;
+  }
+}
 
 describe('C++ code completion', () => {
-  it('obtains user consent to run commands', async () => {
-    const {ALWAYS, NEVER, YES, getUserConsent} = cppCodeCompletion.TEST_ONLY;
-    type TestCase = {
-      name: string;
-      current: cppCodeCompletion.UserConsent;
-      ask: () => Promise<cppCodeCompletion.UserChoice | undefined>;
-      want: {
-        ok: boolean;
-        remember?: cppCodeCompletion.PersistentConsent;
-      };
-    };
-    const testCases: TestCase[] = [
+  const {vscodeSpy, vscodeEmitters} = installVscodeDouble();
+
+  it('runs for platform2 C++ file', async () => {
+    const spiedService = new SpiedCompdbService();
+    const compilationDatabase = new CompilationDatabase(
+      new bgTaskStatus.TEST_ONLY.StatusManagerImpl(),
+      new Packages(),
+      new FakeOutputChannel(),
+      spiedService
+    );
+
+    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
+    vscode.workspace
+      .getConfiguration('cros-ide')
+      .update('board', 'amd64-generic');
+
+    vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
+      document: {
+        fileName: '/mnt/host/source/src/platform2/cros-disks/foo.cc',
+        languageId: 'cpp',
+      },
+    } as vscode.TextEditor);
+
+    await util.promisify(setTimeout)(0); // tick
+
+    compilationDatabase.dispose();
+
+    assert.deepStrictEqual(spiedService.requests, [
       {
-        name: 'Once and always',
-        current: 'Once',
-        ask: async () => ALWAYS,
-        want: {
-          ok: true,
-          remember: ALWAYS,
+        board: 'amd64-generic',
+        packageInfo: {
+          sourceDir: 'src/platform2/cros-disks',
+          atom: 'chromeos-base/cros-disks',
         },
       },
-      {
-        name: 'Once and yes',
-        current: 'Once',
-        ask: async () => YES,
-        want: {
-          ok: true,
-        },
-      },
-      {
-        name: 'Once and never',
-        current: 'Once',
-        ask: async () => NEVER,
-        want: {
-          ok: false,
-          remember: NEVER,
-        },
-      },
-      {
-        name: 'Once and no answer',
-        current: 'Once',
-        ask: async () => undefined,
-        want: {
-          ok: false,
-        },
-      },
-      {
-        name: 'Always',
-        current: ALWAYS,
-        ask: async () => {
-          throw new Error('Unexpectedly asked');
-        },
-        want: {
-          ok: true,
-        },
-      },
-      {
-        name: 'Never',
-        current: NEVER,
-        ask: async () => {
-          throw new Error('Unexpectedly asked');
-        },
-        want: {
-          ok: false,
-        },
-      },
-    ];
-    for (const tc of testCases) {
-      assert.deepStrictEqual(
-        await getUserConsent(tc.current, tc.ask),
-        tc.want,
-        tc.name
-      );
-    }
+    ]);
   });
+
+  // TODO(oka): Add more tests.
+  // 1. BUILD.gn file is saved -> compdb should be generated
+  // 2. C++ file is saved -> compdb should not be generated
+  // 3. C++ file is opened but for the package for which compdb has been
+  //    generated in this session -> compdb should not be generated
 });
