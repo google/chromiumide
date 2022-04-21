@@ -5,12 +5,10 @@
 import * as vscode from 'vscode';
 import {cleanState} from '../testing';
 
-const VSCODE_SPY = newVscodeSpy();
-
 /**
  * Spy for the `vscode` module.
  */
-export type VscodeSpy = typeof VSCODE_SPY;
+export type VscodeSpy = ReturnType<typeof newVscodeSpy>;
 
 type SpiableVscodeWindow = Omit<
   typeof vscode.window,
@@ -42,12 +40,10 @@ function newVscodeSpy() {
   };
 }
 
-const VSCODE_EMITTERS = newVscodeEmitters();
-
 /**
  * Emitters for events in the 'vscode' module.
  */
-export type VscodeEmitters = typeof VSCODE_EMITTERS;
+export type VscodeEmitters = ReturnType<typeof newVscodeEmitters>;
 
 function newVscodeEmitters() {
   return {
@@ -75,12 +71,8 @@ export function installVscodeDouble(): {
   const vscodeSpy = cleanState(() => newVscodeSpy());
   const vscodeEmitters = cleanState(() => newVscodeEmitters());
 
-  const original = {
-    env: vscode.env,
-    window: vscode.window,
-    workspace: vscode.workspace,
-  };
   const real = vscode;
+  const original = Object.assign({}, real);
   beforeEach(() => {
     real.env = vscodeSpy.env;
     real.window = buildNamespace(vscodeSpy.window, vscodeEmitters.window);
@@ -90,9 +82,7 @@ export function installVscodeDouble(): {
     );
   });
   afterEach(() => {
-    real.env = original.env;
-    real.window = original.window;
-    real.workspace = original.workspace;
+    Object.assign(real, original);
   });
 
   return {
