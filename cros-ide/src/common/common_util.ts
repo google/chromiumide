@@ -313,7 +313,7 @@ export async function withTempDir(
     await f(td);
   } finally {
     if (td) {
-      await fs.promises.rmdir(td, {recursive: true});
+      await fs.promises.rm(td, {recursive: true});
     }
   }
 }
