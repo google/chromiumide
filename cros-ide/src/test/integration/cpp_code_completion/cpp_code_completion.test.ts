@@ -59,9 +59,47 @@ describe('C++ code completion', () => {
     ]);
   });
 
-  // TODO(oka): Add more tests.
-  // 1. BUILD.gn file is saved -> compdb should be generated
-  // 2. C++ file is saved -> compdb should not be generated
-  // 3. C++ file is opened but for the package for which compdb has been
-  //    generated in this session -> compdb should not be generated
+  it('runs for platform2 GN file', async () => {
+    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
+    vscode.workspace
+      .getConfiguration('cros-ide')
+      .update('board', 'amd64-generic');
+
+    vscodeEmitters.workspace.onDidSaveTextDocument.fire({
+      fileName: '/mnt/host/source/src/platform2/cros-disks/BUILD.gn',
+      languageId: 'gn',
+    } as vscode.TextDocument);
+
+    await util.promisify(setTimeout)(0); // tick
+
+    expect(state.spiedCompdbService.requests).toEqual([
+      {
+        board: 'amd64-generic',
+        packageInfo: {
+          sourceDir: 'src/platform2/cros-disks',
+          atom: 'chromeos-base/cros-disks',
+        },
+      },
+    ]);
+  });
+
+  it('does not run on C++ file save', async () => {
+    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
+    vscode.workspace
+      .getConfiguration('cros-ide')
+      .update('board', 'amd64-generic');
+
+    vscodeEmitters.workspace.onDidSaveTextDocument.fire({
+      fileName: '/mnt/host/source/src/platform2/cros-disks/foo.cc',
+      languageId: 'cpp',
+    } as vscode.TextDocument);
+
+    await util.promisify(setTimeout)(0); // tick
+
+    // The service should not have been called.
+    expect(state.spiedCompdbService.requests).toEqual([]);
+  });
+
+  // TODO(oka): Add test: C++ file is opened but for the package for which compdb has been
+  // generated in this session -> compdb should not be generated
 });
