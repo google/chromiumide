@@ -102,6 +102,49 @@ describe('C++ code completion', () => {
     expect(state.spiedCompdbService.requests).toEqual([]);
   });
 
-  // TODO(oka): Add test: C++ file is opened but for the package for which compdb has been
-  // generated in this session -> compdb should not be generated
+  it('does not run for C++ file if it has already run for the same package', async () => {
+    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
+    vscode.workspace
+      .getConfiguration('cros-ide')
+      .update('board', 'amd64-generic');
+
+    // A C++ file in the cros-disks project is opened.
+    vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
+      document: {
+        fileName: '/mnt/host/source/src/platform2/cros-disks/foo.cc',
+        languageId: 'cpp',
+      },
+    } as vscode.TextEditor);
+
+    await flushMicrotasks();
+
+    // The service is called and generates compdb.
+    expect(state.spiedCompdbService.requests.length).toBe(1);
+
+    // Another C++ file in the cros-disks project is opened.
+    vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
+      document: {
+        fileName: '/mnt/host/source/src/platform2/cros-disks/bar.cc',
+        languageId: 'cpp',
+      },
+    } as vscode.TextEditor);
+
+    await flushMicrotasks();
+
+    // The service is not called because compdb has been already generated.
+    expect(state.spiedCompdbService.requests.length).toBe(1);
+
+    // A C++ file in the codelab project is opened.
+    vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
+      document: {
+        fileName: '/mnt/host/source/src/platform2/codelab/baz.cc',
+        languageId: 'cpp',
+      },
+    } as vscode.TextEditor);
+
+    await flushMicrotasks();
+
+    // The service is called because compdb has not been generated for codelab.
+    expect(state.spiedCompdbService.requests.length).toBe(2);
+  });
 });

@@ -14,7 +14,7 @@ import {
 } from './compdb_service';
 import {LegacyCompdbService} from './compdb_service_legacy';
 import {SHOW_LOG_COMMAND} from './constants';
-import {Packages} from './packages';
+import {Atom, Packages} from './packages';
 
 export function activate(
   context: vscode.ExtensionContext,
@@ -41,6 +41,8 @@ const STATUS_BAR_TASK_ID = 'C++ Support';
 export class CompilationDatabase implements vscode.Disposable {
   private readonly jobManager = new commonUtil.JobManager<void>();
   private readonly disposables: vscode.Disposable[] = [];
+  // Packages for which compdb has been generated in this session.
+  private readonly generated = new Set<Atom>();
 
   constructor(
     private readonly statusManager: bgTaskStatus.StatusManager,
@@ -51,7 +53,7 @@ export class CompilationDatabase implements vscode.Disposable {
     this.disposables.push(
       vscode.window.onDidChangeActiveTextEditor(editor => {
         if (editor?.document.languageId === 'cpp') {
-          this.generate(editor.document);
+          this.generate(editor.document, /* skipIfAlreadyGenerated = */ true);
         }
       })
     );
@@ -78,13 +80,19 @@ export class CompilationDatabase implements vscode.Disposable {
   }
 
   // Generate compilation database for clangd.
-  private async generate(document: vscode.TextDocument) {
+  private async generate(
+    document: vscode.TextDocument,
+    skipIfAlreadyGenerated?: boolean
+  ) {
     // TODO(oka): If clangd extension is not installed, we should return here.
     if (!this.compdbService.isEnabled()) {
       return;
     }
     const packageInfo = await this.packages.fromFilepath(document.fileName);
     if (!packageInfo) {
+      return;
+    }
+    if (skipIfAlreadyGenerated && this.generated.has(packageInfo.atom)) {
       return;
     }
 
@@ -138,6 +146,7 @@ export class CompilationDatabase implements vscode.Disposable {
         });
         return;
       }
+      this.generated.add(packageInfo.atom);
       this.statusManager.setTask(STATUS_BAR_TASK_ID, {
         status: bgTaskStatus.TaskStatus.OK,
         command: SHOW_LOG_COMMAND,
