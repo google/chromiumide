@@ -92,7 +92,22 @@ export async function putFiles(dir: string, files: {[name: string]: string}) {
 
 type StateInitializer<T> = (() => Promise<T>) | (() => T);
 
-/** See go/cleanstate. */
+/**
+ * See go/cleanstate for details.
+ *
+ * Usage:
+ *
+ * describe('Foo', () => {
+ *   const state = cleanState(() => {foo: new Foo()});
+ *
+ *   it('does bar', () => {
+ *     expect(state.foo.bar()).toBeTrue();
+ *   });
+ * })
+ *
+ * Beware that class methods are not assigned to the returned object.
+ * Writing `cleanState(() => new Foo())` in the above code doesn't work.
+ */
 export function cleanState<NewState extends {}>(
   init: StateInitializer<NewState>
 ): NewState {
