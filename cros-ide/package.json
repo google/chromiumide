@@ -36,7 +36,8 @@
     "onLanguage:gn",
     "onLanguage:go",
     "onLanguage:python",
-    "onLanguage:shellscript"
+    "onLanguage:shellscript",
+    "onLanguage:upstart"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -302,6 +303,12 @@
         "extensions": [
           ".gn",
           ".gni"
+        ]
+      },
+      {
+        "id": "upstart",
+        "aliases": [
+          "Upstart"
         ]
       }
     ]
