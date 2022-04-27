@@ -144,6 +144,9 @@ export function exec(
 
 let execPtr = realExec;
 
+/**
+ * Tests shouldn't directly call this function. Use installFakeExec instead.
+ */
 export function setExecForTesting(fakeExec: typeof exec): () => void {
   const original = execPtr;
   execPtr = fakeExec;

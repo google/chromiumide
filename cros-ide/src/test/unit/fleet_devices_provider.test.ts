@@ -2,27 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as commonUtil from '../../common/common_util';
 import * as fleetProvider from '../../features/dut_management/services/fleet_devices_provider';
-import {exactMatch, FakeExec} from '../testing';
+import {exactMatch, installFakeExec} from '../testing';
 
 describe('Fleet Devices Provider retrieves', () => {
+  const {fakeExec} = installFakeExec();
+
   it('no leases', async () => {
-    const fakeExec = new FakeExec().on(
+    fakeExec.on(
       'crosfleet',
       exactMatch(['dut', 'leases', '-json'], async () => {
         return '{}\n';
       })
     );
-    const cleanUpExec = commonUtil.setExecForTesting(
-      fakeExec.exec.bind(fakeExec)
-    );
-    try {
-      const provider = new fleetProvider.FleetDevicesProvider('');
-      await provider.updateCache();
-    } finally {
-      cleanUpExec();
-    }
+    const provider = new fleetProvider.FleetDevicesProvider('');
+    await provider.updateCache();
   });
 
   // TODO: disabling till we have crosfleet features working

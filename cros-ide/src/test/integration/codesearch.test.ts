@@ -3,9 +3,8 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as commonUtil from '../../common/common_util';
 import * as codesearch from '../../features/codesearch';
-import {cleanState, exactMatch, FakeExec} from '../testing';
+import {cleanState, exactMatch, installFakeExec} from '../testing';
 import {installVscodeDouble} from './doubles';
 import {fakeGetConfiguration} from './fakes/workspace_configuration';
 
@@ -61,6 +60,7 @@ describe('CodeSearch: searching for selection', () => {
 
 describe('CodeSearch: opening current file', () => {
   const {vscodeSpy} = installVscodeDouble();
+  const {fakeExec} = installFakeExec();
 
   const t = cleanState(() => ({
     codeSearch: new CodeSearch(),
@@ -97,61 +97,46 @@ describe('CodeSearch: opening current file', () => {
       'https://source.chromium.org/chromiumos/chromiumos/codesearch/+/HEAD:' +
       'src/platform2/cros-disks/archive_mounter.cc;l=41';
 
-    const fakeExec = new FakeExec().on(
+    fakeExec.on(
       'sh',
       exactMatch(['-c', t.generateCsLinkInvocation], async () => {
         return CS_LINK;
       })
     );
-    const cleanUp = commonUtil.setExecForTesting(fakeExec.exec.bind(fakeExec));
 
-    try {
-      await t.codeSearch.openCurrentFile(t.fakeTextEditor);
+    await t.codeSearch.openCurrentFile(t.fakeTextEditor);
 
-      const expectedUri = vscode.Uri.parse(CS_LINK);
-      expect(vscodeSpy.env.openExternal).toHaveBeenCalledWith(expectedUri);
-    } finally {
-      cleanUp();
-    }
+    const expectedUri = vscode.Uri.parse(CS_LINK);
+    expect(vscodeSpy.env.openExternal).toHaveBeenCalledWith(expectedUri);
   });
 
   it('shows error popup when generate_cs_link cannot be found', async () => {
-    const fakeExec = new FakeExec().on(
+    fakeExec.on(
       'sh',
       exactMatch(['-c', t.generateCsLinkInvocation], async () => {
         return Error('not found');
       })
     );
-    const cleanUp = commonUtil.setExecForTesting(fakeExec.exec.bind(fakeExec));
 
-    try {
-      await t.codeSearch.openCurrentFile(t.fakeTextEditor);
+    await t.codeSearch.openCurrentFile(t.fakeTextEditor);
 
-      expect(vscodeSpy.window.showErrorMessage).toHaveBeenCalledWith(
-        'Could not run generate_cs_path: Error: not found'
-      );
-    } finally {
-      cleanUp();
-    }
+    expect(vscodeSpy.window.showErrorMessage).toHaveBeenCalledWith(
+      'Could not run generate_cs_path: Error: not found'
+    );
   });
 
   it('shows error popup when generate_cs_link fails', async () => {
-    const fakeExec = new FakeExec().on(
+    fakeExec.on(
       'sh',
       exactMatch(['-c', t.generateCsLinkInvocation], async () => {
         return {stdout: '', stderr: 'error msg', exitStatus: 1};
       })
     );
-    const cleanUp = commonUtil.setExecForTesting(fakeExec.exec.bind(fakeExec));
 
-    try {
-      await t.codeSearch.openCurrentFile(t.fakeTextEditor);
+    await t.codeSearch.openCurrentFile(t.fakeTextEditor);
 
-      expect(vscodeSpy.window.showErrorMessage).toHaveBeenCalledWith(
-        'generate_cs_path returned an error: error msg'
-      );
-    } finally {
-      cleanUp();
-    }
+    expect(vscodeSpy.window.showErrorMessage).toHaveBeenCalledWith(
+      'generate_cs_path returned an error: error msg'
+    );
   });
 });
