@@ -169,4 +169,10 @@ describe('C++ code completion', () => {
     // The service is called because compdb has not been generated for codelab.
     expect(state.spiedCompdbService.requests.length).toBe(2);
   });
+
+  // TODO(oka): Test error handling.
+  // * When compdb generation fails, it should show an error message with the
+  //   next action to take.
+  // * An error message is not popped up if the user already seen the error in
+  //   this session.
 });

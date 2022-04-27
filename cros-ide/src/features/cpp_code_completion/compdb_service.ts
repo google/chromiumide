@@ -22,16 +22,33 @@ export interface CompdbService {
 }
 
 export class CompdbError extends Error {
-  constructor(readonly kind: CompdbErrorKind, reason?: Error) {
-    super(kind + (reason ? ': ' + reason.message : ''));
+  constructor(readonly details: CompdbErrorDetails) {
+    super(details.kind + (details.reason ? ': ' + details.reason.message : ''));
   }
 }
 
+export type CompdbErrorDetails = {reason?: Error} & (
+  | {
+      kind: CompdbErrorKind.RemoveCache;
+      cache: string;
+    }
+  | {
+      kind: CompdbErrorKind.RunEbuild;
+    }
+  | {
+      kind: CompdbErrorKind.NotGenerated;
+    }
+  | {
+      kind: CompdbErrorKind.CopyFailed;
+      destination: string;
+    }
+);
+
 export enum CompdbErrorKind {
-  RemoveCache = 'Failed to remove cache files before running ebuild',
-  RunEbuild = 'Failed to run ebuild to generate compilation database',
-  NotGenerated = 'Compilation database was not generated',
-  CopyFailed = 'Failed to copy compilation database to the source directory',
+  RemoveCache = 'failed to remove cache files before running ebuild',
+  RunEbuild = 'failed to run ebuild to generate compilation database',
+  NotGenerated = 'compilation database was not generated',
+  CopyFailed = 'failed to copy compilation database to the source directory',
 }
 
 export class CompdbServiceImpl implements CompdbService {
@@ -57,10 +74,9 @@ export class CompdbServiceImpl implements CompdbService {
     const ebuild = new Ebuild(board, atom, this.log);
     const artifact = await ebuild.generate();
     if (artifact === undefined) {
-      throw new CompdbError(
-        CompdbErrorKind.NotGenerated,
-        new Error(`${artifact} not found for ${sourceDir}`)
-      );
+      throw new CompdbError({
+        kind: CompdbErrorKind.NotGenerated,
+      });
     }
     const destination = path.join(
       MNT_HOST_SOURCE,
@@ -71,7 +87,11 @@ export class CompdbServiceImpl implements CompdbService {
       this.log(`Copying ${artifact} to ${destination}`);
       await fs.promises.copyFile(artifact, destination);
     } catch (e) {
-      throw new CompdbError(CompdbErrorKind.CopyFailed, e as Error);
+      throw new CompdbError({
+        kind: CompdbErrorKind.CopyFailed,
+        destination: destination,
+        reason: e as Error,
+      });
     }
   }
 
@@ -100,15 +120,14 @@ class Ebuild {
    * @throws CompdbError on failure.
    */
   async generate(): Promise<string | undefined> {
-    try {
-      await this.removeCache();
-    } catch (e) {
-      throw new CompdbError(CompdbErrorKind.RemoveCache, e as Error);
-    }
+    await this.removeCache();
     try {
       await this.runCompgen();
     } catch (e) {
-      throw new CompdbError(CompdbErrorKind.RunEbuild, e as Error);
+      throw new CompdbError({
+        kind: CompdbErrorKind.RunEbuild,
+        reason: e as Error,
+      });
     }
     return await this.artifactPath();
   }
@@ -149,14 +168,29 @@ class Ebuild {
       packageName(this.atom) + '-9999.ebuild'
     );
   }
+  /**
+   * Removes .configured and .compiled cache files.
+   *
+   * @throws CompdbError on failure.
+   */
   private async removeCache() {
     for (const dir of this.buildDirs()) {
-      const configured = path.join(dir, '.configured');
-      const compiled = path.join(dir, '.compiled');
-      this.log(`Removing ${configured}\n`);
-      await fs.promises.rm(configured, {force: true});
-      this.log(`Removing ${compiled}\n`);
-      await fs.promises.rm(compiled, {force: true});
+      let cache = '';
+      try {
+        cache = path.join(dir, '.configured');
+        this.log(`Removing cache file ${cache}\n`);
+        await fs.promises.rm(cache, {force: true});
+
+        cache = path.join(dir, '.compiled');
+        this.log(`Removing cache file ${cache}\n`);
+        await fs.promises.rm(cache, {force: true});
+      } catch (e) {
+        throw new CompdbError({
+          kind: CompdbErrorKind.RemoveCache,
+          cache: cache,
+          reason: e as Error,
+        });
+      }
     }
   }
   private async runCompgen() {

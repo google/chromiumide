@@ -47,6 +47,8 @@ export class CompilationDatabase implements vscode.Disposable {
   private readonly disposables: vscode.Disposable[] = [];
   // Packages for which compdb has been generated in this session.
   private readonly generated = new Set<Atom>();
+  // Store errors to avoid showing the same error many times.
+  private readonly seenError: Set<CompdbErrorKind> = new Set();
 
   // Callbacks called after an event has been handled.
   readonly onEventHandledForTesting = new Array<() => void>();
@@ -129,28 +131,34 @@ export class CompilationDatabase implements vscode.Disposable {
         await this.compdbService.generate(board, packageInfo);
         await vscode.commands.executeCommand('clangd.restart');
       } catch (e) {
+        let message = (e as Error).message;
+        let button: Button | undefined = undefined;
         if (e instanceof CompdbError) {
-          switch (e.kind) {
-            // TODO(oka): Handle errors here.
-            case CompdbErrorKind.RemoveCache:
-            case CompdbErrorKind.RunEbuild:
-            case CompdbErrorKind.NotGenerated:
-            case CompdbErrorKind.CopyFailed:
-              // TODO(oka): Add a button to disable the faster compdb generation.
-              vscode.window.showErrorMessage(
-                'New logic is not implemented. Consider disabling the setting ' +
-                  FASTER_CPP_XREF_GENERATION
-              );
-              break;
-            default:
-              vscode.window.showErrorMessage(
-                'BUG: unknown CompdbErrorKind ' + e.kind
-              );
+          const items = uiItemsForError(board, e);
+          message = items.message;
+          button = items.button;
+
+          // TODO(oka): Add a button to show the log in addition to the button we have here.
+          // It would simply run 'cros-ide.showCppLog' command.
+          if (!this.seenError.has(e.details.kind)) {
+            this.seenError.add(e.details.kind);
+            if (button) {
+              // `await` cannot be used, because it blocks forever if the
+              // message is dismissed by timeout.
+              vscode.window
+                .showErrorMessage(message, button?.name)
+                .then(value => {
+                  if (value === button!.name) {
+                    button!.action();
+                  }
+                });
+            } else {
+              vscode.window.showErrorMessage(message);
+            }
           }
-          return;
         }
 
-        this.log.appendLine((e as Error).message);
+        this.log.appendLine(message);
         console.error(e);
         this.statusManager.setTask(STATUS_BAR_TASK_ID, {
           status: bgTaskStatus.TaskStatus.ERROR,
@@ -164,5 +172,58 @@ export class CompilationDatabase implements vscode.Disposable {
         command: SHOW_LOG_COMMAND,
       });
     });
+  }
+}
+
+type Button = {
+  name: string;
+  action: () => void;
+};
+
+function uiItemsForError(
+  board: string,
+  e: CompdbError
+): {message: string; button?: Button} {
+  switch (e.details.kind) {
+    case CompdbErrorKind.RemoveCache:
+      return {
+        message: `Faild to generate cross reference; try removing the file ${e.details.cache} and reload the IDE`,
+      };
+      // TODO(oka): Add a button to open the terminal with the command to run.
+      break;
+    case CompdbErrorKind.RunEbuild: {
+      const buildPackages = `build_packages --board=${board}`;
+      return {
+        message: `Failed to generate cross reference; try running "${buildPackages}" in chroot and reload the IDE`,
+        button: {
+          name: 'Open document',
+          action: () => {
+            vscode.env.openExternal(
+              vscode.Uri.parse(
+                'https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md#build-the-packages-for-your-board'
+              )
+            );
+          },
+        },
+      };
+    }
+    case CompdbErrorKind.NotGenerated:
+      return {
+        message:
+          'Faild to generate cross reference: compile_commands_chroot.json was not created; file a bug on go/cros-ide-new-bug',
+        button: {
+          name: 'File a bug',
+          action: () => {
+            vscode.env.openExternal(
+              vscode.Uri.parse('http://go/cros-ide-new-bug')
+            );
+          },
+        },
+      };
+    case CompdbErrorKind.CopyFailed:
+      return {
+        message: `Faild to generate cross reference; try removing ${e.details.destination} and reload the IDE`,
+        // TODO(oka): Add a button to open the terminal with the command to run.
+      };
   }
 }
