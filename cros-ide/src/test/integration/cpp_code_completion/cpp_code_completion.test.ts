@@ -13,7 +13,7 @@ import {FakeOutputChannel} from '../fakes/output_channel';
 import {fakeGetConfiguration} from '../fakes/workspace_configuration';
 import {SpiedCompdbService} from './spied_compdb_service';
 
-describe('C++ code completion', () => {
+xdescribe('C++ code completion', () => {
   const {vscodeSpy, vscodeEmitters} = installVscodeDouble();
 
   const state = cleanState(() => {
