@@ -143,12 +143,9 @@ export class Analytics {
    * Send event as query. Does not wait for its response.
    */
   send(event: Event, options = optionsGA) {
-    // Disable sending metrics at all until privacy review is approved.
     // Do not send event if userId fails to initialize or user is not a googler, or user opt-out of
     // metrics collection.
     if (
-      // eslint-disable-next-line no-constant-condition
-      true ||
       !this.userId ||
       this.userId === metricsUtils.externalUserIdStub() ||
       !ideUtil.getConfigRoot().get<boolean>('metrics.collectMetrics')
