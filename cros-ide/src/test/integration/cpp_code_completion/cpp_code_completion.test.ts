@@ -7,13 +7,23 @@ import * as vscode from 'vscode';
 import {CompilationDatabase} from '../../../features/cpp_code_completion/cpp_code_completion';
 import {Packages} from '../../../features/cpp_code_completion/packages';
 import * as bgTaskStatus from '../../../ui/bg_task_status';
-import {cleanState, flushMicrotasks} from '../../testing';
+import {cleanState} from '../../testing';
 import {installVscodeDouble} from '../doubles';
 import {FakeOutputChannel} from '../fakes/output_channel';
 import {fakeGetConfiguration} from '../fakes/workspace_configuration';
 import {SpiedCompdbService} from './spied_compdb_service';
 
-xdescribe('C++ code completion', () => {
+function newEventWaiter(
+  compilationDatabase: CompilationDatabase
+): Promise<void> {
+  return new Promise(resolved => {
+    compilationDatabase.onEventHandledForTesting.push(() =>
+      resolved(undefined)
+    );
+  });
+}
+
+describe('C++ code completion', () => {
   const {vscodeSpy, vscodeEmitters} = installVscodeDouble();
 
   const state = cleanState(() => {
@@ -38,6 +48,8 @@ xdescribe('C++ code completion', () => {
       .getConfiguration('cros-ide')
       .update('board', 'amd64-generic');
 
+    const done = newEventWaiter(state.compilationDatabase);
+
     vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
       document: {
         fileName: '/mnt/host/source/src/platform2/cros-disks/foo.cc',
@@ -45,7 +57,7 @@ xdescribe('C++ code completion', () => {
       },
     } as vscode.TextEditor);
 
-    await flushMicrotasks();
+    await done;
 
     expect(state.spiedCompdbService.requests).toEqual([
       {
@@ -67,12 +79,14 @@ xdescribe('C++ code completion', () => {
       .getConfiguration('cros-ide')
       .update('board', 'amd64-generic');
 
+    const done = newEventWaiter(state.compilationDatabase);
+
     vscodeEmitters.workspace.onDidSaveTextDocument.fire({
       fileName: '/mnt/host/source/src/platform2/cros-disks/BUILD.gn',
       languageId: 'gn',
     } as vscode.TextDocument);
 
-    await flushMicrotasks();
+    await done;
 
     expect(state.spiedCompdbService.requests).toEqual([
       {
@@ -91,12 +105,14 @@ xdescribe('C++ code completion', () => {
       .getConfiguration('cros-ide')
       .update('board', 'amd64-generic');
 
+    const done = newEventWaiter(state.compilationDatabase);
+
     vscodeEmitters.workspace.onDidSaveTextDocument.fire({
       fileName: '/mnt/host/source/src/platform2/cros-disks/foo.cc',
       languageId: 'cpp',
     } as vscode.TextDocument);
 
-    await flushMicrotasks();
+    await done;
 
     // The service should not have been called.
     expect(state.spiedCompdbService.requests).toEqual([]);
@@ -108,6 +124,8 @@ xdescribe('C++ code completion', () => {
       .getConfiguration('cros-ide')
       .update('board', 'amd64-generic');
 
+    let done = newEventWaiter(state.compilationDatabase);
+
     // A C++ file in the cros-disks project is opened.
     vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
       document: {
@@ -116,10 +134,12 @@ xdescribe('C++ code completion', () => {
       },
     } as vscode.TextEditor);
 
-    await flushMicrotasks();
+    await done;
 
     // The service is called and generates compdb.
     expect(state.spiedCompdbService.requests.length).toBe(1);
+
+    done = newEventWaiter(state.compilationDatabase);
 
     // Another C++ file in the cros-disks project is opened.
     vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
@@ -129,10 +149,12 @@ xdescribe('C++ code completion', () => {
       },
     } as vscode.TextEditor);
 
-    await flushMicrotasks();
+    await done;
 
     // The service is not called because compdb has been already generated.
     expect(state.spiedCompdbService.requests.length).toBe(1);
+
+    done = newEventWaiter(state.compilationDatabase);
 
     // A C++ file in the codelab project is opened.
     vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
@@ -142,7 +164,7 @@ xdescribe('C++ code completion', () => {
       },
     } as vscode.TextEditor);
 
-    await flushMicrotasks();
+    await done;
 
     // The service is called because compdb has not been generated for codelab.
     expect(state.spiedCompdbService.requests.length).toBe(2);

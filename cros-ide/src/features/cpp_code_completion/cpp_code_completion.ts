@@ -48,6 +48,9 @@ export class CompilationDatabase implements vscode.Disposable {
   // Packages for which compdb has been generated in this session.
   private readonly generated = new Set<Atom>();
 
+  // Callbacks called after an event has been handled.
+  readonly onEventHandledForTesting = new Array<() => void>();
+
   constructor(
     private readonly statusManager: bgTaskStatus.StatusManager,
     private readonly packages: Packages,
@@ -55,19 +58,24 @@ export class CompilationDatabase implements vscode.Disposable {
     private readonly compdbService: CompdbService
   ) {
     this.disposables.push(
-      vscode.window.onDidChangeActiveTextEditor(editor => {
+      vscode.window.onDidChangeActiveTextEditor(async editor => {
         if (editor?.document.languageId === 'cpp') {
-          this.generate(editor.document, /* skipIfAlreadyGenerated = */ true);
+          await this.generate(
+            editor.document,
+            /* skipIfAlreadyGenerated = */ true
+          );
         }
+        this.onEventHandledForTesting.forEach(f => f());
       })
     );
 
     // Update compilation database when a GN file is updated.
     this.disposables.push(
-      vscode.workspace.onDidSaveTextDocument(document => {
+      vscode.workspace.onDidSaveTextDocument(async document => {
         if (document.fileName.match(/\.gni?$/)) {
-          this.generate(document);
+          await this.generate(document);
         }
+        this.onEventHandledForTesting.forEach(f => f());
       })
     );
 
