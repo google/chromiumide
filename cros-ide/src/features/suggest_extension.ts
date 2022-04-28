@@ -8,15 +8,17 @@ export async function activate(context: vscode.ExtensionContext) {
   const recommendations: Recommendation[] = [
     {
       languageId: 'cpp',
-      languageName: 'C++',
       extensionId: 'llvm-vs-code-extensions.vscode-clangd',
-      extensionName: 'clangd',
+      message:
+        'Clangd extension provides cross references and autocompletion in C++. ' +
+        'Would you like to install it?',
     },
     {
       languageId: 'go',
-      languageName: 'Go',
       extensionId: 'golang.Go',
-      extensionName: 'Go',
+      message:
+        'Go extension provides rich language support for the Go programming language. ' +
+        'Would you like to install it?',
     },
   ];
 
@@ -31,9 +33,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
 export interface Recommendation {
   languageId: string;
-  languageName: string;
   extensionId: string;
-  extensionName: string;
+  message: string;
 }
 
 /**
@@ -86,11 +87,8 @@ async function suggest(recommended: Recommendation): Promise<boolean> {
   if (vscode.extensions.getExtension(recommended.extensionId)) {
     return true;
   }
-  const message =
-    `It is recommended to install ${recommended.extensionName} extension for ` +
-    `${recommended.languageName}. Proceed?`;
   const choice = await vscode.window.showInformationMessage(
-    message,
+    recommended.message,
     YES,
     LATER
   );

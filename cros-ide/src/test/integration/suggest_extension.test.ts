@@ -13,9 +13,8 @@ describe('Suggest extension module', () => {
   it('suggests an extension', async () => {
     await activateSingle({
       languageId: 'cpp',
-      languageName: 'C++',
       extensionId: 'foo',
-      extensionName: 'Foo',
+      message: 'It is recommended to install Foo extension for C++. Proceed?',
     });
 
     vscodeSpy.window.showInformationMessage
@@ -47,9 +46,8 @@ describe('Suggest extension module', () => {
   it('does not suggest if languages do not match', async () => {
     await activateSingle({
       languageId: 'cpp',
-      languageName: 'C++',
       extensionId: 'foo',
-      extensionName: 'Foo',
+      message: 'It is recommended to install Foo extension for C++. Proceed?',
     });
 
     vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
