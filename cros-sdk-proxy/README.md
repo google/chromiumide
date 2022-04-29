@@ -41,7 +41,7 @@ development workstation), **replacing DEV_HOST and CROS_ROOT**.
 
 ```
 Host cros
-ProxyCommand ssh DEV_HOST ~/go/bin/cros-sdk-proxy enter --root=CROS_ROOT
+ProxyCommand ssh DEV_HOST '~/go/bin/cros-sdk-proxy' enter --root=CROS_ROOT
 StrictHostKeyChecking no
 UserKnownHostsFile /dev/null
 ```
