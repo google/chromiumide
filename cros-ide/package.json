@@ -352,6 +352,7 @@
     "@typescript-eslint/eslint-plugin": "^5.1.0",
     "@typescript-eslint/parser": "^5.1.0",
     "@vscode/test-electron": "^1.6.2",
+    "copy-webpack-plugin": "^10.2.4",
     "eslint": "^7",
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-import": "^2.26.0",
