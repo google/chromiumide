@@ -10,10 +10,55 @@
 import * as childProcess from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
+import * as path from 'path';
 import * as shutil from './shutil';
 
+// Type Chroot represents the path to chroot.
+// We use nominal typing technique here. https://basarat.gitbook.io/typescript/main-1/nominaltyping
+export type Chroot = string & {_brand: 'chroot'};
+// Type Source represents the path to Chrome OS source.
+export type Source = string & {_brand: 'source'};
+
 export function isInsideChroot(): boolean {
-  return fs.existsSync('/etc/cros_chroot_version');
+  return isChroot('/');
+}
+
+export function isChroot(dir: string): boolean {
+  return fs.existsSync(path.join(dir, '/etc/cros_chroot_version'));
+}
+
+/**
+ * Returns the chroot in dir or its ancestor, or undefined on not found.
+ */
+export function findChroot(dir: string): Chroot | undefined {
+  for (;;) {
+    const chroot = path.join(dir, 'chroot');
+    if (isChroot(chroot)) {
+      return chroot as Chroot;
+    }
+
+    const d = path.dirname(dir);
+    if (d === dir) {
+      break;
+    }
+    dir = d;
+  }
+  // Check this after the for loop so that testing inside chroot works as
+  // we want.
+  if (isInsideChroot()) {
+    return '/' as Chroot;
+  }
+  return undefined;
+}
+
+/**
+ * Returns the Chrome OS source directory, given the path to chroot.
+ */
+export function sourceDir(chroot: Chroot): Source {
+  if (chroot === '/') {
+    return '/mnt/host/source' as Source;
+  }
+  return path.dirname(chroot) as Source;
 }
 
 class Task<T> {

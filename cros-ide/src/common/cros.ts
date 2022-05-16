@@ -5,6 +5,45 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Wraps functions in fs or fs.promises, adding prefix to given paths.
+export class WrapFs<T extends string> {
+  constructor(readonly root: T) {}
+
+  private realpath(p: string): string {
+    if (p.startsWith(this.root)) {
+      return p;
+    }
+    return path.join(this.root, p);
+  }
+
+  async copyFile(p: string, dest: string): Promise<void> {
+    return fs.promises.copyFile(this.realpath(p), dest);
+  }
+
+  async stat(p: string): Promise<fs.Stats> {
+    return fs.promises.stat(this.realpath(p));
+  }
+
+  existsSync(p: string): boolean {
+    return fs.existsSync(this.realpath(p));
+  }
+
+  async readdir(p: string): Promise<string[]> {
+    return fs.promises.readdir(this.realpath(p));
+  }
+
+  async rm(p: string, opts?: {force?: boolean}): Promise<void> {
+    return fs.promises.rm(this.realpath(p), opts);
+  }
+
+  watchSync(
+    p: string,
+    listener: (eventType: string, fileName: string) => void
+  ) {
+    fs.watch(this.realpath(p), listener);
+  }
+}
+
 /**
  * @returns Boards that have been set up, ordered by access time (newest to
  * oldest).
