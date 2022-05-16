@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as commonUtil from '../common/common_util';
 import * as cros from '../common/cros';
 import * as ideUtil from '../ide_util';
 import {ChrootService} from '../services/chroot';
@@ -12,10 +11,10 @@ export async function activate(chrootService: ChrootService) {
   const boardPackageProvider = new BoardPackageProvider(chrootService);
 
   vscode.commands.registerCommand('cros-ide.crosWorkonStart', board =>
-    crosWorkonStart(board)
+    crosWorkonStart(chrootService, board)
   );
   vscode.commands.registerCommand('cros-ide.crosWorkonStop', board =>
-    crosWorkonStop(board)
+    crosWorkonStop(chrootService, board)
   );
 
   vscode.commands.registerCommand('cros-ide.refreshBoardsPackages', () =>
@@ -76,7 +75,7 @@ async function createPackageWatches(chrootService: ChrootService) {
   });
 }
 
-async function crosWorkonStart(board: Board) {
+async function crosWorkonStart(chrootService: ChrootService, board: Board) {
   const pkgName = await vscode.window.showInputBox({
     title: 'Package',
     placeHolder: 'package, e.g. chromeos-base/shill',
@@ -86,15 +85,20 @@ async function crosWorkonStart(board: Board) {
     return;
   }
 
-  await crosWorkon(board.name, 'start', pkgName);
+  await crosWorkon(chrootService, board.name, 'start', pkgName);
 }
 
-async function crosWorkonStop(pkg: Package) {
-  await crosWorkon(pkg.board.name, 'stop', pkg.name);
+async function crosWorkonStop(chrootService: ChrootService, pkg: Package) {
+  await crosWorkon(chrootService, pkg.board.name, 'stop', pkg.name);
 }
 
-async function crosWorkon(boardName: string, cmd: string, pkgName: string) {
-  const res = await commonUtil.exec(
+async function crosWorkon(
+  chrootService: ChrootService,
+  boardName: string,
+  cmd: string,
+  pkgName: string
+) {
+  const res = await chrootService.exec(
     'cros_workon',
     [
       boardName === VIRTUAL_BOARDS_HOST ? '--host' : `--board=${boardName}`,
@@ -144,7 +148,7 @@ class BoardPackageProvider implements vscode.TreeDataProvider<ChrootItem> {
         .concat([new Board(VIRTUAL_BOARDS_HOST)]);
     }
     if (element && element instanceof Board) {
-      return (await getWorkedOnPackages(element.name)).map(
+      return (await getWorkedOnPackages(this.chrootService, element.name)).map(
         x => new Package(element, x)
       );
     }
@@ -183,8 +187,11 @@ class Package extends ChrootItem {
 /**
  * @returns Packages that are worked on.
  */
-async function getWorkedOnPackages(board: string): Promise<string[]> {
-  const res = await commonUtil.exec(
+async function getWorkedOnPackages(
+  chrootService: ChrootService,
+  board: string
+): Promise<string[]> {
+  const res = await chrootService.exec(
     'cros_workon',
     [board === VIRTUAL_BOARDS_HOST ? '--host' : `--board=${board}`, 'list'],
     ideUtil.getUiLogger().append,

@@ -38,9 +38,14 @@ describe('Boards and Packages view', () => {
         };
       })
     );
+    const chrootService = new ChrootService(
+      undefined,
+      undefined,
+      /* isInsideChroot = */ () => true
+    );
 
     const board = new Board('eve');
-    await crosWorkonStart(board);
+    await crosWorkonStart(chrootService, board);
     expect(vscodeSpy.window.showErrorMessage.calls.argsFor(0)).toEqual([
       'cros_workon failed: could not find the package',
     ]);
@@ -53,10 +58,15 @@ describe('Boards and Packages view', () => {
         return new Error('cros_workon not found');
       })
     );
+    const chrootService = new ChrootService(
+      undefined,
+      undefined,
+      /* isInsideChroot = */ () => true
+    );
 
     const board = new Board('eve');
     const pkg = new Package(board, 'shill');
-    await crosWorkonStop(pkg);
+    await crosWorkonStop(chrootService, pkg);
     expect(vscodeSpy.window.showErrorMessage.calls.argsFor(0)).toEqual([
       'cros_workon not found',
     ]);
@@ -92,7 +102,11 @@ chromeos-base/shill`;
     );
 
     const bpProvider = new BoardPackageProvider(
-      new ChrootService(new WrapFs(chroot), undefined)
+      new ChrootService(
+        new WrapFs(chroot),
+        undefined,
+        /* isInsideChroot = */ () => true
+      )
     );
 
     // List boards.
