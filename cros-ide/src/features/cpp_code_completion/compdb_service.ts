@@ -82,7 +82,13 @@ export class CompdbServiceImpl implements CompdbService {
       return;
     }
 
-    const ebuild = new Ebuild(board, atom, this.log, chrootFs);
+    const ebuild = new Ebuild(
+      board,
+      atom,
+      this.log,
+      chrootFs,
+      this.chrootService
+    );
     const artifact = await ebuild.generate();
     if (artifact === undefined) {
       throw new CompdbError({
@@ -123,7 +129,8 @@ class Ebuild {
     private readonly board: Board,
     private readonly atom: Atom,
     private readonly log: commonUtil.Log,
-    private readonly chrootFs: WrapFs<commonUtil.Chroot>
+    private readonly chrootFs: WrapFs<commonUtil.Chroot>,
+    private readonly chrootService: ChrootService
   ) {}
 
   /**
@@ -206,8 +213,7 @@ class Ebuild {
     }
   }
   private async runCompgen() {
-    // TODO(oka): Add logging.
-    const res = await commonUtil.exec(
+    const res = await this.chrootService.exec(
       'env',
       [
         'USE=compdb_only',
