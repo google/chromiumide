@@ -138,6 +138,11 @@ export interface ExecOptions {
    * This changes the default behaviour, which is to return an error.
    */
   ignoreNonZeroExit?: boolean;
+
+  /**
+   * When set, pipeStdin is written to the stdin of the command.
+   */
+  pipeStdin?: string;
 }
 
 /**
@@ -214,6 +219,10 @@ function realExec(
     }
 
     const command = childProcess.spawn(name, args);
+    if (opt?.pipeStdin) {
+      command.stdin.write(opt.pipeStdin);
+      command.stdin.end();
+    }
 
     let remainingStdout = '';
     let remainingStderr = '';

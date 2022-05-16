@@ -190,6 +190,12 @@ describe('Logging exec', () => {
     ]);
   });
 
+  it('can supply stdin', async () => {
+    const res = await commonUtil.exec('cat', [], undefined, {pipeStdin: 'foo'});
+    assert(!(res instanceof Error));
+    assert.strictEqual(res.stdout, 'foo');
+  });
+
   it('returns error when the command fails', async () => {
     const res = await commonUtil.exec('does_not_exist', ['--version']);
     assert(res instanceof commonUtil.ProcessError);

@@ -7,7 +7,12 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as extension from '../extension';
-import {Chroot, ExecResult, setExecForTesting} from '../common/common_util';
+import {
+  Chroot,
+  ExecOptions,
+  ExecResult,
+  setExecForTesting,
+} from '../common/common_util';
 
 /**
  * Returns execution result or undefined if args is not handled.
@@ -17,19 +22,20 @@ import {Chroot, ExecResult, setExecForTesting} from '../common/common_util';
  * `Error` can be used to simulate that the command was not found.
  */
 type Handler = (
-  args: string[]
+  args: string[],
+  opt?: ExecOptions
 ) => Promise<string | ExecResult | Error | undefined>;
 
 export function exactMatch(
   wantArgs: string[],
-  handle: () => Promise<string | ExecResult | Error>
+  handle: (opt?: ExecOptions) => Promise<string | ExecResult | Error>
 ): Handler {
-  return async args => {
+  return async (args, opt) => {
     if (
       wantArgs.length === args.length &&
       wantArgs.every((x, i) => x === args[i])
     ) {
-      return await handle();
+      return await handle(opt);
     }
     return undefined;
   };
@@ -37,22 +43,22 @@ export function exactMatch(
 
 export function prefixMatch(
   wantPrefix: string[],
-  handle: (restArgs: string[]) => Promise<string>
+  handle: (restArgs: string[], opt?: ExecOptions) => Promise<string>
 ): Handler {
-  return async args => {
+  return async (args, opt) => {
     if (
       wantPrefix.length <= args.length &&
       wantPrefix.every((x, i) => x === args[i])
     ) {
-      return await handle(args.slice(wantPrefix.length));
+      return await handle(args.slice(wantPrefix.length), opt);
     }
     return undefined;
   };
 }
 
 export function lazyHandler(f: () => Handler): Handler {
-  return async args => {
-    return f()(args);
+  return async (args, opt) => {
+    return f()(args, opt);
   };
 }
 
@@ -69,10 +75,10 @@ export class FakeExec {
     name: string,
     args: string[],
     _log?: (line: string) => void,
-    _opt?: {logStdout?: boolean}
+    opt?: ExecOptions
   ): Promise<ExecResult | Error> {
     for (const handler of this.handlers.get(name) || []) {
-      const result = await handler(args);
+      const result = await handler(args, opt);
       if (result === undefined) {
         continue;
       }
