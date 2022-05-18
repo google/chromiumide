@@ -28,8 +28,8 @@ There are several ways of testing.
   - Similarly, you can select "Extension Tests" instead of "Run Extensions" to run all the tests.
     The output will be shown in the Debug Console in the IDE used to develop the extension
 - Testing from command line
-  - `npm run unit-test` runs unit tests.
-  - `npm run test` runs all the tests. It must be run outside chroot.
+  - `npm test` runs all the tests. It must be run outside chroot.
+  - `npm preupload` runs all the tests and linters. It must be run outside chroot.
 
 [activity bar]: https://code.visualstudio.com/api/references/extension-guidelines#view-containers
 [debugging the tests]: https://code.visualstudio.com/api/working-with-extensions/testing-extension#debugging-the-tests
@@ -95,12 +95,12 @@ Note that we have slight deviations from [Google TypeScript style guide]:
   - Run `./install.sh --dev` in the terminal of the VSCode connected to chroot.
     It builds from the source code and installs it to the current vscode.
 - Why repo upload is slow?
-  - It runs `npm test`. It's a tentative alternative for a CQ which is under
+  - It runs `npm preupload`. It's a tentative alternative for a CQ which is under
     construction.
 - My repo hook script complains that there is no npx?
   - Run `sudo apt-get install npm` (outside of chroot).
 - How to fix formatting errors?
-  - Run `npm run lint -- --fix`.
+  - Run `npm run fix`.
 
 ---
 
