@@ -38,8 +38,13 @@ export class VncSession {
   private readonly onDidDisposeEmitter = new vscode.EventEmitter<void>();
   readonly onDidDispose = this.onDidDisposeEmitter.event;
 
+  private readonly onDidReceiveMessageEmitter =
+    new vscode.EventEmitter<unknown>();
+  readonly onDidReceiveMessage = this.onDidReceiveMessageEmitter.event;
+
   private readonly subscriptions: vscode.Disposable[] = [
     // onDidDisposeEmitter is not listed here so we can fire it after disposing everything else.
+    this.onDidReceiveMessageEmitter,
   ];
 
   constructor(host: string, private readonly context: vscode.ExtensionContext) {
@@ -49,6 +54,12 @@ export class VncSession {
     this.proxy = new WebSocketProxy(forwardPort);
 
     this.subscriptions.push(this.terminal, this.panel, this.proxy);
+
+    this.subscriptions.push(
+      this.panel.webview.onDidReceiveMessage((msg: unknown) => {
+        this.onDidReceiveMessageEmitter.fire(msg);
+      })
+    );
 
     // Dispose the session when the panel is closed.
     this.subscriptions.push(

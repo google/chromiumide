@@ -4,6 +4,8 @@
 
 import RFB from '@novnc/novnc/core/rfb';
 
+const vscode = acquireVsCodeApi<never>();
+
 function pollWebSocket(url: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const socket = new WebSocket(url);
@@ -52,6 +54,12 @@ async function main() {
 
   const rfb = new RFB(container, proxyUrl);
   rfb.scaleViewport = true;
+  rfb.addEventListener('connect', () => {
+    vscode.postMessage({type: 'connect'});
+  });
+  rfb.addEventListener('disconnect', () => {
+    vscode.postMessage({type: 'disconnect'});
+  });
 }
 
 main();
