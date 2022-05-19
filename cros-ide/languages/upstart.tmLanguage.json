@@ -15,7 +15,12 @@
     { "include": "#event-definition" },
     { "include": "#normal-exit" },
     { "include": "#respawn-limit" },
-    { "include": "#tasks-respawning" }
+    { "include": "#tasks-respawning" },
+    { "include": "#console" },
+    { "include": "#limit" },
+    { "include": "#nice" },
+    { "include": "#oom-score" },
+    { "include": "#umask" }
   ],
   "repository": {
     "comment": {
@@ -168,6 +173,46 @@
     "tasks-respawning": {
       "match": "^(task|respawn)",
       "name": "keyword.other.task-respawn.upstart"
+    },
+    "console": {
+      "match": "^console (none|log|output|owner)",
+      "name": "keyword.other.console.upstart"
+    },
+    "limit": {
+      "begin": "^(limit) (\\w+)",
+      "end": "$",
+      "beginCaptures": {
+        "1": { "name": "keyword.other.limit.upstart" },
+        "2": { "name": "entity.name.other.resource.upstart" }
+      },
+      "patterns": [
+        {
+          "match": "\\bunlimited\\b",
+          "name": "constant.language.unlimited.upstart"
+        },
+        { "include": "#unsigned-number" }
+      ]
+    },
+    "nice": {
+      "match": "^(nice) (\\d+)+",
+      "name": "meta.nice.upstart",
+      "captures": {
+        "1": { "name": "keyword.other.nice.upstart" },
+        "2": { "name": "constant.numeric.upstart" }
+      }
+    },
+    "oom-score": {
+      "match": "^(oom score) (?:(-?\\d+)|(never))",
+      "name": "meta.oom-score.upstart",
+      "captures" : {
+        "1": { "name": "keyword.other.oom-score.upstart" },
+        "2": { "name": "constant.numeric.upstart" },
+        "3": { "name": "constant.language.never.upstart" }
+      }
+    },
+    "umask": {
+      "match": "^umask",
+      "name": "keyword.other.umask.upstart"
     }
   }
 }
