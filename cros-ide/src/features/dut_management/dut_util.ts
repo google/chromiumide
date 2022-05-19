@@ -3,49 +3,63 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import * as shutil from '../../common/shutil';
 import * as metrics from '../../features/metrics/metrics';
 
+/**
+ * Returns the path to the testing_rsa file bundled in the extension.
+ *
+ * The activation function of the DUT management feature ensures that the file
+ * has a safe permission (0600).
+ */
 export function getTestingRsaPath(context: vscode.ExtensionContext): string {
   return vscode.Uri.joinPath(context.extensionUri, 'resources', 'testing_rsa')
     .fsPath;
 }
 
+/**
+ * Creates a new terminal that connects to the specified host.
+ *
+ * @param host Name of the host to connect to.
+ * @param namePrefix Prefix added to the terminal window name.
+ * @param context vscode.ExtensionContext of the extension.
+ * @param extraOptions Extra options passed to the SSH command.
+ * @returns vscode.Terminal for the created terminal.
+ */
 export function createTerminalForHost(
   host: string,
   namePrefix: string,
   context: vscode.ExtensionContext,
-  extraOptions?: string
+  extraOptions?: string[]
 ): vscode.Terminal {
   const terminal = vscode.window.createTerminal(`${namePrefix} ${host}`);
 
-  terminal.sendText(
-    'ssh '.concat(
-      sshFormatArgs(
-        host,
-        '; exit $?',
-        getTestingRsaPath(context),
-        extraOptions
-      ).join(' ')
-    )
+  const command = buildSshCommand(
+    host,
+    getTestingRsaPath(context),
+    undefined,
+    extraOptions
   );
+  terminal.sendText(`${command}; exit $?`);
   metrics.send({category: 'ideUtil', action: 'create terminal for host'});
   return terminal;
 }
 
 /**
+ * Constructs a command line to run SSH for a host.
  *
  * @param host hostname, which can be in the format of 'hostname' or 'hostname:port'
- * @param cmd CLI command to execute
- * @param testingRsaPath absolute path to the testingRSA key
- * @param extraOptions additional CLI options for your command
- * @returns formatted SSH command
+ * @param testingRsaPath absolute path to the testing_rsa key
+ * @param cmd remote command to execute
+ * @param extraOptions additional SSH options for your command
+ * @returns a command line
  */
-export function sshFormatArgs(
+function buildSshCommand(
   host: string,
-  cmd: string,
   testingRsaPath: string,
-  extraOptions?: string
-): string[] {
+  cmd?: string,
+  extraOptions?: string[]
+): string {
   let port = '22';
   const [hostname, portname] = host.split(':');
   if (portname !== undefined) {
@@ -53,18 +67,21 @@ export function sshFormatArgs(
     port = portname;
   }
 
-  let args = ['-i', testingRsaPath];
-  const trailingArgs = [
-    '-o StrictHostKeyChecking=no',
-    '-o UserKnownHostsFile=/dev/null',
+  const args = ['ssh', '-i', testingRsaPath];
+  args.push(
+    '-o',
+    'StrictHostKeyChecking=no',
+    '-o',
+    'UserKnownHostsFile=/dev/null',
     '-p',
-    port,
-    `root@${host}`,
-    cmd,
-  ];
-  if (extraOptions !== undefined) {
-    args.push(extraOptions);
+    port
+  );
+  if (extraOptions) {
+    args.push(...extraOptions);
   }
-  args = args.concat(trailingArgs);
-  return args;
+  args.push(`root@${host}`);
+  if (cmd) {
+    args.push(cmd);
+  }
+  return shutil.escapeArray(args);
 }

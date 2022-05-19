@@ -85,7 +85,7 @@ export class VncSession {
       host,
       'CrOS: VNC Server',
       context,
-      `-L ${forwardPort}:localhost:${VncSession.KMSVNC_PORT}`
+      ['-L', `${forwardPort}:localhost:${VncSession.KMSVNC_PORT}`]
     );
     // Stop an existing server if any.
     terminal.sendText(`fuser -k ${VncSession.KMSVNC_PORT}/tcp; kmsvnc`);
