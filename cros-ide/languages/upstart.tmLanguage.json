@@ -20,7 +20,8 @@
     { "include": "#limit" },
     { "include": "#nice" },
     { "include": "#oom-score" },
-    { "include": "#umask" }
+    { "include": "#umask" },
+    { "include": "#instance" }
   ],
   "repository": {
     "comment": {
@@ -213,6 +214,14 @@
     "umask": {
       "match": "^umask",
       "name": "keyword.other.umask.upstart"
+    },
+    "instance": {
+      "match": "^(instance) (\\$\\S+)",
+      "name": "meta.instance.upstart",
+      "captures": {
+        "1": { "name": "keyword.other.instance.upstart" },
+        "2": { "name": "variable.other.instance.upstart" }
+      }
     }
   }
 }
