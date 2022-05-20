@@ -60,7 +60,10 @@ export function activate(context: vscode.ExtensionContext) {
     crosFormat.activate(context);
   }
 
-  checkUpdates.run(context);
+  // Avoid network operations in tests.
+  if (context.extensionMode !== vscode.ExtensionMode.Test) {
+    checkUpdates.run(context);
+  }
 
   metrics.send({
     category: 'extension',
