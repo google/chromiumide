@@ -21,6 +21,7 @@ import * as metrics from './features/metrics/metrics';
 import * as shortLinkProvider from './features/short_link_provider';
 import * as suggestExtension from './features/suggest_extension';
 import * as targetBoard from './features/target_board';
+import * as upstart from './features/upstart';
 import * as ideUtil from './ide_util';
 import * as chroot from './services/chroot';
 import * as bgTaskStatus from './ui/bg_task_status';
@@ -59,6 +60,7 @@ export async function activate(
   suggestExtension.activate(context);
   targetBoard.activate(context, chrootService);
   feedback.activate(context);
+  upstart.activate(context);
 
   if (ideUtil.getConfigRoot().get<boolean>('underDevelopment.dutManager')) {
     dutManager.activateDutManager(context);
