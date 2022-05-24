@@ -35,6 +35,9 @@ export class FakeVncServer {
         socket.destroy();
       });
 
+      // Ignore errors on the socket.
+      socket.on('error', () => {});
+
       // ProtocolVersion Handshake (7.1.1, A.1)
       socket.write(PROTOCOL_VERSION);
 
