@@ -4,7 +4,12 @@
 
 import * as vscode from 'vscode';
 import * as codesearch from '../../../features/codesearch';
-import {cleanState, exactMatch, installFakeExec} from '../../testing';
+import {
+  cleanState,
+  closeDocument,
+  exactMatch,
+  installFakeExec,
+} from '../../testing';
 import {installVscodeDouble} from '../doubles';
 import {fakeGetConfiguration} from '../fakes/workspace_configuration';
 
@@ -13,15 +18,20 @@ const {openCurrentFile, searchSelection} = codesearch.TEST_ONLY;
 describe('CodeSearch: searching for selection', () => {
   const {vscodeSpy} = installVscodeDouble();
 
+  let textDocument: vscode.TextDocument;
   let textEditor: vscode.TextEditor;
 
   beforeAll(async () => {
-    const textDocument = await vscode.workspace.openTextDocument({
+    textDocument = await vscode.workspace.openTextDocument({
       content:
         'Give people the power to share\nand make the world more open and connected.',
     });
     textEditor = await vscode.window.showTextDocument(textDocument);
     textEditor.selection = new vscode.Selection(0, 5, 0, 11); // selects 'people'
+  });
+
+  afterAll(async () => {
+    await closeDocument(textDocument);
   });
 
   it('in public CS', async () => {

@@ -5,6 +5,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as shortLinkProvider from '../../../features/short_link_provider';
+import * as testing from '../../testing';
 
 const fakeCancellationToken = new (class implements vscode.CancellationToken {
   isCancellationRequested!: boolean;
@@ -15,7 +16,9 @@ const fakeCancellationToken = new (class implements vscode.CancellationToken {
 async function getLinks(text: string) {
   const document = await vscode.workspace.openTextDocument({content: text});
   const provider = new shortLinkProvider.ShortLinkProvider();
-  return provider.provideDocumentLinks(document, fakeCancellationToken);
+  const res = provider.provideDocumentLinks(document, fakeCancellationToken);
+  await testing.closeDocument(document);
+  return res;
 }
 
 describe('Short Link Provider', () => {

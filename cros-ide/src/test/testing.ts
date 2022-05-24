@@ -2,17 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import * as extension from '../extension';
+import * as vscode from 'vscode';
 import {
   Chroot,
   ExecOptions,
   ExecResult,
   setExecForTesting,
 } from '../common/common_util';
+import * as extension from '../extension';
 
 /**
  * Returns execution result or undefined if args is not handled.
@@ -205,4 +205,9 @@ export async function activateExtension(): Promise<ExtensionApiForTesting> {
   const extension =
     vscode.extensions.getExtension<ExtensionApiForTesting>('google.cros-ide')!;
   return await extension.activate();
+}
+
+export async function closeDocument(document: vscode.TextDocument) {
+  await vscode.window.showTextDocument(document);
+  await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
 }
