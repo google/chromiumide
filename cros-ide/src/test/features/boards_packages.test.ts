@@ -7,8 +7,8 @@ import * as vscode from 'vscode';
 import {WrapFs} from '../../common/cros';
 import {TEST_ONLY} from '../../features/boards_packages';
 import {ChrootService} from '../../services/chroot';
-import {installVscodeDouble} from '../integration/doubles';
-import {fakeGetConfiguration} from '../integration/fakes/workspace_configuration';
+import {installVscodeDouble} from '../doubles';
+import {fakeGetConfiguration} from '../fakes/workspace_configuration';
 import {
   buildFakeChroot,
   exactMatch,

@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as assert from 'assert';
-import * as compdbServiceLegacy from '../../../../features/cpp_code_completion/compdb_service_legacy';
+import * as compdbServiceLegacy from '../../../features/cpp_code_completion/compdb_service_legacy';
 
 describe('Legacy compdb service', () => {
   it('obtains user consent to run commands', async () => {

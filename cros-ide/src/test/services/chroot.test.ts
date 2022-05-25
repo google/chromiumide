@@ -4,10 +4,10 @@
 
 import * as assert from 'assert';
 import * as path from 'path';
-import {ExecResult, Source} from '../../../common/common_util';
-import {WrapFs} from '../../../common/cros';
-import {ChrootService} from '../../../services/chroot';
-import {exactMatch, installFakeExec, tempDir} from '../../testing';
+import {ExecResult, Source} from '../../common/common_util';
+import {WrapFs} from '../../common/cros';
+import {ChrootService} from '../../services/chroot';
+import {exactMatch, installFakeExec, tempDir} from '../testing';
 import {installVscodeDouble} from '../doubles';
 
 describe('cros service', () => {

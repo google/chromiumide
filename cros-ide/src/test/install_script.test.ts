@@ -5,13 +5,8 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
 import * as semver from 'semver';
-import * as install from '../../tools/install';
-import {
-  exactMatch,
-  installFakeExec,
-  lazyHandler,
-  prefixMatch,
-} from '../testing';
+import * as install from '../tools/install';
+import {exactMatch, installFakeExec, lazyHandler, prefixMatch} from './testing';
 
 describe('Install script', () => {
   const {fakeExec} = installFakeExec();

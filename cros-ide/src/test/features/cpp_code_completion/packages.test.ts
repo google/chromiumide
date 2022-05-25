@@ -4,8 +4,8 @@
 
 import * as assert from 'assert';
 import * as path from 'path';
-import {Packages} from '../../../../features/cpp_code_completion/packages';
-import * as testing from '../../../testing';
+import {Packages} from '../../../features/cpp_code_completion/packages';
+import * as testing from '../../testing';
 
 describe('Packages', () => {
   const tempDir = testing.tempDir();

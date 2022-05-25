@@ -3,13 +3,13 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as codesearch from '../../../features/codesearch';
+import * as codesearch from '../../features/codesearch';
 import {
   cleanState,
   closeDocument,
   exactMatch,
   installFakeExec,
-} from '../../testing';
+} from '../testing';
 import {installVscodeDouble} from '../doubles';
 import {fakeGetConfiguration} from '../fakes/workspace_configuration';
 

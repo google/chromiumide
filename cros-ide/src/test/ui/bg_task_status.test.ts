@@ -9,7 +9,7 @@ import {
   StatusManager,
   TaskId,
   TaskStatus,
-} from '../../../ui/bg_task_status';
+} from '../../ui/bg_task_status';
 
 const {StatusManagerImpl, StatusBarHandler, StatusTreeData} = TEST_ONLY;
 

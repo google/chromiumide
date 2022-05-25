@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import * as assert from 'assert';
-import {CompdbServiceImpl} from '../../../../features/cpp_code_completion/compdb_service';
-import {ChrootService} from '../../../../services/chroot';
+import {CompdbServiceImpl} from '../../../features/cpp_code_completion/compdb_service';
+import {ChrootService} from '../../../services/chroot';
 import {SpiedCompdbService} from './spied_compdb_service';
 
 describe('Compdb service', () => {

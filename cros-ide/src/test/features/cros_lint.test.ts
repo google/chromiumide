@@ -4,8 +4,8 @@
 
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import * as crosLint from '../../../features/cros_lint';
-import * as testing from '../../testing';
+import * as crosLint from '../../features/cros_lint';
+import * as testing from '../testing';
 
 const cppFileName = 'cros-disks/aaa.h';
 

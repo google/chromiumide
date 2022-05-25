@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {cleanState} from '../testing';
+import {cleanState} from './testing';
 
 /**
  * Spy for the `vscode` module.

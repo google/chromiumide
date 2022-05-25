@@ -5,8 +5,8 @@
 import * as assert from 'assert';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as metricsUtil from '../../features/metrics/metrics_util';
-import * as testing from '../testing';
+import * as metricsUtil from '../../../features/metrics/metrics_util';
+import * as testing from '../../testing';
 
 describe('Metrics util: user id', () => {
   const tempDir = testing.tempDir();
