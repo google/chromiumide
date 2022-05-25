@@ -223,9 +223,9 @@
           "description": "Enable Test Coverage (incomplete)",
           "default": false
         },
-        "cros-ide.underDevelopment.fasterCppXrefGeneration": {
+        "cros-ide.underDevelopment.legacyCppXrefGeneration": {
           "type": "boolean",
-          "description": "Faster compilation database generation for C++ xrefs (incomplete)",
+          "description": "Switch back to legacy compilation database generation for C++ xrefs (deprecated)",
           "default": false
         },
         "cros-ide.dutManager.hosts": {

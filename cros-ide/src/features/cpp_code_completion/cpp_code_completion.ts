@@ -43,10 +43,10 @@ export function activate(
   );
 }
 
-const FASTER_CPP_XREF_GENERATION = 'underDevelopment.fasterCppXrefGeneration';
+const LEGACY_CPP_XREF_GENERATION = 'underDevelopment.legacyCppXrefGeneration';
 
 function useLegacy(): boolean {
-  return !ideUtil.getConfigRoot().get(FASTER_CPP_XREF_GENERATION);
+  return !!ideUtil.getConfigRoot().get(LEGACY_CPP_XREF_GENERATION);
 }
 
 const STATUS_BAR_TASK_ID = 'C++ Support';
