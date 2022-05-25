@@ -1,6 +1,7 @@
 // Copyright 2022 The Chromium OS Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
+import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../common/common_util';
 import * as ideUtil from '../ide_util';
@@ -20,8 +21,21 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(openFileCmd, searchSelectionCmd);
 }
 
-const generateCsPath = '/mnt/host/source/chromite/contrib/generate_cs_path';
 const codeSearch = 'codeSearch';
+
+function getCodeSearchToolConfig(
+  fullpath: string
+): {executable: string; cwd: string} | undefined {
+  const chroot = commonUtil.findChroot(fullpath);
+  if (!chroot) {
+    return undefined;
+  }
+  const source = commonUtil.sourceDir(chroot);
+  return {
+    executable: path.join(source, 'chromite/contrib/generate_cs_path'),
+    cwd: chroot,
+  };
+}
 
 async function openCurrentFile(textEditor: vscode.TextEditor) {
   const fullpath = textEditor.document.fileName;
@@ -31,11 +45,22 @@ async function openCurrentFile(textEditor: vscode.TextEditor) {
 
   const line = textEditor.selection.active.line + 1;
 
+  const config = getCodeSearchToolConfig(fullpath);
+  if (!config) {
+    vscode.window.showErrorMessage("Could not find 'generate_cs_path' script");
+    return;
+  }
+  const {executable, cwd} = config;
+
   const res = await commonUtil.exec(
-    generateCsPath,
+    executable,
     ['--show', `--${csInstance}`, `--line=${line}`, fullpath],
     ideUtil.getUiLogger().append,
-    {logStdout: true, ignoreNonZeroExit: true}
+    {
+      logStdout: true,
+      ignoreNonZeroExit: true,
+      cwd: cwd,
+    }
   );
 
   if (res instanceof Error) {

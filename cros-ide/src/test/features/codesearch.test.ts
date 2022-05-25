@@ -2,13 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as path from 'path';
 import * as vscode from 'vscode';
 import * as codesearch from '../../features/codesearch';
 import {
+  buildFakeChroot,
   cleanState,
   closeDocument,
   exactMatch,
   installFakeExec,
+  tempDir,
 } from '../testing';
 import {installVscodeDouble} from '../doubles';
 import {fakeGetConfiguration} from '../fakes/workspace_configuration';
@@ -67,29 +70,43 @@ describe('CodeSearch: searching for selection', () => {
 describe('CodeSearch: opening current file', () => {
   const {vscodeSpy} = installVscodeDouble();
   const {fakeExec} = installFakeExec();
+  const temp = tempDir();
 
-  const state = cleanState(() => ({
-    // We need an editor with file path, so we cannot use a real object
-    // like in the tests which open selection.
-    fakeTextEditor: {
-      document: {
-        fileName:
-          '/home/sundar/chromiumos/src/platform2/cros-disks/archive_mounter.cc',
-      },
-      selection: {
-        active: {
-          line: 40,
+  const state = cleanState(async () => {
+    await buildFakeChroot(temp.path);
+
+    const documentFileName = path.join(
+      temp.path,
+      'chromiumos/src/platform2/cros-disks/archive_mounter.cc'
+    );
+
+    return {
+      // We need an editor with file path, so we cannot use a real object
+      // like in the tests which open selection.
+      fakeTextEditor: {
+        document: {
+          fileName: documentFileName,
         },
-      },
-    } as unknown as vscode.TextEditor,
+        selection: {
+          active: {
+            line: 40,
+          },
+        },
+      } as unknown as vscode.TextEditor,
 
-    generateCsPathInvocation: [
-      '--show',
-      '--public',
-      '--line=41',
-      '/home/sundar/chromiumos/src/platform2/cros-disks/archive_mounter.cc',
-    ],
-  }));
+      fakeCodeSearchToolConfig: {
+        executable: '/mnt/host/source/chromite/contrib/generate_cs_path',
+        cwd: '/tmp',
+      },
+
+      generateCsPathInvocation: [
+        '--show',
+        '--public',
+        '--line=41',
+        documentFileName,
+      ],
+    };
+  });
 
   beforeEach(() => {
     vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
@@ -104,7 +121,7 @@ describe('CodeSearch: opening current file', () => {
       'src/platform2/cros-disks/archive_mounter.cc;l=41';
 
     fakeExec.on(
-      '/mnt/host/source/chromite/contrib/generate_cs_path',
+      path.join(temp.path, 'chromite/contrib/generate_cs_path'),
       exactMatch(state.generateCsPathInvocation, async () => {
         return CS_LINK;
       })
@@ -118,7 +135,7 @@ describe('CodeSearch: opening current file', () => {
 
   it('shows error popup when generate_cs_link cannot be found', async () => {
     fakeExec.on(
-      '/mnt/host/source/chromite/contrib/generate_cs_path',
+      path.join(temp.path, 'chromite/contrib/generate_cs_path'),
       exactMatch(state.generateCsPathInvocation, async () => {
         return Error('not found');
       })
@@ -133,7 +150,7 @@ describe('CodeSearch: opening current file', () => {
 
   it('shows error popup when generate_cs_link fails', async () => {
     fakeExec.on(
-      '/mnt/host/source/chromite/contrib/generate_cs_path',
+      path.join(temp.path, 'chromite/contrib/generate_cs_path'),
       exactMatch(state.generateCsPathInvocation, async () => {
         return {stdout: '', stderr: 'error msg', exitStatus: 1};
       })
