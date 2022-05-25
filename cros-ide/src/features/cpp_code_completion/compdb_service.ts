@@ -19,7 +19,6 @@ export interface CompdbService {
    * compilation database is actually needed.
    */
   generate(board: string, packageInfo: PackageInfo): Promise<void>;
-  isEnabled(): boolean;
 }
 
 export class CompdbError extends Error {
@@ -60,8 +59,6 @@ export enum CompdbErrorKind {
 export class CompdbServiceImpl implements CompdbService {
   constructor(
     private readonly log: commonUtil.Log,
-    private readonly legacyService: CompdbService,
-    private readonly useLegacy: () => boolean,
     private readonly chrootService: ChrootService
   ) {}
 
@@ -71,13 +68,6 @@ export class CompdbServiceImpl implements CompdbService {
    * @throws CompdbError on failure
    */
   async generate(board: string, {sourceDir, atom}: PackageInfo) {
-    if (this.useLegacy()) {
-      return await this.legacyService.generate(board, {
-        sourceDir,
-        atom,
-      });
-    }
-
     const sourceFs = this.chrootService.source();
     const chrootFs = this.chrootService.chroot();
     if (!sourceFs || !chrootFs) {
@@ -115,10 +105,6 @@ export class CompdbServiceImpl implements CompdbService {
         reason: e as Error,
       });
     }
-  }
-
-  isEnabled(): boolean {
-    return this.useLegacy() ? this.legacyService.isEnabled() : true;
   }
 }
 

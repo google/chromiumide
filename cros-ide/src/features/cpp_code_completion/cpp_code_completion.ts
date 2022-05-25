@@ -13,7 +13,6 @@ import {
   CompdbService,
   CompdbServiceImpl,
 } from './compdb_service';
-import {LegacyCompdbService} from './compdb_service_legacy';
 import {CLANGD_EXTENSION, SHOW_LOG_COMMAND} from './constants';
 import {Atom, Packages} from './packages';
 
@@ -25,11 +24,8 @@ export function activate(
   const log = vscode.window.createOutputChannel('CrOS IDE: C++ Support');
   vscode.commands.registerCommand(SHOW_LOG_COMMAND.command, () => log.show());
 
-  const legacyService = new LegacyCompdbService(statusManager, log);
   const compdbService = new CompdbServiceImpl(
     log.append.bind(log),
-    legacyService,
-    useLegacy,
     chrootService
   );
   context.subscriptions.push(
@@ -41,12 +37,6 @@ export function activate(
       chrootService
     )
   );
-}
-
-const LEGACY_CPP_XREF_GENERATION = 'underDevelopment.legacyCppXrefGeneration';
-
-function useLegacy(): boolean {
-  return !!ideUtil.getConfigRoot().get(LEGACY_CPP_XREF_GENERATION);
 }
 
 const STATUS_BAR_TASK_ID = 'C++ Support';
@@ -132,9 +122,6 @@ export class CompilationDatabase implements vscode.Disposable {
     if (!(await this.ensureClangdIsActivated())) {
       return;
     }
-    if (!this.compdbService.isEnabled()) {
-      return;
-    }
     const packageInfo = await this.packages.fromFilepath(document.fileName);
     if (!packageInfo) {
       return;
@@ -161,9 +148,6 @@ export class CompilationDatabase implements vscode.Disposable {
     // Generating the database is time consuming involving execution of external
     // processes, so we ensure it to run only one at a time using the manager.
     await this.jobManager.offer(async () => {
-      if (!this.compdbService.isEnabled()) {
-        return; // early return from queued job.
-      }
       try {
         await this.compdbService.generate(board, packageInfo);
         await vscode.commands.executeCommand('clangd.restart');

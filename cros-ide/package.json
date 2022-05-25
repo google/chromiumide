@@ -224,11 +224,6 @@
           "description": "Enable Test Coverage (incomplete)",
           "default": false
         },
-        "cros-ide.underDevelopment.legacyCppXrefGeneration": {
-          "type": "boolean",
-          "description": "Switch back to legacy compilation database generation for C++ xrefs (deprecated)",
-          "default": false
-        },
         "cros-ide.deviceManagement.devices": {
           "type": "array",
           "scope": "machine-overridable",
