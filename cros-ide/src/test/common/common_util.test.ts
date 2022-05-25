@@ -5,7 +5,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../common/common_util';
-import {flushMicrotasks} from '../testing';
+import {flushMicrotasks, tempDir} from '../testing';
 
 class BlockingPromise<T> {
   readonly promise: Promise<T | undefined>;
@@ -88,6 +88,8 @@ describe('Job manager', () => {
 });
 
 describe('Logging exec', () => {
+  const temp = tempDir();
+
   it('returns stdout and logs stderr', async () => {
     let logs = '';
     const res = await commonUtil.exec(
@@ -214,6 +216,12 @@ describe('Logging exec', () => {
     canceller.cancel();
     const res = await process;
     assert(res instanceof commonUtil.CancelledError);
+  });
+
+  it('changes the directory if cwd is specified', async () => {
+    const res = await commonUtil.exec('pwd', [], undefined, {cwd: temp.path});
+    assert(!(res instanceof Error));
+    expect(res.stdout).toContain(temp.path);
   });
 });
 

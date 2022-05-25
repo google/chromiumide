@@ -149,6 +149,11 @@ export interface ExecOptions {
    * Allows interrupting a command execution.
    */
   cancellationToken?: vscode.CancellationToken;
+
+  /**
+   * Current working directory of the child process.
+   */
+  cwd?: string;
 }
 
 /**
@@ -233,7 +238,12 @@ function realExec(
       log(shutil.escapeArray([name, ...args]) + '\n');
     }
 
-    const command = childProcess.spawn(name, args);
+    const spawnOpts: childProcess.SpawnOptionsWithoutStdio = {};
+    if (opt?.cwd) {
+      spawnOpts.cwd = opt.cwd;
+    }
+
+    const command = childProcess.spawn(name, args, spawnOpts);
     if (opt?.pipeStdin) {
       command.stdin.write(opt.pipeStdin);
       command.stdin.end();
