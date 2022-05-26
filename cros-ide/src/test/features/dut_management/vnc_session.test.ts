@@ -23,7 +23,7 @@ function waitConnectEvent(session: vnc.VncSession): Promise<void> {
   });
 }
 
-describe('VNC session', () => {
+xdescribe('VNC session', () => {
   const state = testing.cleanState(() => {
     const subscriptions: vscode.Disposable[] = [];
     const output = vscode.window.createOutputChannel(
