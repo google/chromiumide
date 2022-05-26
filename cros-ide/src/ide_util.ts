@@ -158,7 +158,8 @@ export function vscodeExecutablePath(
   appRoot = vscode.env.appRoot,
   appName = vscode.env.appName
 ): string | Error {
-  if (appName === 'code-server') {
+  // code-server's appName differs depending on the version.
+  if (appName === 'code-server' || appName === 'Code - OSS') {
     return findExecutable(appRoot, 'code-server');
   } else if (appName === 'Visual Studio Code') {
     return findExecutable(appRoot, 'remote-cli/code');
