@@ -70,6 +70,59 @@ describe('Compdb service', () => {
     ).toBe('fake compile commands');
   });
 
+  it('can update symlink to readonly file', async () => {
+    fakeExec
+      .on(
+        'sudo',
+        testing.exactMatch(['-nv'], async () => '')
+      )
+      .on(
+        'sudo',
+        testing.exactMatch(
+          [
+            path.join(state.source, 'chromite/bin/cros_sdk'),
+            '--',
+            'env',
+            'USE=compdb_only',
+            'ebuild-amd64-generic',
+            '/mnt/host/source/src/third_party/chromiumos-overlay/chromeos-base/codelab/codelab-9999.ebuild',
+            'compile',
+          ],
+          async () => {
+            // Generate compilation database
+            await testing.putFiles(state.chroot, {
+              '/build/amd64-generic/tmp/portage/chromeos-base/codelab-9999/work/build/out/Default/compile_commands_no_chroot.json':
+                'fake compile commands',
+            });
+            return '';
+          }
+        )
+      );
+
+    await fs.promises.mkdir(path.join(state.source, 'src/platform2/codelab'), {
+      recursive: true,
+    });
+    // Creates a symlink to an unremovable file.
+    await fs.promises.symlink(
+      '/dev/null',
+      path.join(state.source, 'src/platform2/codelab/compile_commands.json')
+    );
+
+    const compdbService = new CompdbServiceImpl(_x => {},
+    new chroot.ChrootService(new cros.WrapFs(state.chroot), new cros.WrapFs(state.source)));
+    await compdbService.generate('amd64-generic', {
+      sourceDir: 'src/platform2/codelab',
+      atom: 'chromeos-base/codelab',
+    });
+
+    expect(
+      await fs.promises.readFile(
+        path.join(state.source, 'src/platform2/codelab/compile_commands.json'),
+        'utf8'
+      )
+    ).toBe('fake compile commands');
+  });
+
   it('throws error on invalid password', async () => {
     fakeExec
       .on(

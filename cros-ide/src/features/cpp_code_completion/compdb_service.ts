@@ -2,7 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as fs from 'fs';
 import * as path from 'path';
+import * as uuid from 'uuid';
 import * as commonUtil from '../../common/common_util';
 import {WrapFs} from '../../common/cros';
 import {Atom, PackageInfo} from '../../features/cpp_code_completion/packages';
@@ -95,15 +97,26 @@ export class CompdbServiceImpl implements CompdbService {
       sourceDir,
       'compile_commands.json'
     );
+    let tempFile;
+    for (;;) {
+      tempFile = path.join(path.dirname(destination), '.' + uuid.v4());
+      if (!fs.existsSync(tempFile)) {
+        break;
+      }
+    }
     try {
-      this.log(`Copying ${artifact} to ${destination}`);
-      await chrootFs.copyFile(artifact, destination);
+      this.log(`Copying ${artifact} to ${tempFile}`);
+      await chrootFs.copyFile(artifact, tempFile);
+      this.log(`Renaming ${tempFile} to ${destination}`);
+      await fs.promises.rename(tempFile, destination);
     } catch (e) {
       throw new CompdbError({
         kind: CompdbErrorKind.CopyFailed,
         destination: destination,
         reason: e as Error,
       });
+    } finally {
+      await fs.promises.rm(tempFile, {force: true});
     }
   }
 }
