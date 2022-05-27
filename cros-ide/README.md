@@ -1,10 +1,9 @@
-# Chrome OS Development in Visual Studio Code
+# ChromiumOS Development in Visual Studio Code
 
-CrOS IDE makes Chrome OS development fast and fun by anchoring existing tools
-in one place, and making them discoverable and easy to use.
+This VSCode IDE extension is designed to make ChromiumOS development easier and faster by anchoring core tools in one place, and making them discoverable and easy to use.
 
-It is a new project, currently in dogfood, and it was tested only for Google
-internal developers. No timely support will be provided to other parties.
+## User Scope
+This is intended for Googlers only.
 
 ## Features
 
@@ -12,8 +11,13 @@ Initial release has been tested for `platform2` development and offers the follo
 
 - Autocompletion, x-ref searching, and symbol definition for C++.
 - Linting (C++, Python, Shell, GN).
-- Boards and packages view, Code Search integration, short links support (crbug, etc.), and so on.
+- Boards and packages viewer
+- Code Search integration
+- Integrated short links support (Click to open).
 
 See [QuickStart Guide] for setup instructions.
 
 [quickstart guide]: https://chromium.googlesource.com/chromiumos/chromite/+/HEAD/ide_tooling/docs/quickstart.md
+
+## Contacting Us
+[go/cros-ide-users](go/cros-ide-users)
