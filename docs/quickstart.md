@@ -1,15 +1,22 @@
 # CrOS IDE quickstart (go/cros-ide-quickstart)
 
-CrOS IDE is a VSCode Extension for Chrome OS development. It is a new project,
+CrOS IDE is a VSCode Extension for ChromiumOS development. It is a new project
 and we currently support only internal developers at Google.
+
+If you are using CrOS IDE <= v0.0.10, follow [legacy quickstart]. Note that
+legacy support will be removed after global dogfood release.
+
+[legacy quickstart]: ./legacy-quickstart.md
 
 ## Prerequisites
 
-All you need is a Chrome OS chroot, which most developers already have.
-If you don't have it, please follow the [Chromium OS Developer Guide] and set up
+All you need is a ChromiumOS chroot, which most developers already have.
+If you don't have it, please follow the [ChromiumOS Developer Guide] and set up
 your development environment, so you can [enter the chroot via cros_sdk].
 
-[chromium os developer guide]: https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md
+In this document, we assume ChromiumOS source code is in `~/chromiumos`.
+
+[chromiumos developer guide]: https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md
 [enter the chroot via cros_sdk]: https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md#Enter-the-chroot
 
 ## 1. Install Visual Studio Code
@@ -31,48 +38,35 @@ Learn more at [go/vscode/install#glinux]
 Install [VSCode from the Software Center] or [go/mule]
 (`sudo mule install visual-studio-code`).
 
-[vscode from the software center]: https://device-portal.corp.google.com/#/software-center/list//appid%3AMAC_OS-visual-studio-code/MAC_OS
+[vscode from the software center]: http://go/softwarecenter/list//appid%3AMAC_OS-visual-studio-code/MAC_OS
 [go/mule]: http://go/mule
 
-### Chrome OS
+### ChromeOS
 
 CrOS IDE supports only platform-specific VSCode, which is not available for
-Chrome OS. There are two workarounds:
+ChromeOS. There are two workarounds:
 
 - Check out [go/cros-ide-on-chromebooks] to learn more about
   [Code Server], which is a Web IDE accessible in the browser.
-- Use remote desktop.
+- Use Chrome Remote Desktop.
 
 [go/cros-ide-on-chromebooks]: http://go/cros-ide-on-chromebooks
 [code server]: https://github.com/coder/code-server
 
-## 2. Install cros-sdk-proxy
+## 2. (Optional) Connect to your machine via VSCode
 
-Follow [cros-sdk-proxy documentation](../cros-sdk-proxy/README.md).
-
-Verify the installation by running the following command on your client machine:
-
-```
-ssh cros
-```
-
-It should connect to the chroot, just like `cros_sdk` does.
-
-## 3. Connect to chroot via VSCode
+If you use remote setup, for example gMac laptop, you will need [Remote development] extension.
 
 Install [Remote development] extension on the VSCode.
 Click the lower left "Open a Remote Window" button and select \[Connect to
 Host...\] command (alternatively directly choose this command from the command
-palette), and select the host `cros` (see the gif below).
-Open your working directory under `/home/$USER/chromiumos/`.
-
-![Open cros](https://storage.googleapis.com/chromeos-velocity/ide/img/open-cros.gif)
+palette), select your remote machine, and open your working directory under `~/chromiumos/`.
 
 [remote development]: https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack
 
-## 4. Install the extension
+## 3. Install the extension
 
-Open terminal in the VSCode connected to `cros`, and run
+Open terminal in the VSCode and run
 
 ```
 ~/chromiumos/chromite/ide_tooling/cros-ide/install.sh
@@ -87,9 +81,9 @@ Open terminal in the VSCode connected to `cros`, and run
 ~/chromiumos/chromite/ide_tooling/cros-ide/install.sh --exe ~/.local/bin/code-server
 ```
 
-- You can install an old version of extension (say 0.0.1), with `--force 0.0.1` flag.
+- You can install an old version of the extension (say 0.0.1), with the `--force 0.0.1` flag.
 
-## 5. Reload the IDE
+## 4. Reload the IDE
 
 You need to reload the VSCode to activate the extension. Either simply restart
 the IDE, or open the command palette (Ctrl+Shift+P) and type "Developer: Reload
@@ -97,15 +91,15 @@ Window".
 
 ## Updating
 
-Run the install script again as written in [Install the extension](#4_install-the-extension).
-You need to [reload the IDE](#5_reload-the-ide) after that.
+Run the install script again as written in [Install the
+extension](#3_install-the-extension) and [reload the IDE](#4_reload-the-ide).
 
 # Features
 
 ### Code Completion and Navigation
 
 Code completion in C++ is available in platform2 packages which support
-`USE=compilation_database`. Press F12 to [Go to Definition], Ctrl+F12 to
+`USE=compdb_only`. Press F12 to [Go to Definition], Ctrl+F12 to
 Go to Implementation, and so on.
 
 ![Example of Code Completion](https://storage.googleapis.com/chromeos-velocity/ide/img/code-completion.gif)
@@ -142,10 +136,3 @@ to use (public, internal, or Gitiles).
 ![Code Search integration](https://storage.googleapis.com/chromeos-velocity/ide/img/code-search.gif)
 
 [settings]: https://code.visualstudio.com/docs/getstarted/settings
-
-# Known issues
-
-- C++ code completion runs `USE=compilation_database emerge-$BOARD $PKG`
-  in the background and overrides existing files in `/build/$BOARD/`. For
-  example, if you generate coverage with `USE=coverage cros_run_unit_tests ...`,
-  CrOS IDE will override the coverage data.
