@@ -9,6 +9,7 @@
  */
 import * as vscode from 'vscode';
 import * as checkUpdates from './check_updates';
+import * as commonUtil from './common/common_util';
 import * as boardsPackages from './features/boards_packages';
 import * as codesearch from './features/codesearch';
 import * as coverage from './features/coverage';
@@ -29,12 +30,20 @@ import * as bgTaskStatus from './ui/bg_task_status';
 export interface ExtensionApi {
   // ExtensionContext passed to the activation function.
   // Available only when the extension is activated for testing.
-  context: vscode.ExtensionContext | undefined;
+  context?: vscode.ExtensionContext;
 }
 
 export async function activate(
   context: vscode.ExtensionContext
 ): Promise<ExtensionApi> {
+  if (commonUtil.isInsideChroot()) {
+    vscode.window.showErrorMessage(
+      'Running VSCode inside chroot is no longer supported; please read go/cros-ide-quickstart and update your setup',
+      {modal: true}
+    );
+    return {};
+  }
+
   const statusManager = bgTaskStatus.activate(context);
   const chrootService = chroot.activate(context);
 
