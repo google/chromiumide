@@ -17,7 +17,7 @@ import * as shutil from './shutil';
 // Type Chroot represents the path to chroot.
 // We use nominal typing technique here. https://basarat.gitbook.io/typescript/main-1/nominaltyping
 export type Chroot = string & {_brand: 'chroot'};
-// Type Source represents the path to Chrome OS source.
+// Type Source represents the path to ChromiumOS source.
 export type Source = string & {_brand: 'source'};
 
 export function isInsideChroot(): boolean {
@@ -53,7 +53,7 @@ export function findChroot(dir: string): Chroot | undefined {
 }
 
 /**
- * Returns the Chrome OS source directory, given the path to chroot.
+ * Returns the ChromiumOS source directory, given the path to chroot.
  */
 export function sourceDir(chroot: Chroot): Source {
   if (chroot === '/') {

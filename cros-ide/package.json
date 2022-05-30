@@ -1,7 +1,7 @@
 {
   "name": "cros-ide",
   "displayName": "CrOS IDE",
-  "description": "Chrome OS Development",
+  "description": "ChromiumOS Development",
   "version": "0.0.10",
   "publisher": "Google",
   "author": {

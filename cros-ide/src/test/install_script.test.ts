@@ -217,7 +217,7 @@ index ee8697e11..877d91ddd 100644
 @@ -2,7 +2,7 @@
    "name": "cros-ide",
    "displayName": "cros-ide",
-   "description": "Connect to Chrome OS DUTs over VNC",
+   "description": "Connect to ChromiumOS DUTs over VNC",
 -  "version": "0.0.12",
 +  "version": "0.0.13",
    "publisher": "cros-velocity",
