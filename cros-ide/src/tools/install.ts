@@ -17,6 +17,12 @@ function assertInsideChroot() {
   }
 }
 
+function assertOutsideChroot() {
+  if (commonUtil.isInsideChroot()) {
+    throw new Error('installation outside chroot is required');
+  }
+}
+
 const GS_PREFIX = 'gs://chromeos-velocity/ide/cros-ide';
 
 async function execute(
@@ -173,6 +179,12 @@ export async function installDev(exe: string) {
 export async function install(exe: string, forceVersion?: semver.SemVer) {
   const src = await findArchive(forceVersion);
 
+  if (src.version.compare('0.0.10') <= 0) {
+    assertInsideChroot();
+  } else {
+    assertOutsideChroot();
+  }
+
   await commonUtil.withTempDir(async td => {
     const dst = path.join(td, src.name);
 
@@ -295,7 +307,6 @@ async function main() {
     return;
   }
   try {
-    assertInsideChroot();
     await install(config.exe, config.forceVersion);
   } catch (e) {
     const message = (e as Error).message;

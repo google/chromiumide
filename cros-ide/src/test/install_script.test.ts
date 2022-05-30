@@ -11,6 +11,21 @@ import {exactMatch, installFakeExec, lazyHandler, prefixMatch} from './testing';
 describe('Install script', () => {
   const {fakeExec} = installFakeExec();
 
+  it('fails outside chroot for v0.0.10', async () => {
+    fakeExec.on(
+      'gsutil',
+      exactMatch(['ls', 'gs://chromeos-velocity/ide/cros-ide'], async () => {
+        return `gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.9.vsix
+gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.10.vsix@abcdef10
+`;
+      })
+    );
+
+    await expectAsync(install.install('code')).toBeRejectedWith(
+      new Error('not inside chroot')
+    );
+  });
+
   it('installs default (latest) version', async () => {
     let tempFile = '';
     let installed = false;
@@ -18,8 +33,8 @@ describe('Install script', () => {
       .on(
         'gsutil',
         exactMatch(['ls', 'gs://chromeos-velocity/ide/cros-ide'], async () => {
-          return `gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.1.vsix
-gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.2.vsix@253d24b6b54fa72d21f622b8f1bb6cc9b6f3d435
+          return `gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.11.vsix
+gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.12.vsix@abcdef12
 `;
         })
       )
@@ -28,8 +43,8 @@ gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.2.vsix@253d24b6b54fa72d21f622b8
         prefixMatch(
           [
             'cp',
-            'gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.2.vsix@' +
-              '253d24b6b54fa72d21f622b8f1bb6cc9b6f3d435',
+            'gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.12.vsix@' +
+              'abcdef12',
           ],
           async args => {
             tempFile = args[0];
@@ -50,7 +65,7 @@ gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.2.vsix@253d24b6b54fa72d21f622b8
     await install.install('code');
     assert.deepStrictEqual(installed, true);
     const name = tempFile.split('/').pop();
-    assert.deepStrictEqual(name, 'cros-ide-0.0.2.vsix');
+    assert.deepStrictEqual(name, 'cros-ide-0.0.12.vsix');
   });
 
   it('installs specified version', async () => {
@@ -60,15 +75,15 @@ gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.2.vsix@253d24b6b54fa72d21f622b8
       .on(
         'gsutil',
         exactMatch(['ls', 'gs://chromeos-velocity/ide/cros-ide'], async () => {
-          return `gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.1.vsix
-gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.2.vsix@253d24b6b54fa72d21f622b8f1bb6cc9b6f3d435
+          return `gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.11.vsix
+gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.12.vsix@abcdef12
 `;
         })
       )
       .on(
         'gsutil',
         prefixMatch(
-          ['cp', 'gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.1.vsix'],
+          ['cp', 'gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.11.vsix'],
           async args => {
             tempFile = args[0];
             return '';
@@ -85,10 +100,10 @@ gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.2.vsix@253d24b6b54fa72d21f622b8
         )
       );
 
-    await install.install('code', new semver.SemVer('0.0.1'));
+    await install.install('code', new semver.SemVer('0.0.11'));
     assert.deepStrictEqual(installed, true);
     const name = tempFile.split('/').pop();
-    assert.deepStrictEqual(name, 'cros-ide-0.0.1.vsix');
+    assert.deepStrictEqual(name, 'cros-ide-0.0.11.vsix');
 
     await assert.rejects(install.install('code', new semver.SemVer('0.0.99')));
   });
@@ -148,15 +163,15 @@ index 11eef9ccd..0ee259d51 100644
     },
     {
       name: 'fails when generated version is old',
-      customFilename: 'cros-ide-0.0.2.vsix',
+      customFilename: 'cros-ide-0.0.12.vsix',
       wantReject: true,
       wantBuilt: true,
     },
   ];
   testCases.forEach(testCase => {
     it(testCase.name, async () => {
-      const gitHash = 'b9dfaf485e2caf5030199166469ce28e91680255';
-      const filename = testCase.customFilename || 'cros-ide-0.0.3.vsix';
+      const gitHash = 'abcdefg13';
+      const filename = testCase.customFilename || 'cros-ide-0.0.13.vsix';
 
       let tempDir = '';
       let built = false;
@@ -203,8 +218,8 @@ index ee8697e11..877d91ddd 100644
    "name": "cros-ide",
    "displayName": "cros-ide",
    "description": "Connect to Chrome OS DUTs over VNC",
--  "version": "0.0.2",
-+  "version": "0.0.3",
+-  "version": "0.0.12",
++  "version": "0.0.13",
    "publisher": "cros-velocity",
    "repository": "https://chromium.googlesource.com/chromiumos/chromite/+/HEAD/ide_tooling",
    "engines": {
@@ -217,8 +232,8 @@ index ee8697e11..877d91ddd 100644
           exactMatch(
             ['ls', 'gs://chromeos-velocity/ide/cros-ide'],
             async () => {
-              return `gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.1.vsix
-gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.2.vsix@253d24b6b54fa72d21f622b8f1bb6cc9b6f3d435
+              return `gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.11.vsix
+gs://chromeos-velocity/ide/cros-ide/cros-ide-0.0.12.vsix@abcdef12
 `;
             }
           )
