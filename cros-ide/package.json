@@ -43,26 +43,22 @@
       {
         "command": "cros-ide.deviceManagement.connectToDeviceForScreen",
         "title": "CrOS: Connect to Device (VNC)",
-        "icon": "$(window)",
-        "enablement": "config.cros-ide.underDevelopment.deviceManagement"
+        "icon": "$(window)"
       },
       {
         "command": "cros-ide.deviceManagement.connectToDeviceForShell",
         "title": "CrOS: Connect to Device (Shell)",
-        "icon": "$(terminal)",
-        "enablement": "config.cros-ide.underDevelopment.deviceManagement"
+        "icon": "$(terminal)"
       },
       {
         "command": "cros-ide.deviceManagement.addDevice",
         "title": "CrOS: Add New Device",
-        "icon": "$(add)",
-        "enablement": "config.cros-ide.underDevelopment.deviceManagement"
+        "icon": "$(add)"
       },
       {
         "command": "cros-ide.deviceManagement.deleteDevice",
         "title": "CrOS: Delete Device",
-        "icon": "$(remove)",
-        "enablement": "config.cros-ide.underDevelopment.deviceManagement"
+        "icon": "$(remove)"
       },
       {
         "command": "cros-ide.refreshBoardsPackages",
@@ -113,8 +109,7 @@
       "cros-view": [
         {
           "id": "devices",
-          "name": "Devices",
-          "when": "config.cros-ide.underDevelopment.deviceManagement"
+          "name": "Devices"
         },
         {
           "id": "boards-packages",
@@ -216,7 +211,7 @@
         },
         "cros-ide.underDevelopment.deviceManagement": {
           "type": "boolean",
-          "description": "Enable Device Management feature to access test devices via VNC and SSH (incomplete)",
+          "description": "Enable experimental Device Management features.",
           "default": false
         },
         "cros-ide.underDevelopment.testCoverage": {
