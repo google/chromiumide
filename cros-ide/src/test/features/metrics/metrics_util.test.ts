@@ -67,12 +67,6 @@ describe('Metrics util: user id', () => {
     );
     assert.strictEqual(uidRead, testUidNew);
   });
-
-  it('determine user is external when failing to reach URL', async () => {
-    const fake_url =
-      'https://cit-cli-metrics.appspot.com/should-upload/does_not_exist';
-    assert.strictEqual(await metricsUtil.isGoogler(fake_url), false);
-  });
 });
 
 describe('Metrics util: get git repo name', () => {

@@ -21,18 +21,30 @@ export function getConfigPath(): string {
   return configPath;
 }
 
-export function isGoogler(
-  url = 'https://cit-cli-metrics.appspot.com/should-upload'
-): Promise<boolean> {
-  return new Promise((resolve, _reject) => {
-    https
-      .get(url, res => {
-        resolve(res.statusCode === 200);
-      })
-      .on('error', _error => {
-        resolve(false);
-      });
-  });
+export async function isGoogler(): Promise<boolean> {
+  let lsbRelease: string;
+  try {
+    lsbRelease = await fs.promises.readFile('/etc/lsb-release', {
+      encoding: 'utf8',
+      flag: 'r',
+    });
+  } catch {
+    // If lsb-release cannot be read, fallback to checking whether user is on corp network.
+    return new Promise((resolve, _reject) => {
+      https
+        .get('https://cit-cli-metrics.appspot.com/should-upload', res => {
+          resolve(res.statusCode === 200);
+        })
+        .on('error', _error => {
+          resolve(false);
+        });
+    });
+  }
+
+  if (lsbRelease.includes('GOOGLE_ID=Goobuntu')) {
+    return true;
+  }
+  return false;
 }
 
 // Never collect metrics from external users.
