@@ -9,4 +9,5 @@ import * as workspace from './workspace';
 export {CancellationTokenSource} from './cancellation_token';
 export {Disposable} from './disposable';
 export {EventEmitter} from './event';
+export {Uri} from './uri';
 export {extensions, window, workspace};
