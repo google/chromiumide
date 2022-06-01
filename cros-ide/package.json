@@ -25,11 +25,17 @@
     "onCommand:cros-ide.deviceManagement.deleteDevice",
     "onCommand:cros-ide.deviceManagement.connectToDeviceForScreen",
     "onCommand:cros-ide.deviceManagement.connectToDeviceForShell",
+    "onCommand:cros-ide.refreshBoardsPackages",
     "onCommand:cros-ide.codeSearchOpenCurrentFile",
     "onCommand:cros-ide.codeSearchSearchForSelection",
+    "onCommand:cros-ide.crosWorkonStart",
+    "onCommand:cros-ide.crosWorkonStop",
+    "onCommand:cros-ide.selectBoard",
     "onCommand:cros-ide.fileIdeBug",
+    "onCommand:cros-ide.resetUserID",
     "onView:devices",
     "onView:boards-packages",
+    "onView:cros-ide-status",
     "onLanguage:cpp",
     "onLanguage:gn",
     "onLanguage:go",
@@ -42,58 +48,70 @@
     "commands": [
       {
         "command": "cros-ide.deviceManagement.connectToDeviceForScreen",
-        "title": "CrOS: Connect to Device (VNC)",
+        "category": "CrOS",
+        "title": "Connect to Device (VNC)",
         "icon": "$(window)"
       },
       {
         "command": "cros-ide.deviceManagement.connectToDeviceForShell",
-        "title": "CrOS: Connect to Device (Shell)",
+        "category": "CrOS",
+        "title": "Connect to Device (Shell)",
         "icon": "$(terminal)"
       },
       {
         "command": "cros-ide.deviceManagement.addDevice",
-        "title": "CrOS: Add New Device",
+        "category": "CrOS",
+        "title": "Add New Device",
         "icon": "$(add)"
       },
       {
         "command": "cros-ide.deviceManagement.deleteDevice",
-        "title": "CrOS: Delete Device",
+        "category": "CrOS",
+        "title": "Delete Device",
         "icon": "$(remove)"
       },
       {
         "command": "cros-ide.refreshBoardsPackages",
-        "title": "CrOS: Refresh Boards and Packages",
+        "category": "CrOS",
+        "title": "Refresh Boards and Packages",
         "icon": "$(refresh)"
       },
       {
         "command": "cros-ide.codeSearchOpenCurrentFile",
+        "category": "CrOS",
         "title": "Open in Code Search"
       },
       {
         "command": "cros-ide.codeSearchSearchForSelection",
+        "category": "CrOS",
         "title": "Search for selection in Code Search"
       },
       {
         "command": "cros-ide.crosWorkonStart",
+        "category": "CrOS",
         "title": "Start Working on a new Package",
         "icon": "$(add)"
       },
       {
         "command": "cros-ide.crosWorkonStop",
+        "category": "CrOS",
         "title": "Stop Working On",
         "icon": "$(remove)"
       },
       {
         "command": "cros-ide.selectBoard",
-        "title": "CrOS: Select target board"
+        "category": "CrOS",
+        "title": "Select target board"
       },
       {
         "command": "cros-ide.fileIdeBug",
-        "title": "CrOS IDE: File a bug on Buganizer"
+        "category": "CrOS",
+        "title": "File a bug on Buganizer"
       },
       {
         "command": "cros-ide.resetUserID",
-        "title": "CrOS IDE: Generate a new random user ID for metrics collection"
+        "category": "CrOS",
+        "title": "Generate a new random user ID for metrics collection"
       }
     ],
     "viewsContainers": {
