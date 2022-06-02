@@ -148,6 +148,10 @@ export class CompilationDatabase implements vscode.Disposable {
     // Generating the database is time consuming involving execution of external
     // processes, so we ensure it to run only one at a time using the manager.
     await this.jobManager.offer(async () => {
+      this.statusManager.setTask(STATUS_BAR_TASK_ID, {
+        status: bgTaskStatus.TaskStatus.RUNNING,
+        command: SHOW_LOG_COMMAND,
+      });
       try {
         await this.compdbService.generate(board, packageInfo);
         await vscode.commands.executeCommand('clangd.restart');
