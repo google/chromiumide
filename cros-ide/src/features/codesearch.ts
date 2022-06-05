@@ -13,12 +13,17 @@ export function activate(context: vscode.ExtensionContext) {
     (textEditor: vscode.TextEditor) => openCurrentFile(textEditor)
   );
 
+  const copyFileCmd = vscode.commands.registerTextEditorCommand(
+    'cros-ide.codeSearchCopyCurrentFile',
+    (textEditor: vscode.TextEditor) => copyCurrentFile(textEditor)
+  );
+
   const searchSelectionCmd = vscode.commands.registerTextEditorCommand(
     'cros-ide.codeSearchSearchForSelection',
     (textEditor: vscode.TextEditor) => searchSelection(textEditor)
   );
 
-  context.subscriptions.push(openFileCmd, searchSelectionCmd);
+  context.subscriptions.push(openFileCmd, searchSelectionCmd, copyFileCmd);
 }
 
 const codeSearch = 'codeSearch';
@@ -38,6 +43,30 @@ function getCodeSearchToolConfig(
 }
 
 async function openCurrentFile(textEditor: vscode.TextEditor) {
+  const result = await getCurrentFile(textEditor);
+  if (result) {
+    vscode.env.openExternal(vscode.Uri.parse(result));
+    metrics.send({
+      category: 'codesearch',
+      action: 'open current file',
+    });
+  }
+}
+
+async function copyCurrentFile(textEditor: vscode.TextEditor) {
+  const result = await getCurrentFile(textEditor);
+  if (result) {
+    vscode.env.clipboard.writeText(result);
+    metrics.send({
+      category: 'codesearch',
+      action: 'copy current file',
+    });
+  }
+}
+
+async function getCurrentFile(
+  textEditor: vscode.TextEditor
+): Promise<string | undefined> {
   const fullpath = textEditor.document.fileName;
 
   // Which CodeSearch to use, options are public, internal, or gitiles.
@@ -80,13 +109,8 @@ async function openCurrentFile(textEditor: vscode.TextEditor) {
     });
     return;
   }
-
   // trimEnd() to get rid of the newline.
-  vscode.env.openExternal(vscode.Uri.parse(stdout.trimEnd()));
-  metrics.send({
-    category: 'codesearch',
-    action: 'open current file',
-  });
+  return stdout.trimEnd();
 }
 
 // TODO: Figure out if the search should be limited to the current repo.

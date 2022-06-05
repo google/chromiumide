@@ -27,6 +27,7 @@
     "onCommand:cros-ide.deviceManagement.connectToDeviceForShell",
     "onCommand:cros-ide.refreshBoardsPackages",
     "onCommand:cros-ide.codeSearchOpenCurrentFile",
+    "onCommand:cros-ide.codeSearchCopyCurrentFile",
     "onCommand:cros-ide.codeSearchSearchForSelection",
     "onCommand:cros-ide.crosWorkonStart",
     "onCommand:cros-ide.crosWorkonStop",
@@ -81,6 +82,11 @@
         "command": "cros-ide.codeSearchOpenCurrentFile",
         "category": "CrOS",
         "title": "Open in Code Search"
+      },
+      {
+        "command": "cros-ide.codeSearchCopyCurrentFile",
+        "category": "CrOS",
+        "title": "Copy Code Search URL to clipboard"
       },
       {
         "command": "cros-ide.codeSearchSearchForSelection",
@@ -150,6 +156,9 @@
       "editor/context": [
         {
           "command": "cros-ide.codeSearchOpenCurrentFile"
+        },
+        {
+          "command": "cros-ide.codeSearchCopyCurrentFile"
         },
         {
           "command": "cros-ide.codeSearchSearchForSelection"
