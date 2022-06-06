@@ -163,6 +163,21 @@ async function updateCrosLintDiagnostics(
     const {stdout, stderr} = res;
     const diagnostics = lintConfig.parse(stdout, stderr, document);
     collection.set(document.uri, diagnostics);
+    if (res.exitStatus !== 0 && diagnostics.length === 0) {
+      log.append(
+        `lint command returned ${res.exitStatus}, but no diagnostics were parsed by CrOS IDE\n`
+      );
+      statusManager.setTask(LINTER_TASK_ID, {
+        status: bgTaskStatus.TaskStatus.ERROR,
+        command: SHOW_LOG_COMMAND,
+      });
+      metrics.send({
+        category: 'error',
+        group: 'lint',
+        description: 'non-zero linter exit, but no diagnostics',
+      });
+      return;
+    }
     statusManager.setTask(LINTER_TASK_ID, {
       status: bgTaskStatus.TaskStatus.OK,
       command: SHOW_LOG_COMMAND,
