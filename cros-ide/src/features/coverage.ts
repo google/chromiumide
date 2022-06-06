@@ -9,108 +9,145 @@ import * as glob from 'glob';
 import {ChrootService} from '../services/chroot';
 import {Package} from './boards_packages';
 
-// TODO(ttylenda): refactor as a class to avoid passing around the chrootService
-export function activate(
-  _context: vscode.ExtensionContext,
-  chrootService: ChrootService
-) {
-  vscode.commands.registerCommand(
-    'cros-ide.coverage.generate',
-    (pkg: Package) => {
-      vscode.window.showInformationMessage(
-        `Not implemented (USE=coverage cros_run_unit_tests --board=${pkg.board.name} --packages=${pkg.name}).`
-      );
-    }
-  );
+// Highlight colors were copied from Code Search.
+const coveredDecoration = vscode.window.createTextEditorDecorationType({
+  light: {backgroundColor: '#e5ffe5'},
+  dark: {backgroundColor: 'rgba(13,101,45,0.5)'},
+  isWholeLine: true,
+});
+const uncoveredDecoration = vscode.window.createTextEditorDecorationType({
+  light: {backgroundColor: '#ffe5e5'},
+  dark: {backgroundColor: 'rgba(168,19,20,0.5)'},
+  isWholeLine: true,
+});
 
-  vscode.commands.registerCommand(
-    'cros-ide.coverage.showReport',
-    (pkg: Package) => {
-      vscode.window.showInformationMessage(
-        `TODO: show coverage report for ${pkg.name} (${pkg.board.name})`
-      );
-    }
-  );
+export class Coverage {
+  private activeEditor?: vscode.TextEditor;
 
-  // Highlight colors were copied from Code Search.
-  const coveredDecoration = vscode.window.createTextEditorDecorationType({
-    light: {backgroundColor: '#e5ffe5'},
-    dark: {backgroundColor: 'rgba(13,101,45,0.5)'},
-    isWholeLine: true,
-  });
-  const uncoveredDecoration = vscode.window.createTextEditorDecorationType({
-    light: {backgroundColor: '#ffe5e5'},
-    dark: {backgroundColor: 'rgba(168,19,20,0.5)'},
-    isWholeLine: true,
-  });
+  constructor(private readonly chrootService: ChrootService) {}
 
-  let activeEditor = vscode.window.activeTextEditor;
+  activate(_context: vscode.ExtensionContext) {
+    // TODO(ttylenda): dispose the commands
 
-  async function updateDecorations() {
-    if (!activeEditor) {
+    vscode.commands.registerCommand(
+      'cros-ide.coverage.generate',
+      (pkg: Package) => {
+        vscode.window.showInformationMessage(
+          `Not implemented (USE=coverage cros_run_unit_tests --board=${pkg.board.name} --packages=${pkg.name}).`
+        );
+      }
+    );
+
+    vscode.commands.registerCommand(
+      'cros-ide.coverage.showReport',
+      (pkg: Package) => {
+        vscode.window.showInformationMessage(
+          `TODO: show coverage report for ${pkg.name} (${pkg.board.name})`
+        );
+      }
+    );
+
+    this.activeEditor = vscode.window.activeTextEditor;
+    this.updateDecorations();
+
+    vscode.window.onDidChangeActiveTextEditor(editor => {
+      this.activeEditor = editor;
+      this.updateDecorations();
+    });
+  }
+
+  private async updateDecorations() {
+    if (!this.activeEditor) {
       return;
     }
 
     const {covered: coveredRanges, uncovered: uncoveredRanges} =
-      await readDocumentCoverage(activeEditor.document.fileName, chrootService);
+      await this.readDocumentCoverage(this.activeEditor.document.fileName);
 
     if (coveredRanges) {
-      activeEditor.setDecorations(coveredDecoration, coveredRanges);
+      this.activeEditor.setDecorations(coveredDecoration, coveredRanges);
     }
     if (uncoveredRanges) {
-      activeEditor.setDecorations(uncoveredDecoration, uncoveredRanges);
+      this.activeEditor.setDecorations(uncoveredDecoration, uncoveredRanges);
     }
   }
 
-  updateDecorations();
+  /**
+   * Find coverage data for a given file. Returns undefined if coverage is
+   * not available, or ranges that should be shown.
+   */
+  // visible for testing
+  async readDocumentCoverage(
+    documentFileName: string
+  ): Promise<CoverageRanges> {
+    const {pkg, relativePath} = parseFileName(documentFileName);
+    if (!pkg || !relativePath) {
+      return {};
+    }
 
-  vscode.window.onDidChangeActiveTextEditor(editor => {
-    activeEditor = editor;
-    updateDecorations();
-  });
+    const coverageJson = await this.readPkgCoverage(pkg);
+    if (!coverageJson) {
+      return {};
+    }
+
+    const segments = await getSegments(coverageJson, relativePath);
+    if (!segments) {
+      return {};
+    }
+
+    // TODO(ttylenda): process segments to display correct output
+
+    const coveredRanges: vscode.Range[] = [];
+    const uncoveredRanges: vscode.Range[] = [];
+
+    for (const s of segments) {
+      const line = s[LINE_NUMBER];
+      const range = new vscode.Range(line, 0, line, Number.MAX_VALUE);
+      (s[COUNT] > 0 ? coveredRanges : uncoveredRanges).push(range);
+    }
+
+    return {covered: coveredRanges, uncovered: uncoveredRanges};
+  }
+
+  /** Read coverage.json of a package. */
+  private async readPkgCoverage(
+    pkg: string
+  ): Promise<CoverageJson | undefined> {
+    const chroot = this.chrootService.chroot();
+    if (!chroot) {
+      return undefined;
+    }
+
+    const globPattern = chroot.realpath(
+      `${coverageDir}*/${pkg}*/*/coverage.json`
+    );
+
+    let matches: string[];
+    try {
+      matches = await util.promisify(glob)(globPattern);
+    } catch (e) {
+      console.log(e);
+      return undefined;
+    }
+    const [coverageJson] = matches;
+    if (!coverageJson) {
+      return undefined;
+    }
+
+    try {
+      const coverageContents = await fs.promises.readFile(coverageJson, 'utf8');
+      return JSON.parse(coverageContents) as CoverageJson;
+    } catch (e) {
+      console.log(e);
+      return undefined;
+    }
+  }
 }
 
 /** Ranges where coverage decorations should be applied. */
-export interface Coverage {
+interface CoverageRanges {
   covered?: vscode.Range[];
   uncovered?: vscode.Range[];
-}
-
-/**
- * Find coverage data for a given file. Returns undefined if coverage is
- * not available, or ranges that should be shown.
- */
-export async function readDocumentCoverage(
-  documentFileName: string,
-  chrootService: ChrootService
-): Promise<Coverage> {
-  const {pkg, relativePath} = parseFileName(documentFileName);
-  if (!pkg || !relativePath) {
-    return {};
-  }
-
-  const coverageJson = await readPkgCoverage(pkg, chrootService);
-  if (!coverageJson) {
-    return {};
-  }
-
-  const segments = await getSegments(coverageJson, relativePath);
-  if (!segments) {
-    return {};
-  }
-
-  // TODO(ttylenda): process segments to display correct output
-
-  const coveredRanges: vscode.Range[] = [];
-  const uncoveredRanges: vscode.Range[] = [];
-
-  for (const s of segments) {
-    const line = s[LINE_NUMBER];
-    const range = new vscode.Range(line, 0, line, Number.MAX_VALUE);
-    (s[COUNT] > 0 ? coveredRanges : uncoveredRanges).push(range);
-  }
-
-  return {covered: coveredRanges, uncovered: uncoveredRanges};
 }
 
 /**
@@ -160,41 +197,6 @@ function parseFileName(documentFileName: string): {
 
 // TODO(ttylenda): Decide if we need a specific board or can we use whatever is available in chroot.
 const coverageDir = '/build/amd64-generic/build/coverage_data/';
-
-/** Read coverage.json of a package. */
-async function readPkgCoverage(
-  pkg: string,
-  chrootService: ChrootService
-): Promise<CoverageJson | undefined> {
-  const chroot = chrootService.chroot();
-  if (!chroot) {
-    return undefined;
-  }
-
-  const globPattern = chroot.realpath(
-    `${coverageDir}*/${pkg}*/*/coverage.json`
-  );
-
-  let matches: string[];
-  try {
-    matches = await util.promisify(glob)(globPattern);
-  } catch (e) {
-    console.log(e);
-    return undefined;
-  }
-  const [coverageJson] = matches;
-  if (!coverageJson) {
-    return undefined;
-  }
-
-  try {
-    const coverageContents = await fs.promises.readFile(coverageJson, 'utf8');
-    return JSON.parse(coverageContents) as CoverageJson;
-  } catch (e) {
-    console.log(e);
-    return undefined;
-  }
-}
 
 /** Get segments data from a coverage JSON object. */
 async function getSegments(

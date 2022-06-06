@@ -5,7 +5,7 @@
 import * as assert from 'assert';
 import {Chroot} from '../../../common/common_util';
 import {WrapFs} from '../../../common/cros';
-import * as coverage from '../../../features/coverage';
+import {Coverage} from '../../../features/coverage';
 import {ChrootService} from '../../../services/chroot';
 import * as testing from '../../testing';
 
@@ -31,20 +31,20 @@ describe('Test coverage', () => {
     await testing.putFiles(tempdir.path, {
       [coverageJsonPath]: coverageJsonContents,
     });
+    const chrootService = new ChrootService(
+      new WrapFs(tempdir.path as Chroot),
+      undefined,
+      /* isInsideChroot = */ () => false
+    );
     return {
-      chrootService: new ChrootService(
-        new WrapFs(tempdir.path as Chroot),
-        undefined,
-        /* isInsideChroot = */ () => false
-      ),
+      coverage: new Coverage(chrootService),
     };
   });
 
   it('ignores files not in platform2', async () => {
     assert.deepStrictEqual(
-      await coverage.readDocumentCoverage(
-        '/mnt/host/source/chromite/ide_tooling/cros-ide/package.cc',
-        state.chrootService
+      await state.coverage.readDocumentCoverage(
+        '/mnt/host/source/chromite/ide_tooling/cros-ide/package.cc'
       ),
       {}
     );
@@ -56,9 +56,8 @@ describe('Test coverage', () => {
 
   it('reads coverage data if it exists', async () => {
     const {covered: cov, uncovered: uncov} =
-      await coverage.readDocumentCoverage(
-        '/mnt/host/source/src/platform2/chaps/slot_manager_impl.cc',
-        state.chrootService
+      await state.coverage.readDocumentCoverage(
+        '/mnt/host/source/src/platform2/chaps/slot_manager_impl.cc'
       );
     assert.ok(cov);
     assert.ok(uncov);
