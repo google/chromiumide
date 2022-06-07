@@ -40,6 +40,12 @@ export class CommandsProvider implements vscode.Disposable {
       vscode.commands.registerCommand(
         'cros-ide.deviceManagement.connectToDeviceForShell',
         (item?: provider.DeviceItem) => this.connectToDeviceForShell(item)
+      ),
+      vscode.commands.registerCommand(
+        'cros-ide.deviceManagement.openLogs',
+        () => {
+          this.output.show();
+        }
       )
     );
   }
