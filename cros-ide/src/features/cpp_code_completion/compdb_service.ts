@@ -260,7 +260,7 @@ class Ebuild {
         candidates.push([stat.mtime, file]);
       } catch (_e) {
         // Ignore possible file not found error, which happens because we
-        // hueristically search for the compile commands from multiple places.
+        // heuristically search for the compile commands from multiple places.
       }
     }
     if (candidates.length === 0) {

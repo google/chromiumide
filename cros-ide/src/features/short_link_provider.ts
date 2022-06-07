@@ -57,8 +57,8 @@ export class ShortLinkProvider implements vscode.DocumentLinkProvider {
 // highlighting bug.
 
 // Matches bugs references with chromium:xxxxxx and b:xxxxxx.
-// We start with lookahead for spaces, '(' and line start to avoid mathichg
-// things like MAC adderesses.
+// We start with lookahead for spaces, '(' and line start to avoid matching
+// things like MAC addresses.
 //
 // For simplicity, we do not match #fragment, so b:123#comment3, will only
 // match b:123. Note that b/123#comment3 will work via the other pattern though.

@@ -95,7 +95,7 @@ export class JobManager<T> {
 
   /**
    * Pushes a job and returns a promise that is fulfilled after the job is
-   * cancalled or completed. If the job is cancelled, the returned promise is
+   * cancelled or completed. If the job is cancelled, the returned promise is
    * resolved with null.
    */
   offer(job: () => Promise<T>): Promise<T | null> {

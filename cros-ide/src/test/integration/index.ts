@@ -20,11 +20,11 @@ export function run(): Promise<void> {
 
       files.forEach(f => jasmine.addSpecFile(path.resolve(testsRoot, f)));
 
-      jasmine.execute().then((jasimineDoneInfo: jasmine.JasmineDoneInfo) => {
-        if (jasimineDoneInfo.overallStatus === 'passed') {
+      jasmine.execute().then((jasmineDoneInfo: jasmine.JasmineDoneInfo) => {
+        if (jasmineDoneInfo.overallStatus === 'passed') {
           return c();
         }
-        return e(new Error(jasimineDoneInfo.overallStatus));
+        return e(new Error(jasmineDoneInfo.overallStatus));
       });
     });
   });

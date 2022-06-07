@@ -8,12 +8,12 @@ import * as ideUtil from './ide_util';
 import * as install from './tools/install';
 
 export async function run(_context: vscode.ExtensionContext) {
-  const extenstion = vscode.extensions.getExtension('google.cros-ide');
+  const extension = vscode.extensions.getExtension('google.cros-ide');
   // This should not happen.
-  if (!extenstion) {
+  if (!extension) {
     return;
   }
-  const installed = new semver.SemVer(extenstion.packageJSON.version);
+  const installed = new semver.SemVer(extension.packageJSON.version);
 
   const latest = (
     await install.findArchive(/* version = */ undefined, 'gsutil')

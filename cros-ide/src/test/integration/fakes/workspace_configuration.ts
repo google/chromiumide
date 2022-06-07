@@ -50,7 +50,7 @@ export function fakeGetConfiguration(): typeof vscode.workspace.getConfiguration
   return section => {
     if (!section || section.includes('.')) {
       throw new Error(
-        `seciton ${section} is unsupported; please update the fake implementation`
+        `section ${section} is unsupported; please update the fake implementation`
       );
     }
     if (!(section in config)) {

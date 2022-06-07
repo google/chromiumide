@@ -243,7 +243,7 @@ function uiItemsForError(
   switch (e.details.kind) {
     case CompdbErrorKind.RemoveCache:
       return {
-        message: `Faild to generate cross reference; try removing the file ${e.details.cache} and reload the IDE`,
+        message: `Failed to generate cross reference; try removing the file ${e.details.cache} and reload the IDE`,
       };
       // TODO(oka): Add a button to open the terminal with the command to run.
       break;
@@ -270,7 +270,7 @@ function uiItemsForError(
     case CompdbErrorKind.NotGenerated:
       return {
         message:
-          'Faild to generate cross reference: compile_commands_chroot.json was not created; file a bug on go/cros-ide-new-bug',
+          'Failed to generate cross reference: compile_commands_chroot.json was not created; file a bug on go/cros-ide-new-bug',
         button: {
           name: 'File a bug',
           action: () => {
@@ -282,7 +282,7 @@ function uiItemsForError(
       };
     case CompdbErrorKind.CopyFailed:
       return {
-        message: `Faild to generate cross reference; try removing ${e.details.destination} and reload the IDE`,
+        message: `Failed to generate cross reference; try removing ${e.details.destination} and reload the IDE`,
         // TODO(oka): Add a button to open the terminal with the command to run.
       };
   }
