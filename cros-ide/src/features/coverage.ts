@@ -26,34 +26,35 @@ export class Coverage {
 
   constructor(private readonly chrootService: ChrootService) {}
 
-  activate(_context: vscode.ExtensionContext) {
-    // TODO(ttylenda): dispose the commands
-
-    vscode.commands.registerCommand(
-      'cros-ide.coverage.generate',
-      (pkg: Package) => {
-        vscode.window.showInformationMessage(
-          `Not implemented (USE=coverage cros_run_unit_tests --board=${pkg.board.name} --packages=${pkg.name}).`
-        );
-      }
-    );
-
-    vscode.commands.registerCommand(
-      'cros-ide.coverage.showReport',
-      (pkg: Package) => {
-        vscode.window.showInformationMessage(
-          `TODO: show coverage report for ${pkg.name} (${pkg.board.name})`
-        );
-      }
+  activate(context: vscode.ExtensionContext) {
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        'cros-ide.coverage.generate',
+        (pkg: Package) => {
+          vscode.window.showInformationMessage(
+            `Not implemented (USE=coverage cros_run_unit_tests --board=${pkg.board.name} --packages=${pkg.name}).`
+          );
+        }
+      ),
+      vscode.commands.registerCommand(
+        'cros-ide.coverage.showReport',
+        (pkg: Package) => {
+          vscode.window.showInformationMessage(
+            `TODO: show coverage report for ${pkg.name} (${pkg.board.name})`
+          );
+        }
+      )
     );
 
     this.activeEditor = vscode.window.activeTextEditor;
     this.updateDecorations();
 
-    vscode.window.onDidChangeActiveTextEditor(editor => {
-      this.activeEditor = editor;
-      this.updateDecorations();
-    });
+    context.subscriptions.push(
+      vscode.window.onDidChangeActiveTextEditor(editor => {
+        this.activeEditor = editor;
+        this.updateDecorations();
+      })
+    );
   }
 
   private async updateDecorations() {
