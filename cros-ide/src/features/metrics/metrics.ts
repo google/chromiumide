@@ -159,6 +159,18 @@ export class Analytics {
     );
   }
 
+  private getCurrentGitRepo(): string | undefined {
+    const editor = vscode.window.activeTextEditor;
+    if (editor) {
+      return editor.document.fileName;
+    }
+    const folders = vscode.workspace.workspaceFolders;
+    if (folders && folders.length >= 1) {
+      return folders[0].uri.fsPath;
+    }
+    return undefined;
+  }
+
   /**
    * Send event as query. Does not wait for its response.
    */
@@ -167,8 +179,10 @@ export class Analytics {
       return;
     }
 
-    const filePath = vscode.window.activeTextEditor?.document.fileName ?? '';
-    const gitRepo = metricsUtils.getGitRepoName(filePath);
+    const filePath = this.getCurrentGitRepo();
+    const gitRepo = filePath
+      ? metricsUtils.getGitRepoName(filePath)
+      : undefined;
     const query = this.eventToQuery(event, gitRepo);
     console.debug(
       `sending query ${query} to GA ${this.trackingId} property with uid ${this.userId}`
