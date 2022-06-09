@@ -194,6 +194,7 @@ class Ebuild {
       path.join(this.sysroot(), 'var/cache/portage', this.atom),
       // Otherwise
       path.join(this.portageBuildDir(), 'work', 'build'),
+      path.join(this.portageBuildDir()),
     ];
   }
   private ebuild9999(): string {
