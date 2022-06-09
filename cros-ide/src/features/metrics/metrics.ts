@@ -131,19 +131,21 @@ type Event = InteractiveEvent | BackgroundEvent | ErrorEvent;
 export class Analytics {
   private constructor(
     private readonly trackingId: string,
-    private readonly userId: string | null
+    private readonly userId: string,
+    private readonly isGoogler: boolean
   ) {}
 
   // Constructor cannot be async.
   static async create(): Promise<Analytics> {
-    const uid = await metricsConfig.getOrGenerateValidUserId();
     // Send metrics to testing-purpose Google Analytics property to avoid polluting
     // user data when debugging the extension for development.
-    const tid =
+    const trackingId =
       extensionMode === vscode.ExtensionMode.Production
         ? trackingIdReal
         : trackingIdTesting;
-    return new Analytics(tid, uid);
+    const userId = await metricsConfig.getOrGenerateValidUserId();
+    const isGoogler = await metricsUtils.isGoogler();
+    return new Analytics(trackingId, userId, isGoogler);
   }
 
   /**
@@ -153,12 +155,6 @@ export class Analytics {
    * See go/cros-ide-metrics for the memo on what values are assigned to GA parameters.
    */
   private eventToQuery(event: Event, gitRepo: string | undefined): string {
-    if (!this.userId) {
-      throw new Error(
-        'BUG: Cannot build a query for an external user; check shouldSend() first'
-      );
-    }
-
     const data: Record<string, string | number> = {
       v: '1',
       tid: this.trackingId,
@@ -208,8 +204,8 @@ export class Analytics {
       // Note that we use a different tracking ID in the development mode.
       (extensionMode === vscode.ExtensionMode.Production ||
         extensionMode === vscode.ExtensionMode.Development) &&
-      // User ID should be available.
-      !!this.userId &&
+      // Metrics can be collected for Googlers only.
+      this.isGoogler &&
       // User should have accepted to collect metrics.
       ideUtil.getConfigRoot().get<boolean>('metrics.collectMetrics', false)
     );

@@ -6,19 +6,17 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as uuid from 'uuid';
-import {isGoogler} from './metrics_util';
 
 // Rotate user ID every 180 days or less.
 const expirationInMs = 180 * 24 * 60 * 60 * 1000;
 
 // Special UID indicating the user is an external user and their metrics must not be collected.
-const specialExternalUid = '@external';
+// It used to be set in older versions. We need to regenerate a user ID in that case.
+const legacySpecialExternalUid = '@external';
 
 // Generates a new user ID.
-// Returns null if the user is not a Googler and their metrics must not be collected.
-async function generateNewUserId(): Promise<string | null> {
-  const thisIsGoogler = await isGoogler();
-  return thisIsGoogler ? uuid.v4() : null;
+async function generateNewUserId(): Promise<string> {
+  return uuid.v4();
 }
 
 const defaultConfigPath = path.join(
@@ -29,7 +27,7 @@ const defaultConfigPath = path.join(
 // Schema of the config file in JSON.
 // Be careful on changing this schema as it might cause metrics to fluctuate.
 interface ConfigData {
-  // UUIDv4 or '@external'.
+  // UUIDv4 UID.
   userid: string;
   // Last update time in ISO8601 format.
   date: string;
@@ -37,13 +35,17 @@ interface ConfigData {
 
 // In-memory representation of the config file.
 interface Config {
-  // UUIDv4, or null which indicates that metrics must not be collected.
-  userId: string | null;
+  // UUIDv4 UID.
+  userId: string;
   // Last update time.
   lastUpdate: Date;
 }
 
 function isConfigValid(config: Config): boolean {
+  // If the user ID is set to @external, regenerate it.
+  if (config.userId === legacySpecialExternalUid) {
+    return false;
+  }
   return Date.now() - config.lastUpdate.getTime() < expirationInMs;
 }
 
@@ -70,26 +72,23 @@ async function readConfigData(configPath: string): Promise<ConfigData> {
   throw new Error('Corrupted metrics config file');
 }
 
-async function generateNewConfig(
-  genNewUserId: typeof generateNewUserId = generateNewUserId,
-  updateTime = new Date()
-): Promise<Config> {
+async function generateNewConfig(updateTime = new Date()): Promise<Config> {
   return {
-    userId: await genNewUserId(),
+    userId: await generateNewUserId(),
     lastUpdate: updateTime,
   };
 }
 
 function parseConfigData(data: ConfigData): Config {
   return {
-    userId: data.userid === specialExternalUid ? null : data.userid,
+    userId: data.userid,
     lastUpdate: new Date(data.date),
   };
 }
 
 async function saveConfig(configPath: string, config: Config): Promise<void> {
   const data: ConfigData = {
-    userid: config.userId ?? specialExternalUid,
+    userid: config.userId,
     date: config.lastUpdate.toISOString(),
   };
   await writeConfigData(configPath, data);
@@ -104,10 +103,9 @@ async function loadConfig(configPath: string): Promise<Config> {
  */
 export async function generateValidUserId(
   configPath = defaultConfigPath,
-  genNewUserId: typeof generateNewUserId = generateNewUserId,
   updateTime = new Date()
-): Promise<string | null> {
-  const config = await generateNewConfig(genNewUserId, updateTime);
+): Promise<string> {
+  const config = await generateNewConfig(updateTime);
   await saveConfig(configPath, config);
   return config.userId;
 }
@@ -118,9 +116,8 @@ export async function generateValidUserId(
  */
 export async function getOrGenerateValidUserId(
   configPath = defaultConfigPath,
-  genNewUserId: typeof generateNewUserId = generateNewUserId,
   updateTime = new Date()
-): Promise<string | null> {
+): Promise<string> {
   try {
     const config = await loadConfig(configPath);
     if (isConfigValid(config)) {
@@ -129,5 +126,5 @@ export async function getOrGenerateValidUserId(
   } catch {
     // Ignore errors.
   }
-  return await generateValidUserId(configPath, genNewUserId, updateTime);
+  return await generateValidUserId(configPath, updateTime);
 }
