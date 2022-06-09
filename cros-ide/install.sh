@@ -13,10 +13,17 @@ echoWarning() {
 
 cd "$(dirname "$0")" || exit 1
 
-if [[ $(node --version) != ${min_node_ver}* ]]; then
-  echoWarning "Node version is too low. Please run\
-  '~/chromiumos/src/scripts/update_chroot' to get node\
-  ${min_node_ver} or higher to avoid unexpected issues."
+if ! which node > /dev/null; then
+  echoWarning "node not found; please install it following \
+http://go/nodejs/installing-node"
+  exit 1
+fi
+
+current_version="$(node --version)";
+if [[ "${current_version}" < "${min_node_ver}" ]]; then
+  echoWarning "Node version ${current_version} is too low. Please get node \
+${min_node_ver} or higher to avoid unexpected issues."
+  exit 1
 fi
 
 npm ci || exit $?
