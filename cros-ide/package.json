@@ -226,7 +226,7 @@
       "editor/title": [
         {
           "command": "cros-ide.deviceManagement.runTastTests",
-          "when": "config.cros-ide.underDevelopment.runTastTests && resourcePath =~ /\/src\/platform\/tast-tests[^\/]*\/src\/chromiumos\/tast\/(local|remote)\/bundles\/[^\/]+\/[^\/]+\/[^\/]+.go$/",
+          "when": "config.cros-ide.underDevelopment.runTastTests && resourcePath =~ //src/platform/tast-tests[^/]*/src/chromiumos/tast/(local|remote)/bundles/[^/]+/[^/]+/[^/]+.go$/",
           "group": "navigation"
         }
       ],
@@ -397,6 +397,11 @@
           "type": "boolean",
           "description": "Enable running tast tests (incomplete)",
           "default": false
+        },
+        "cros-ide.underDevelopment.triciumSpellcheckerPath": {
+          "type": "string",
+          "description": "Path to Tricium Spellchecker executable (b/217287367).",
+          "default": ""
         },
         "cros-ide.deviceManagement.devices": {
           "type": "array",

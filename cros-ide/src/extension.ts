@@ -26,12 +26,13 @@ import * as metrics from './features/metrics/metrics';
 import * as shortLinkProvider from './features/short_link_provider';
 import * as suggestExtension from './features/suggest_extension';
 import * as targetBoard from './features/target_board';
+import * as spellchecker from './features/tricium/spellchecker';
 import * as upstart from './features/upstart';
 import * as ideUtil from './ide_util';
+import * as logs from './logs';
 import * as chroot from './services/chroot';
 import * as config from './services/config';
 import * as bgTaskStatus from './ui/bg_task_status';
-import * as logs from './logs';
 
 export interface ExtensionApi {
   // ExtensionContext passed to the activation function.
@@ -93,6 +94,17 @@ export async function activate(
 
   if (config.underDevelopment.gerrit.get()) {
     gerrit.activate(context);
+  }
+
+  const triciumSpellchecker =
+    config.underDevelopment.triciumSpellcheckerPath.get();
+  if (triciumSpellchecker) {
+    spellchecker.activate(
+      context,
+      triciumSpellchecker,
+      statusManager,
+      chrootService
+    );
   }
 
   // Avoid network operations in tests.
