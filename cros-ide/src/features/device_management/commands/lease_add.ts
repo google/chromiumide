@@ -5,6 +5,7 @@
 import * as vscode from 'vscode';
 import * as metrics from '../../metrics/metrics';
 import * as crosfleet from '../crosfleet';
+import * as sshConfig from '../ssh_config';
 import {CommandContext} from './common';
 
 interface Filter extends vscode.QuickPickItem {
@@ -90,5 +91,18 @@ export async function addLease(context: CommandContext): Promise<void> {
     );
   } catch (e: unknown) {
     void vscode.window.showErrorMessage(`Failed to lease a device: ${e}`);
+  }
+
+  // Show an informational message if the user has not set up lab access.
+  if (!(await sshConfig.isLabAccessConfigured())) {
+    const choice = await vscode.window.showInformationMessage(
+      'You need to set up SSH configs to access leased devices.',
+      'Open Documentation'
+    );
+    if (choice) {
+      vscode.env.openExternal(
+        vscode.Uri.parse('http://goto.google.com/chromeos-lab-duts-ssh')
+      );
+    }
   }
 }

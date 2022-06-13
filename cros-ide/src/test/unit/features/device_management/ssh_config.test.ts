@@ -32,4 +32,14 @@ describe('SSH config parser', () => {
       'dut4',
     ]);
   });
+
+  it('can check if lab access is configured', async () => {
+    const configPath = path.join(tempDir.path, 'ssh_config');
+
+    await fs.promises.writeFile(configPath, 'Host chromeos*');
+    expect(await sshConfig.isLabAccessConfigured(configPath)).toBeTrue();
+
+    await fs.promises.writeFile(configPath, 'Host android*');
+    expect(await sshConfig.isLabAccessConfigured(configPath)).toBeFalse();
+  });
 });

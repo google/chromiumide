@@ -6,9 +6,9 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 
-export async function readConfiguredSshHosts(
-  configPath: string = path.join(os.homedir(), '.ssh', 'config')
-): Promise<string[]> {
+const defaultConfigPath = path.join(os.homedir(), '.ssh', 'config');
+
+async function readAllHosts(configPath: string): Promise<string[]> {
   let content: string;
   try {
     content = await fs.promises.readFile(configPath, {
@@ -30,11 +30,22 @@ export async function readConfiguredSshHosts(
     if (match === null) {
       break;
     }
-    for (const name of match[1].split(/\s+/g)) {
-      if (!name.includes('*') && !name.startsWith('!')) {
-        hosts.push(name);
-      }
-    }
+    hosts.push(...match[1].split(/\s+/g));
   }
   return hosts;
+}
+
+export async function readConfiguredSshHosts(
+  configPath: string = defaultConfigPath
+): Promise<string[]> {
+  const hosts = await readAllHosts(configPath);
+  return hosts.filter(host => !host.includes('*') && !host.startsWith('!'));
+}
+
+export async function isLabAccessConfigured(
+  configPath: string = defaultConfigPath
+): Promise<boolean> {
+  const hosts = await readAllHosts(configPath);
+  // If lab access is configured, there should be "chromeos*" host.
+  return hosts.includes('chromeos*');
 }
