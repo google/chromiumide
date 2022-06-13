@@ -3,5 +3,6 @@
 // found in the LICENSE file.
 
 export {FakeCancellationToken} from './cancellation_token';
+export {installFakeCipd} from './cipd';
 export {ConsoleOutputChannel, VoidOutputChannel} from './output_channel';
 export {installFakeSudo} from './sudo';
