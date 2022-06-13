@@ -6,6 +6,7 @@ import * as https from 'https';
 import * as os from 'os';
 import * as queryString from 'querystring';
 import * as vscode from 'vscode';
+import * as semver from 'semver';
 import * as ideUtil from '../../ide_util';
 import * as metricsConfig from './metrics_config';
 import * as metricsUtils from './metrics_util';
@@ -128,6 +129,22 @@ interface ErrorEvent {
 
 type Event = InteractiveEvent | BackgroundEvent | ErrorEvent;
 
+function chooseTrackingId(): string {
+  // Use the testing property if the extension was launched for development
+  // or running for unit tests.
+  if (extensionMode !== vscode.ExtensionMode.Production) {
+    return trackingIdTesting;
+  }
+  // Use the testing property even if the extension was normally installed
+  // if the extension version has prerelease suffix (e.g. "-dev.0"), which
+  // means that this extension version hasn't been officially released yet.
+  if (new semver.SemVer(extensionVersion!).prerelease.length > 0) {
+    return trackingIdTesting;
+  }
+  // Otherwise use the real property.
+  return trackingIdReal;
+}
+
 export class Analytics {
   private constructor(
     private readonly trackingId: string,
@@ -139,10 +156,7 @@ export class Analytics {
   static async create(): Promise<Analytics> {
     // Send metrics to testing-purpose Google Analytics property to avoid polluting
     // user data when debugging the extension for development.
-    const trackingId =
-      extensionMode === vscode.ExtensionMode.Production
-        ? trackingIdReal
-        : trackingIdTesting;
+    const trackingId = chooseTrackingId();
     const userId = await metricsConfig.getOrGenerateValidUserId();
     const isGoogler = await metricsUtils.isGoogler();
     return new Analytics(trackingId, userId, isGoogler);
