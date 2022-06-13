@@ -95,7 +95,7 @@ export async function flashPrebuiltImage(
     cwd: source.root,
   });
   terminal.sendText(
-    `env BOTO_CONFIG=${source}/${BOTO_PATH} cros flash ssh://${hostname} xbuddy://remote/${board}-release/${version}/test`
+    `env BOTO_CONFIG=${source.root}/${BOTO_PATH} cros flash ssh://${hostname} xbuddy://remote/${board}-release/${version}/test`
   );
   terminal.show();
 }
