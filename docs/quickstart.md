@@ -31,8 +31,13 @@ First, you need to install Visual Studio Code (VSCode) on your client machine.
 
 ### gLinux
 
+Check if it's already installed by running `code` in terminal
+or look for it in the application menu, otherwise:
 ```
-sudo apt install code
+(cd &&
+    sudo glinux-add-repo typescript stable &&
+    sudo apt update &&
+    sudo apt install code)
 ```
 
 Learn more at [go/vscode/install#glinux]
@@ -72,7 +77,7 @@ palette), select your remote machine, and open your working directory under `~/c
 
 ## 3. Install the extension
 
-Open terminal in the VSCode and run
+Open terminal in the VSCode (Menu: Terminal &rarr; New Terminal) and run
 
 ```
 ~/chromiumos/chromite/ide_tooling/cros-ide/install.sh
