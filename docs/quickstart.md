@@ -100,6 +100,12 @@ You need to reload the VSCode to activate the extension. Either simply restart
 the IDE, or open the command palette (Ctrl+Shift+P) and type "Developer: Reload
 Window".
 
+## 5. Open a folder
+
+Finally, you need to open a folder with sources to let CrOS IDE detect the chroot.
+Select *File &rarr; Open Folder...*, choose, for example, `~/chromiumos/src/platform2`,
+and you are good to go.
+
 ## Updating
 
 Run the install script again as written in [Install the
