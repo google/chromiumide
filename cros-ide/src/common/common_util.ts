@@ -160,6 +160,11 @@ export interface ExecOptions {
    * Current working directory of the child process.
    */
   cwd?: string;
+
+  /**
+   * Environment variables passed to the subprocess.
+   */
+  env?: childProcess.SpawnOptions['env'];
 }
 
 /**
@@ -239,10 +244,10 @@ function realExec(
       options.logger.append(shutil.escapeArray([name, ...args]) + '\n');
     }
 
-    const spawnOpts: childProcess.SpawnOptionsWithoutStdio = {};
-    if (options.cwd) {
-      spawnOpts.cwd = options.cwd;
-    }
+    const spawnOpts: childProcess.SpawnOptionsWithoutStdio = {
+      cwd: options.cwd,
+      env: options.env,
+    };
 
     const command = childProcess.spawn(name, args, spawnOpts);
     if (options.pipeStdin) {

@@ -38,7 +38,10 @@ export function exactMatch(
 
 export function prefixMatch(
   wantPrefix: string[],
-  handle: (restArgs: string[], options: ExecOptions) => Promise<string>
+  handle: (
+    restArgs: string[],
+    options: ExecOptions
+  ) => Promise<string | ExecResult | Error>
 ): Handler {
   return async (args, options) => {
     if (

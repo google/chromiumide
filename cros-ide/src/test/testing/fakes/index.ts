@@ -4,3 +4,4 @@
 
 export {FakeCancellationToken} from './cancellation_token';
 export {ConsoleOutputChannel, VoidOutputChannel} from './output_channel';
+export {installFakeSudo} from './sudo';

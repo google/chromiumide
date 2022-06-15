@@ -12,6 +12,7 @@ import * as fakes from '../../../testing/fakes';
 
 describe('Prebuilt utilities', () => {
   const {fakeExec} = testing.installFakeExec();
+  fakes.installFakeSudo(fakeExec);
   const tempDir = testing.tempDir();
 
   it('list available images', async () => {
@@ -25,19 +26,9 @@ gs://chromeos-image-archive/xyz-release/garbage.txt
 `;
 
     fakeExec.on(
-      'sudo',
-      testing.exactMatch(['-nv'], async () => '')
-    );
-    fakeExec.on(
-      'sudo',
+      path.join(tempDir.path, 'chromite/bin/cros_sdk'),
       testing.exactMatch(
-        [
-          path.join(tempDir.path, 'chromite/bin/cros_sdk'),
-          '--',
-          'gsutil',
-          'ls',
-          'gs://chromeos-image-archive/xyz-release/',
-        ],
+        ['--', 'gsutil', 'ls', 'gs://chromeos-image-archive/xyz-release/'],
         async () => FAKE_STDOUT
       )
     );

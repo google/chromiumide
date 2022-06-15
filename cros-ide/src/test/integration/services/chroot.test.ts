@@ -5,15 +5,15 @@
 import * as path from 'path';
 import {ExecResult, Source} from '../../../common/common_util';
 import {WrapFs} from '../../../common/cros';
-import {ChrootService, InvalidPasswordError} from '../../../services/chroot';
-import {installVscodeDouble} from '../doubles';
+import {ChrootService} from '../../../services/chroot';
 import {exactMatch, installFakeExec, tempDir} from '../../testing';
+import {installFakeSudo} from '../../testing/fakes';
 
 describe('chroot service', () => {
   const temp = tempDir();
 
   const {fakeExec} = installFakeExec();
-  const {vscodeSpy} = installVscodeDouble();
+  installFakeSudo(fakeExec);
 
   it('exec passes through if inside chroot', async () => {
     const cros = new ChrootService(
@@ -40,50 +40,10 @@ describe('chroot service', () => {
       /* isInsideChroot = */ () => false
     );
 
-    fakeExec
-      .on(
-        'sudo',
-        exactMatch(['-nv'], async () => '')
-      )
-      .on(
-        'sudo',
-        exactMatch(
-          [path.join(source, 'chromite/bin/cros_sdk'), '--', 'echo', '1'],
-          async () => '1\n'
-        )
-      );
-    const res = (await cros.exec('echo', ['1'], {
-      sudoReason: '',
-    })) as ExecResult;
-    expect(res.stdout).toBe('1\n');
-  });
-
-  it('exec asks sudo password if needed', async () => {
-    const source = temp.path as Source;
-    const cros = new ChrootService(
-      undefined,
-      new WrapFs(source),
-      /* isInsideChroot = */ () => false
+    fakeExec.on(
+      path.join(source, 'chromite/bin/cros_sdk'),
+      exactMatch(['--', 'echo', '1'], async () => '1\n')
     );
-
-    fakeExec
-      .on(
-        'sudo',
-        exactMatch(['-nv'], async () => new Error('permission denied'))
-      )
-      .on(
-        'sudo',
-        exactMatch(
-          ['-S', path.join(source, 'chromite/bin/cros_sdk'), '--', 'echo', '1'],
-          async options => {
-            expect(options.pipeStdin).toBe('password');
-            return '1\n';
-          }
-        )
-      );
-
-    vscodeSpy.window.showInputBox.and.returnValue(Promise.resolve('password'));
-
     const res = (await cros.exec('echo', ['1'], {
       sudoReason: '',
     })) as ExecResult;
@@ -98,83 +58,13 @@ describe('chroot service', () => {
       /* isInsideChroot = */ () => false
     );
 
-    fakeExec
-      .on(
-        'sudo',
-        exactMatch(['-nv'], async () => new Error('permission denied'))
-      )
-      .on(
-        'sudo',
-        exactMatch(
-          ['-S', path.join(source, 'chromite/bin/cros_sdk'), '--', 'false'],
-          async options => {
-            expect(options.pipeStdin).toBe('password');
-            return new Error('failed');
-          }
-        )
-      );
-
-    vscodeSpy.window.showInputBox.and.returnValue(Promise.resolve('password'));
+    fakeExec.on(
+      path.join(source, 'chromite/bin/cros_sdk'),
+      exactMatch(['--', 'false'], async () => new Error('failed'))
+    );
 
     expect(await cros.exec('false', [], {sudoReason: ''})).toEqual(
       new Error('failed')
-    );
-  });
-
-  it('exec returns specific error when no password was given', async () => {
-    const source = temp.path as Source;
-    const cros = new ChrootService(
-      undefined,
-      new WrapFs(source),
-      /* isInsideChroot = */ () => false
-    );
-
-    fakeExec.on(
-      'sudo',
-      exactMatch(['-nv'], async () => new Error('permission denied'))
-    );
-
-    vscodeSpy.window.showInputBox.and.returnValue(Promise.resolve(''));
-
-    expect(await cros.exec('false', [], {sudoReason: ''})).toEqual(
-      new InvalidPasswordError('no password was provided')
-    );
-  });
-
-  it('exec returns specific error on invalid password', async () => {
-    const source = temp.path as Source;
-    const cros = new ChrootService(
-      undefined,
-      new WrapFs(source),
-      /* isInsideChroot = */ () => false
-    );
-
-    fakeExec
-      .on(
-        'sudo',
-        exactMatch(['-nv'], async () => new Error('permission denied'))
-      )
-      .on(
-        'sudo',
-        exactMatch(
-          ['-S', path.join(source, 'chromite/bin/cros_sdk'), '--', 'false'],
-          async options => {
-            options.logger!.append(
-              'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.'
-            );
-            options.logger!.append('sudo: 1 incorrect pass');
-            options.logger!.append('word attempts');
-            return new Error('failed');
-          }
-        )
-      );
-
-    vscodeSpy.window.showInputBox.and.returnValue(
-      Promise.resolve('wrong password')
-    );
-
-    expect(await cros.exec('false', [], {sudoReason: ''})).toEqual(
-      new InvalidPasswordError('invalid password')
     );
   });
 });

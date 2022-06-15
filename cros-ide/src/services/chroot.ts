@@ -6,6 +6,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../common/common_util';
 import {WrapFs} from '../common/cros';
+import * as sudo from './sudo';
 
 export function activate(context: vscode.ExtensionContext): ChrootService {
   const service = new ChrootService(undefined, undefined);
@@ -16,17 +17,6 @@ export function activate(context: vscode.ExtensionContext): ChrootService {
   );
   service.onUpdate();
   return service;
-}
-
-export interface SudoExecOptions extends commonUtil.ExecOptions {
-  /**
-   * String that tells the user why password is required.
-   * Example: 'Generating C++ cross reference'
-   */
-  sudoReason: string;
-
-  // pipeStdin must not be set.
-  pipeStdin?: undefined;
 }
 
 /**
@@ -70,7 +60,7 @@ export class ChrootService {
   async exec(
     name: string,
     args: string[],
-    options: SudoExecOptions
+    options: sudo.SudoExecOptions
   ): ReturnType<typeof commonUtil.exec> {
     if (this.isInsideChroot()) {
       return commonUtil.exec(name, args, options);
@@ -83,7 +73,7 @@ export class ChrootService {
     }
     const crosSdk = path.join(source.root, 'chromite/bin/cros_sdk');
     const crosSdkArgs = ['--', name, ...args];
-    return sudo(crosSdk, crosSdkArgs, options);
+    return sudo.execSudo(crosSdk, crosSdkArgs, options);
   }
 
   onUpdate() {
@@ -114,82 +104,4 @@ export class ChrootService {
     }
     return undefined;
   }
-}
-
-const SUDO = 'sudo';
-
-/**
- * Runs command as the root user. It asks the password on VSCode input box if
- * needed, hence a service.
- *
- * Returns InvalidPasswordError if the password user enters is invalid.
- *
- * options.pipeStdin must be undefined.
- */
-async function sudo(
-  name: string,
-  args: string[],
-  options: SudoExecOptions
-): ReturnType<typeof commonUtil.exec> {
-  if (options.pipeStdin) {
-    throw new Error(
-      "BUG: pipeStdin is not supported for this function; it's used to pass password to sudo"
-    );
-  }
-
-  const sudoArgs = [name, ...args];
-
-  // Check if the user can run sudo without password.
-  const validityCheckResult = await commonUtil.exec(SUDO, ['-nv']);
-  if (!(validityCheckResult instanceof Error)) {
-    return await commonUtil.exec(SUDO, sudoArgs, options);
-  }
-
-  // Ask password.
-  const password = await vscode.window.showInputBox({
-    password: true,
-    title: 'password to run ' + path.basename(name),
-    prompt: options.sudoReason,
-  });
-
-  if (!password) {
-    return new InvalidPasswordError('no password was provided');
-  }
-
-  let logBuffer = '';
-  let invalidPassword = false;
-  const sudoOptions = {
-    ...options,
-    pipeStdin: password,
-    logger: new (class {
-      append(s: string): void {
-        if (options.logger) {
-          options.logger.append(s);
-        }
-        logBuffer += s;
-        if (isInvalidPassword(logBuffer)) {
-          invalidPassword = true;
-        }
-        if (logBuffer.length > 50) {
-          logBuffer = logBuffer.substring(logBuffer.length - 50);
-        }
-      }
-    })(),
-  };
-
-  const result = await commonUtil.exec(SUDO, ['-S', ...sudoArgs], sudoOptions);
-  if ((result instanceof Error || result.exitStatus === 1) && invalidPassword) {
-    return new InvalidPasswordError('invalid password');
-  }
-  return result;
-}
-
-export class InvalidPasswordError extends Error {
-  constructor(message: string) {
-    super(message);
-  }
-}
-
-function isInvalidPassword(stderrLine: string): boolean {
-  return /sudo: \d+ incorrect password attempts/.test(stderrLine);
 }

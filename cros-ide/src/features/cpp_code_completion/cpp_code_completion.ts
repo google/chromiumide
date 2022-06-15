@@ -247,10 +247,6 @@ function uiItemsForError(
       };
       // TODO(oka): Add a button to open the terminal with the command to run.
       break;
-    case CompdbErrorKind.InvalidPassword:
-      return {
-        message: e.message,
-      };
     case CompdbErrorKind.RunEbuild: {
       const buildPackages = `build_packages --board=${board}`;
       return {
