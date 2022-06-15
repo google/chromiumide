@@ -8,6 +8,15 @@ import * as commonUtil from '../common/common_util';
 import {WrapFs} from '../common/cros';
 import * as sudo from './sudo';
 
+/**
+ * Chroot module detects the location of the chroot.
+ *
+ * In the following cases chroot cannot be detected:
+ * 1. There is no folder with ChromeOS source (a particular case is when
+ *    a ChromeOS source file is opened, but not a folder).
+ * 2. Multiple chroots are detected - this happens in multiroot
+ *    workspace. We show an error message and use one of the chroots.
+ */
 export function activate(context: vscode.ExtensionContext): ChrootService {
   const service = new ChrootService(undefined, undefined);
   context.subscriptions.push(
@@ -37,10 +46,6 @@ export class ChrootService {
     return this.chrootFs;
   }
 
-  private setChroot(chrootFs: WrapFs<commonUtil.Chroot> | undefined) {
-    this.chrootFs = chrootFs;
-  }
-
   /**
    * Returns an accessor to files under source. Don't store the returned value,
    * as it might change when user opens different workspace.
@@ -49,8 +54,13 @@ export class ChrootService {
     return this.sourceFs;
   }
 
-  private setSource(sourceFs: WrapFs<commonUtil.Source> | undefined) {
-    this.sourceFs = sourceFs;
+  private setPaths(chroot?: commonUtil.Chroot) {
+    // Context for the custom `when` clause in boards and packages view.
+    vscode.commands.executeCommand('setContext', 'cros-ide.chrootPath', chroot);
+    this.chrootFs = chroot ? new WrapFs(chroot) : undefined;
+    this.sourceFs = chroot
+      ? new WrapFs(commonUtil.sourceDir(chroot))
+      : undefined;
   }
 
   /**
@@ -77,31 +87,45 @@ export class ChrootService {
   }
 
   onUpdate() {
-    const chroot = this.findChroot();
-    // Context for the custom `when` clause in boards and packages view.
-    vscode.commands.executeCommand('setContext', 'cros-ide.chrootPath', chroot);
-    if (chroot === undefined) {
-      this.setChroot(undefined);
-      this.setSource(undefined);
+    const candidates = this.findChrootCandidates();
+
+    if (candidates.length === 0) {
+      // TODO(b:235773376): Make sure users of this service show a warning if invoked,
+      // when chroot is not available.
+      this.setPaths(undefined);
       return;
     }
-    this.setChroot(new WrapFs(chroot));
-    this.setSource(new WrapFs(commonUtil.sourceDir(chroot)));
+
+    if (candidates.length === 1) {
+      // TODO(b:235773376): Test for changing chroot when it is already defined
+      // and reject the update.
+      this.setPaths(candidates[0]);
+      return;
+    }
+
+    // Do not await to avoid blocking activate().
+    vscode.window.showErrorMessage(
+      'CrOS IDE does not support multiple chroots, ' +
+        `but found: [${candidates.join(', ')}]. The first will be used. ` +
+        'Open ChromeOS sources from at most one chroot per workspace to fix this problem.'
+    );
+    // TODO(b:235773376): If this.chroot is one of the candidated then select it.
+    this.setPaths(candidates[0]);
   }
 
-  private findChroot(): commonUtil.Chroot | undefined {
+  private findChrootCandidates(): commonUtil.Chroot[] {
     if (this.isInsideChroot()) {
-      return '/' as commonUtil.Chroot;
+      return ['/' as commonUtil.Chroot];
     }
-    // TODO(oka): What if the user has two different chroots, and has workspace
-    // folders for both? Currently we choose one of them arbitrarily, but we may
-    // need to choose one based on the file being opened.
+
+    const candidates: commonUtil.Chroot[] = [];
     for (const folder of vscode.workspace.workspaceFolders || []) {
       const r = commonUtil.findChroot(folder.uri.fsPath);
-      if (r !== undefined) {
-        return r;
+      if (r !== undefined && candidates.indexOf(r) === -1) {
+        candidates.push(r);
       }
     }
-    return undefined;
+
+    return candidates;
   }
 }

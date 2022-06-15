@@ -81,7 +81,7 @@ describe('chroot service', () => {
 describe('chroot detection', () => {
   const temp = tempDir();
 
-  installVscodeDouble();
+  const {vscodeSpy} = installVscodeDouble();
 
   it('finds chroot wih single chromeos folder', async () => {
     const crosCheckout = temp.path;
@@ -102,6 +102,7 @@ describe('chroot detection', () => {
     expect(cros.chroot()?.root).toEqual(
       path.join(crosCheckout, 'chroot') as Chroot
     );
+    expect(vscodeSpy.window.showErrorMessage).not.toHaveBeenCalled();
   });
 
   it('finds chroot wih single chromeos folder and a non-chromeos folder', async () => {
@@ -133,6 +134,7 @@ describe('chroot detection', () => {
     expect(cros.chroot()?.root).toEqual(
       path.join(crosCheckout, 'chroot') as Chroot
     );
+    expect(vscodeSpy.window.showErrorMessage).not.toHaveBeenCalled();
   });
 
   it('does not find chromeos folder when there are no folders', async () => {
@@ -145,5 +147,68 @@ describe('chroot detection', () => {
     );
     cros.onUpdate();
     expect(cros.chroot()?.root).toBeUndefined();
+    expect(vscodeSpy.window.showErrorMessage).not.toHaveBeenCalled();
+  });
+
+  it('finds a chroot when there are multiple candidates', async () => {
+    const crosCheckout1 = path.join(temp.path, 'cros-1');
+    await fs.promises.mkdir(crosCheckout1);
+    await buildFakeChroot(crosCheckout1);
+
+    const crosCheckout2 = path.join(temp.path, 'cros-2');
+    await fs.promises.mkdir(crosCheckout2);
+    await buildFakeChroot(crosCheckout2);
+
+    (vscode.workspace as Mutable<typeof vscode.workspace>).workspaceFolders = [
+      {
+        uri: vscode.Uri.file(path.join(crosCheckout1, 'one/source/folder')),
+        name: 'folder',
+        index: 1,
+      },
+      {
+        uri: vscode.Uri.file(path.join(crosCheckout2, 'source/folder/two')),
+        name: 'two',
+        index: 2,
+      },
+    ];
+    const cros = new ChrootService(
+      undefined,
+      undefined,
+      /* isInsideChroot = */ () => false
+    );
+    cros.onUpdate();
+    expect(cros.chroot()?.root).toEqual(
+      // Either is fine, but the implementation will return the first one.
+      path.join(crosCheckout1, 'chroot') as Chroot
+    );
+    expect(vscodeSpy.window.showErrorMessage).toHaveBeenCalled();
+  });
+
+  it('finds a chroot when multiple folders under the same chroot are opened', async () => {
+    const crosCheckout = temp.path;
+    await buildFakeChroot(crosCheckout);
+
+    (vscode.workspace as Mutable<typeof vscode.workspace>).workspaceFolders = [
+      {
+        uri: vscode.Uri.file(path.join(crosCheckout, 'source/folder/one')),
+        name: 'one',
+        index: 1,
+      },
+      {
+        uri: vscode.Uri.file(path.join(crosCheckout, 'source/folder/two')),
+        name: 'two',
+        index: 2,
+      },
+    ];
+    const cros = new ChrootService(
+      undefined,
+      undefined,
+      /* isInsideChroot = */ () => false
+    );
+    cros.onUpdate();
+    expect(cros.chroot()?.root).toEqual(
+      path.join(crosCheckout, 'chroot') as Chroot
+    );
+    expect(vscodeSpy.window.showErrorMessage).not.toHaveBeenCalled();
   });
 });
