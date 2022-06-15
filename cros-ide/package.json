@@ -250,11 +250,6 @@
       },
       {
         "view": "boards-packages",
-        "contents": "No boards have been set up yet. Visit [the developer guide](https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md#Select-a-board) to learn how to select a board and initialize the build.",
-        "when": "!config.cros-ide.boardsAndPackages.showWelcomeMessage && cros-ide.chrootPath"
-      },
-      {
-        "view": "boards-packages",
         "contents": "You have not yet opened a folder with ChromeOS sources (for example, platform2).\n[Open Folder](command:vscode.openFolder)\nCrOS IDE uses source location to detect the chroot and show [initialized boards](https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md#Select-a-board).",
         "when": "!config.cros-ide.boardsAndPackages.showWelcomeMessage && !cros-ide.chrootPath"
       }
