@@ -13,7 +13,7 @@ export function activate(
   context: vscode.ExtensionContext,
   statusManager: bgTaskStatus.StatusManager
 ) {
-  const log = vscode.window.createOutputChannel('CrOS IDE: Liner');
+  const log = vscode.window.createOutputChannel('CrOS IDE: Linter');
   context.subscriptions.push(
     vscode.commands.registerCommand(SHOW_LOG_COMMAND.command, () => log.show())
   );
