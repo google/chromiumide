@@ -5,7 +5,7 @@
 import * as vscode from 'vscode';
 import * as ideUtil from '../ide_util';
 
-export async function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void {
   const recommendations: Recommendation[] = [
     {
       languageId: 'cpp',
@@ -34,16 +34,12 @@ export async function activate(context: vscode.ExtensionContext) {
   ];
 
   const isCodeServer = ideUtil.isCodeServer();
-  for (const recommended of recommendations) {
-    const disposable = await activateSingle(recommended, isCodeServer);
-    if (disposable === undefined) {
-      continue;
-    }
-    context.subscriptions.push(disposable);
+  for (const recommendation of recommendations) {
+    context.subscriptions.push(new Recommender(recommendation, isCodeServer));
   }
 }
 
-export interface Recommendation {
+interface Recommendation {
   languageId: string;
   extensionId: string;
   message: string;
@@ -52,83 +48,82 @@ export interface Recommendation {
   // code-server. It is assumed that the former is a superset of the latter.
   availableForCodeServer: boolean;
 }
-
 /**
- * Registers a recommendation if the recommended extension is not installed.
+ * Registers a recommendation.
  *
- * @returns Disposable which should be called on deactivation, or undefined if
- * the extension is already installed.
+ * @returns Disposable which should be called on deactivation.
  */
-export async function activateSingle(
-  recommended: Recommendation,
+export function activateSingle(
+  recommendation: Recommendation,
   isCodeServer: boolean
-): Promise<vscode.Disposable | undefined> {
-  // Don't install handler if the extension is already installed.
-  if (vscode.extensions.getExtension(recommended.extensionId)) {
-    return undefined;
-  }
-
-  await suggestOnMatch(
-    recommended,
-    isCodeServer,
-    vscode.window.activeTextEditor
-  );
-
-  const subscription: vscode.Disposable[] = [];
-
-  return vscode.window.onDidChangeActiveTextEditor(
-    async editor => {
-      if (await suggestOnMatch(recommended, isCodeServer, editor)) {
-        subscription[0].dispose();
-      }
-    },
-    undefined,
-    subscription
-  );
-}
-
-async function suggestOnMatch(
-  recommended: Recommendation,
-  isCodeServer: boolean,
-  editor?: vscode.TextEditor
-): Promise<boolean> {
-  if (!editor) {
-    return false;
-  }
-  if (editor.document.languageId !== recommended.languageId) {
-    return false;
-  }
-  if (!recommended.availableForCodeServer && isCodeServer) {
-    return false;
-  }
-
-  return await suggest(recommended);
+): vscode.Disposable {
+  return new Recommender(recommendation, isCodeServer);
 }
 
 const YES = 'Yes';
 const LATER = 'Later';
 
-// Returns true if suggestion is no longer needed.
-async function suggest(recommended: Recommendation): Promise<boolean> {
-  if (vscode.extensions.getExtension(recommended.extensionId)) {
-    return true;
+class Recommender implements vscode.Disposable {
+  private readonly subscriptions: vscode.Disposable[] = [];
+  private suggested = false;
+
+  constructor(
+    private readonly recommendation: Recommendation,
+    private readonly isCodeServer: boolean
+  ) {
+    this.trySuggest(vscode.window.activeTextEditor);
+    vscode.window.onDidChangeActiveTextEditor(editor => {
+      this.trySuggest(editor);
+    });
   }
-  const choice = await vscode.window.showInformationMessage(
-    recommended.message,
-    YES,
-    LATER
-  );
-  if (choice === YES) {
-    await vscode.commands.executeCommand(
-      'extension.open',
-      recommended.extensionId
-    );
-    await vscode.commands.executeCommand(
-      'workbench.extensions.installExtension',
-      recommended.extensionId
-    );
-  } else if (choice === LATER) {
-    return true;
+
+  dispose(): void {
+    vscode.Disposable.from(...this.subscriptions).dispose();
   }
-  return false;
+
+  private trySuggest(editor: vscode.TextEditor | undefined): void {
+    // Do not show the same suggestion twice in a lifetime of the extension.
+    if (this.suggested) {
+      return;
+    }
+
+    // Do not suggest an extension if it is unavailable for the current environment.
+    if (this.isCodeServer && !this.recommendation.availableForCodeServer) {
+      return;
+    }
+
+    // Suggest only when the language ID matches.
+    if (
+      !editor ||
+      editor.document.languageId !== this.recommendation.languageId
+    ) {
+      return;
+    }
+
+    // Do not suggest an already installed extension.
+    if (vscode.extensions.getExtension(this.recommendation.extensionId)) {
+      return;
+    }
+
+    // Show a suggestion asynchronously.
+    void (async () => {
+      const choice = await vscode.window.showInformationMessage(
+        this.recommendation.message,
+        YES,
+        LATER
+      );
+      if (choice === YES) {
+        await vscode.commands.executeCommand(
+          'extension.open',
+          this.recommendation.extensionId
+        );
+        await vscode.commands.executeCommand(
+          'workbench.extensions.installExtension',
+          this.recommendation.extensionId
+        );
+      }
+    })();
+
+    this.suggested = true;
+  }
 }
