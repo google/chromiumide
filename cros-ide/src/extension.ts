@@ -17,13 +17,14 @@ import * as cppCodeCompletion from './features/cpp_code_completion/cpp_code_comp
 import * as crosFormat from './features/cros_format';
 import * as crosLint from './features/cros_lint';
 import * as deviceManagement from './features/device_management';
+import * as gn from './features/gn';
+import * as hints from './features/hints';
 import * as feedback from './features/metrics/feedback';
 import * as metrics from './features/metrics/metrics';
 import * as shortLinkProvider from './features/short_link_provider';
 import * as suggestExtension from './features/suggest_extension';
 import * as targetBoard from './features/target_board';
 import * as upstart from './features/upstart';
-import * as gn from './features/gn';
 import * as ideUtil from './ide_util';
 import * as chroot from './services/chroot';
 import * as bgTaskStatus from './ui/bg_task_status';
@@ -82,6 +83,7 @@ export async function activate(
   upstart.activate(context);
   gn.activate(context);
   deviceManagement.activate(context, statusManager, chrootService);
+  hints.activate(context);
 
   if (ideUtil.getConfigRoot().get<boolean>('underDevelopment.testCoverage')) {
     new coverage.Coverage(chrootService, statusManager).activate(context);

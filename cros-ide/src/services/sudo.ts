@@ -9,6 +9,14 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../common/common_util';
 
+const onDidRunSudoWithPasswordEmitter = new vscode.EventEmitter<void>();
+
+/**
+ * Fired on running sudo successfully with one or more password prompts.
+ * It is not fired if sudo failed, or sudo succeeded without password.
+ */
+export const onDidRunSudoWithPassword = onDidRunSudoWithPasswordEmitter.event;
+
 export interface SudoExecOptions extends commonUtil.ExecOptions {
   /**
    * String that tells the user why password is required.
@@ -29,13 +37,21 @@ export async function execSudo(
 ): ReturnType<typeof commonUtil.exec> {
   const askpass = await AskpassServer.start(name, options);
   try {
-    return await commonUtil.exec('sudo', ['--askpass', '--', name, ...args], {
-      ...options,
-      env: {
-        ...(options.env ?? {}),
-        SUDO_ASKPASS: askpass.scriptPath,
-      },
-    });
+    const result = await commonUtil.exec(
+      'sudo',
+      ['--askpass', '--', name, ...args],
+      {
+        ...options,
+        env: {
+          ...(options.env ?? {}),
+          SUDO_ASKPASS: askpass.scriptPath,
+        },
+      }
+    );
+    if (!(result instanceof Error) && askpass.attempts > 0) {
+      onDidRunSudoWithPasswordEmitter.fire();
+    }
+    return result;
   } finally {
     await askpass.stop();
   }
@@ -50,6 +66,8 @@ export async function execSudo(
  * VSCode show a password prompt and send an entered password to the socket.
  */
 class AskpassServer {
+  public attempts = 0;
+
   private constructor(
     private readonly name: string,
     private readonly options: SudoExecOptions,
@@ -102,6 +120,8 @@ sys.stdout.write(sock.makefile().read())
   }
 
   private handleConnection(socket: net.Socket): void {
+    this.attempts++;
+
     (async () => {
       const password = await vscode.window.showInputBox({
         password: true,
