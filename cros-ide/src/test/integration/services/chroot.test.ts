@@ -2,12 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as fs from 'fs';
 import * as path from 'path';
-import {ExecResult, Source} from '../../../common/common_util';
+import * as vscode from 'vscode';
+import {Chroot, ExecResult, Source} from '../../../common/common_util';
 import {WrapFs} from '../../../common/cros';
 import {ChrootService} from '../../../services/chroot';
-import {exactMatch, installFakeExec, tempDir} from '../../testing';
+import {
+  buildFakeChroot,
+  exactMatch,
+  installFakeExec,
+  Mutable,
+  tempDir,
+} from '../../testing';
 import {installFakeSudo} from '../../testing/fakes';
+import {installVscodeDouble} from '../doubles';
 
 describe('chroot service', () => {
   const temp = tempDir();
@@ -66,5 +75,75 @@ describe('chroot service', () => {
     expect(await cros.exec('false', [], {sudoReason: ''})).toEqual(
       new Error('failed')
     );
+  });
+});
+
+describe('chroot detection', () => {
+  const temp = tempDir();
+
+  installVscodeDouble();
+
+  it('finds chroot wih single chromeos folder', async () => {
+    const crosCheckout = temp.path;
+    await buildFakeChroot(crosCheckout);
+    (vscode.workspace as Mutable<typeof vscode.workspace>).workspaceFolders = [
+      {
+        uri: vscode.Uri.file(path.join(crosCheckout, 'nested/source/folder/')),
+        name: 'folder',
+        index: 1,
+      },
+    ];
+    const cros = new ChrootService(
+      undefined,
+      undefined,
+      /* isInsideChroot = */ () => false
+    );
+    cros.onUpdate();
+    expect(cros.chroot()?.root).toEqual(
+      path.join(crosCheckout, 'chroot') as Chroot
+    );
+  });
+
+  it('finds chroot wih single chromeos folder and a non-chromeos folder', async () => {
+    const msdosCheckout = path.join(temp.path, 'ms-dos');
+    await fs.promises.mkdir(msdosCheckout);
+
+    const crosCheckout = path.join(temp.path, 'cros');
+    await fs.promises.mkdir(crosCheckout);
+
+    await buildFakeChroot(crosCheckout);
+    (vscode.workspace as Mutable<typeof vscode.workspace>).workspaceFolders = [
+      {
+        uri: vscode.Uri.file(path.join(msdosCheckout, 'v2.0/source/')),
+        name: 'source',
+        index: 1,
+      },
+      {
+        uri: vscode.Uri.file(path.join(crosCheckout, 'nested/source/folder/')),
+        name: 'folder',
+        index: 2,
+      },
+    ];
+    const cros = new ChrootService(
+      undefined,
+      undefined,
+      /* isInsideChroot = */ () => false
+    );
+    cros.onUpdate();
+    expect(cros.chroot()?.root).toEqual(
+      path.join(crosCheckout, 'chroot') as Chroot
+    );
+  });
+
+  it('does not find chromeos folder when there are no folders', async () => {
+    (vscode.workspace as Mutable<typeof vscode.workspace>).workspaceFolders =
+      [];
+    const cros = new ChrootService(
+      undefined,
+      undefined,
+      /* isInsideChroot = */ () => false
+    );
+    cros.onUpdate();
+    expect(cros.chroot()?.root).toBeUndefined();
   });
 });

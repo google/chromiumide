@@ -12,3 +12,4 @@ export {
 } from './fake_exec';
 export {buildFakeChroot, getExtensionUri, putFiles, tempDir} from './fs';
 export {flushMicrotasks} from './tasks';
+export {Mutable} from './types';
