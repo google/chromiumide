@@ -394,7 +394,7 @@
     "build-all": "npm run build && npm run build-tests",
     "test": "npm run unit-test && npm run integration-test",
     "unit-test": "npm run build-tests && NODE_PATH=out/test/unit/injected_modules jasmine --config=src/test/unit/jasmine.json",
-    "integration-test": "npm run build-all && xvfb-run -a node ./out/test/integration/runTest.js",
+    "integration-test": "npm run build-all && rm -rf .vscode-test/user-data && xvfb-run -a node ./out/test/integration/runTest.js",
     "lint": "npm run lint-code && npm run lint-license",
     "lint-code": "gts lint",
     "lint-license": "jsgl --local .",
