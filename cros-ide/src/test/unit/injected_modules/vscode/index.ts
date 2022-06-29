@@ -7,6 +7,7 @@ import * as window from './window';
 import * as workspace from './workspace';
 
 export {CancellationTokenSource} from './cancellation_token';
+export {ConfigurationTarget} from './configuration';
 export {Disposable} from './disposable';
 export {EventEmitter} from './event';
 export {Uri} from './uri';

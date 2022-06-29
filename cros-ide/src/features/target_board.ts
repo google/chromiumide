@@ -9,6 +9,7 @@
 import * as vscode from 'vscode';
 import * as ideUtil from '../ide_util';
 import {ChrootService} from '../services/chroot';
+import * as config from '../services/config';
 import * as metrics from './metrics/metrics';
 
 const BOARD_CONFIG = 'cros-ide.board';
@@ -59,7 +60,7 @@ export function activate(
 }
 
 function updateBoardStatus(boardStatusBarItem: vscode.StatusBarItem) {
-  const board = ideUtil.getConfigRoot().get<string>(ideUtil.BOARD) || '';
+  const board = config.board.get();
   boardStatusBarItem.text = board;
   if (board) {
     boardStatusBarItem.show();

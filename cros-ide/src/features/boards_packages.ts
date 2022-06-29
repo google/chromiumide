@@ -6,6 +6,7 @@ import * as vscode from 'vscode';
 import * as cros from '../common/cros';
 import * as ideUtil from '../ide_util';
 import {ChrootService} from '../services/chroot';
+import * as config from '../services/config';
 import * as metrics from './metrics/metrics';
 
 export async function activate(
@@ -33,13 +34,7 @@ export async function activate(
     vscode.commands.registerCommand(
       'cros-ide.dismissBoardsPkgsWelcome',
       async () => {
-        await ideUtil
-          .getConfigRoot()
-          .update(
-            CONFIG_SHOW_WELCOME_MESSAGE,
-            false,
-            vscode.ConfigurationTarget.Global
-          );
+        await config.boardsAndPackages.showWelcomeMessage.update(false);
         boardPackageProvider.refresh();
       }
     ),
@@ -54,7 +49,6 @@ export async function activate(
 }
 
 const VIRTUAL_BOARDS_HOST = 'host';
-const CONFIG_SHOW_WELCOME_MESSAGE = 'boardsAndPackages.showWelcomeMessage';
 
 class BoardsPackages {
   constructor(private readonly chrootService: ChrootService) {}
@@ -186,7 +180,7 @@ class BoardPackageProvider implements vscode.TreeDataProvider<ChrootItem> {
   async getChildren(element?: ChrootItem): Promise<ChrootItem[]> {
     // Welcome messages are shown when there are no elements, so return an empty result
     // even if there are boards in the chroot message is dismissed.
-    if (ideUtil.getConfigRoot().get(CONFIG_SHOW_WELCOME_MESSAGE)) {
+    if (config.boardsAndPackages.showWelcomeMessage.get()) {
       return [];
     }
 

@@ -324,17 +324,6 @@
             "type": "string"
           }
         },
-        "cros-ide.clangdSupport.crosWorkonPrompt": {
-          "type": "string",
-          "scope": "resource",
-          "enum": [
-            "Always",
-            "Never",
-            "Once"
-          ],
-          "description": "Automatically run cros_workon, without prompting the user",
-          "default": "Once"
-        },
         "cros-ide.metrics.collectMetrics": {
           "type": "boolean",
           "description": "Enable pseudonymous metrics collection. Randomly generated unique user ID resets automatically every 180 days. You can also reset it anytime by running the command in the Command Palette.",

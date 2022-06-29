@@ -11,10 +11,7 @@ import * as vscode from 'vscode';
 import * as commonUtil from './common/common_util';
 import {Chroot} from './common/common_util';
 import * as cros from './common/cros';
-
-export function getConfigRoot(): vscode.WorkspaceConfiguration {
-  return vscode.workspace.getConfiguration('cros-ide');
-}
+import * as config from './services/config';
 
 const loggerInstance = vscode.window.createOutputChannel(
   'CrOS IDE: UI Actions'
@@ -37,9 +34,6 @@ export const SHOW_UI_LOG: vscode.Command = {
   title: '',
 };
 
-// Config section name for the target board.
-export const BOARD = 'board';
-
 /**
  * Get the target board, or ask the user to select one.
  *
@@ -49,7 +43,7 @@ export const BOARD = 'board';
 export async function getOrSelectTargetBoard(
   chroot: cros.WrapFs<Chroot>
 ): Promise<string | null | NoBoardError> {
-  const board = getConfigRoot().get<string>(BOARD);
+  const board = config.board.get();
   if (board) {
     return board;
   }
@@ -69,28 +63,24 @@ export class NoBoardError extends Error {
  * Ask user to select the board to use. If user selects a board, the config
  * is updated with the board name.
  *
- * @params config If config.suggestMostRecent is true, the board most recently
+ * @params options If options.suggestMostRecent is true, the board most recently
  * used is proposed to the user, before showing the board picker.
  */
 export async function selectAndUpdateTargetBoard(
   chroot: cros.WrapFs<Chroot>,
-  config: {
+  options: {
     suggestMostRecent: boolean;
   }
 ): Promise<string | null | NoBoardError> {
   const boards = await cros.getSetupBoardsRecentFirst(chroot);
-  const board = await selectBoard(boards, config.suggestMostRecent);
+  const board = await selectBoard(boards, options.suggestMostRecent);
 
   if (board instanceof Error) {
     return board;
   }
   if (board) {
     // TODO(oka): This should be per chroot (i.e. Remote) setting, instead of global (i.e. User).
-    await getConfigRoot().update(
-      BOARD,
-      board,
-      vscode.ConfigurationTarget.Global
-    );
+    await config.board.update(board);
   }
   return board;
 }

@@ -7,7 +7,7 @@ import * as os from 'os';
 import * as queryString from 'querystring';
 import * as vscode from 'vscode';
 import * as semver from 'semver';
-import * as ideUtil from '../../ide_util';
+import * as config from '../../services/config';
 import * as metricsConfig from './metrics_config';
 import * as metricsUtils from './metrics_util';
 
@@ -43,9 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Do not show the consent dialog if the extension is running for integration tests.
   // Modal dialogs make tests fail.
   if (context.extensionMode !== vscode.ExtensionMode.Test) {
-    const showMessage = ideUtil
-      .getConfigRoot()
-      .get<boolean>('metrics.showMessage');
+    const showMessage = config.metrics.showMessage.get();
     if (showMessage) {
       vscode.window
         .showInformationMessage(
@@ -55,22 +53,10 @@ export function activate(context: vscode.ExtensionContext) {
         )
         .then(selection => {
           if (selection && selection === 'Yes') {
-            ideUtil
-              .getConfigRoot()
-              .update(
-                'metrics.collectMetrics',
-                true,
-                vscode.ConfigurationTarget.Global
-              );
+            config.metrics.collectMetrics.update(true);
           }
         });
-      ideUtil
-        .getConfigRoot()
-        .update(
-          'metrics.showMessage',
-          false,
-          vscode.ConfigurationTarget.Global
-        );
+      config.metrics.showMessage.update(false);
     }
   }
 
@@ -221,7 +207,7 @@ export class Analytics {
       // Metrics can be collected for Googlers only.
       this.isGoogler &&
       // User should have accepted to collect metrics.
-      ideUtil.getConfigRoot().get<boolean>('metrics.collectMetrics', false)
+      config.metrics.collectMetrics.get()
     );
   }
 

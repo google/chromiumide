@@ -4,6 +4,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../common/common_util';
+import * as config from '../services/config';
 import * as ideUtil from '../ide_util';
 import * as metrics from './metrics/metrics';
 
@@ -25,8 +26,6 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(openFileCmd, searchSelectionCmd, copyFileCmd);
 }
-
-const codeSearch = 'codeSearch';
 
 function getCodeSearchToolConfig(
   fullpath: string
@@ -72,18 +71,18 @@ async function getCurrentFile(
   const fullpath = textEditor.document.fileName;
 
   // Which CodeSearch to use, options are public, internal, or gitiles.
-  const csInstance = ideUtil.getConfigRoot().get<string>(codeSearch);
+  const csInstance = config.codeSearch.instance.get();
 
-  const csHash = ideUtil.getConfigRoot().get<boolean>('codeSearchHash');
+  const csHash = config.codeSearch.openWithRevision.get();
 
   const line = textEditor.selection.active.line + 1;
 
-  const config = getCodeSearchToolConfig(fullpath);
-  if (!config) {
+  const csConfig = getCodeSearchToolConfig(fullpath);
+  if (!csConfig) {
     vscode.window.showErrorMessage("Could not find 'generate_cs_path' script");
     return;
   }
-  const {executable, cwd} = config;
+  const {executable, cwd} = csConfig;
 
   const opts = [];
   if (csHash) {
@@ -126,7 +125,7 @@ function searchSelection(textEditor: vscode.TextEditor) {
   }
 
   // If the setting is gitiles, we use public CodeSearch
-  const csInstance = ideUtil.getConfigRoot().get<string>(codeSearch);
+  const csInstance = config.codeSearch.instance.get();
   const csBase =
     csInstance === 'internal'
       ? 'https://source.corp.google.com/'

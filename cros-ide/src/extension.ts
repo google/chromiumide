@@ -28,6 +28,7 @@ import * as targetBoard from './features/target_board';
 import * as upstart from './features/upstart';
 import * as ideUtil from './ide_util';
 import * as chroot from './services/chroot';
+import * as config from './services/config';
 import * as bgTaskStatus from './ui/bg_task_status';
 import * as logs from './logs';
 
@@ -96,11 +97,11 @@ export async function activate(
   );
   hints.activate(context);
 
-  if (ideUtil.getConfigRoot().get<boolean>('underDevelopment.testCoverage')) {
+  if (config.underDevelopment.testCoverage.get()) {
     new coverage.Coverage(chrootService, statusManager).activate(context);
   }
 
-  if (ideUtil.getConfigRoot().get<boolean>('underDevelopment.crosFormat')) {
+  if (config.underDevelopment.crosFormat.get()) {
     crosFormat.activate(context);
   }
 

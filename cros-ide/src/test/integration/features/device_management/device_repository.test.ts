@@ -5,14 +5,14 @@
 import 'jasmine';
 import * as crosfleet from '../../../../features/device_management/crosfleet';
 import * as repository from '../../../../features/device_management/device_repository';
+import * as config from '../../../../services/config';
 import * as testing from '../../../testing';
 import * as fakes from '../../../testing/fakes';
-import * as repositoryUtil from './device_repository_util';
 
 describe('Owned device repository', () => {
   beforeEach(async () => {
     // Initialize devices to an empty list.
-    await repositoryUtil.setOwnedDevices([]);
+    await config.deviceManagement.devices.update([]);
   });
 
   const state = testing.cleanState(() => ({

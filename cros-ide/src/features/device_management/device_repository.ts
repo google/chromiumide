@@ -3,9 +3,8 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as ideUtil from '../../ide_util';
+import * as config from '../../services/config';
 import * as crosfleet from './crosfleet';
-import {isExperimentsEnabled} from './experiments';
 
 // Represents the type of a device.
 export enum DeviceCategory {
@@ -34,8 +33,6 @@ export interface LeasedDevice extends Device {
  * The list is backed by a user setting.
  */
 export class OwnedDeviceRepository implements vscode.Disposable {
-  private static readonly CONFIG_HOSTNAMES = 'deviceManagement.devices';
-
   private readonly onDidChangeEmitter = new vscode.EventEmitter<void>();
   readonly onDidChange = this.onDidChangeEmitter.event;
 
@@ -82,21 +79,11 @@ export class OwnedDeviceRepository implements vscode.Disposable {
   }
 
   private getHostnames(): string[] {
-    return (
-      ideUtil
-        .getConfigRoot()
-        .get<string[]>(OwnedDeviceRepository.CONFIG_HOSTNAMES) ?? []
-    );
+    return config.deviceManagement.devices.get();
   }
 
   private async setHostnames(hosts: string[]): Promise<void> {
-    await ideUtil
-      .getConfigRoot()
-      .update(
-        OwnedDeviceRepository.CONFIG_HOSTNAMES,
-        hosts,
-        vscode.ConfigurationTarget.Global
-      );
+    await config.deviceManagement.devices.update(hosts);
   }
 }
 
@@ -129,14 +116,14 @@ export class LeasedDeviceRepository implements vscode.Disposable {
   }
 
   async checkLogin(): Promise<boolean> {
-    if (!isExperimentsEnabled()) {
+    if (!config.underDevelopment.deviceManagement.get()) {
       return false;
     }
     return await this.crosfleetRunner.checkLogin();
   }
 
   async getDevices(): Promise<LeasedDevice[]> {
-    if (!isExperimentsEnabled()) {
+    if (!config.underDevelopment.deviceManagement.get()) {
       return [];
     }
     if (!(await this.checkLogin())) {

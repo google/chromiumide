@@ -7,9 +7,9 @@ import * as vscode from 'vscode';
 import * as crosfleet from '../../../../features/device_management/crosfleet';
 import * as repository from '../../../../features/device_management/device_repository';
 import * as provider from '../../../../features/device_management/device_tree_data_provider';
+import * as config from '../../../../services/config';
 import * as testing from '../../../testing';
 import * as fakes from '../../../testing/fakes';
-import * as repositoryUtil from './device_repository_util';
 
 interface RenderedTreeNode {
   item: vscode.TreeItem;
@@ -63,7 +63,10 @@ describe('Device tree data provider', () => {
   });
 
   it('builds a correct tree', async () => {
-    await repositoryUtil.setOwnedDevices(['localhost:1111', 'localhost:2222']);
+    await config.deviceManagement.devices.update([
+      'localhost:1111',
+      'localhost:2222',
+    ]);
     const rendered = await renderTree(state.deviceTreeDataProvider);
     expect(rendered).toEqual([
       {
@@ -89,7 +92,7 @@ describe('Device tree data provider', () => {
   });
 
   it('builds a correct tree for initial state', async () => {
-    await repositoryUtil.setOwnedDevices([]);
+    await config.deviceManagement.devices.update([]);
     const rendered = await renderTree(state.deviceTreeDataProvider);
     expect(rendered).toEqual([
       {
