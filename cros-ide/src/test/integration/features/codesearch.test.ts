@@ -5,6 +5,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as codesearch from '../../../features/codesearch';
+import * as config from '../../../services/config';
 import {
   buildFakeChroot,
   cleanState,
@@ -12,14 +13,14 @@ import {
   installFakeExec,
   tempDir,
 } from '../../testing';
+import {installVscodeDouble, installFakeConfigs} from '../doubles';
 import {closeDocument} from '../extension_testing';
-import {installVscodeDouble} from '../doubles';
-import {fakeGetConfiguration} from '../fakes/workspace_configuration';
 
 const {openCurrentFile, searchSelection} = codesearch.TEST_ONLY;
 
 describe('CodeSearch: searching for selection', () => {
-  const {vscodeSpy} = installVscodeDouble();
+  const {vscodeSpy, vscodeEmitters} = installVscodeDouble();
+  installFakeConfigs(vscodeSpy, vscodeEmitters);
 
   let textDocument: vscode.TextDocument;
   let textEditor: vscode.TextEditor;
@@ -38,10 +39,7 @@ describe('CodeSearch: searching for selection', () => {
   });
 
   it('in public CS', async () => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
-    vscode.workspace
-      .getConfiguration('cros-ide')
-      .update('codeSearch', 'public');
+    await config.codeSearch.instance.update('public');
 
     // TODO(ttylenda): Call the VSCode command instead calling the TS method.
     searchSelection(textEditor);
@@ -52,11 +50,8 @@ describe('CodeSearch: searching for selection', () => {
     expect(vscodeSpy.env.openExternal).toHaveBeenCalledWith(expectedUri);
   });
 
-  it('in internal CS', () => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
-    vscode.workspace
-      .getConfiguration('cros-ide')
-      .update('codeSearch', 'internal');
+  it('in internal CS', async () => {
+    await config.codeSearch.instance.update('internal');
 
     searchSelection(textEditor);
 
@@ -68,7 +63,8 @@ describe('CodeSearch: searching for selection', () => {
 });
 
 describe('CodeSearch: opening current file', () => {
-  const {vscodeSpy} = installVscodeDouble();
+  const {vscodeSpy, vscodeEmitters} = installVscodeDouble();
+  installFakeConfigs(vscodeSpy, vscodeEmitters);
   const {fakeExec} = installFakeExec();
   const temp = tempDir();
 
@@ -108,11 +104,8 @@ describe('CodeSearch: opening current file', () => {
     };
   });
 
-  beforeEach(() => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
-    vscode.workspace
-      .getConfiguration('cros-ide')
-      .update('codeSearch', 'public');
+  beforeEach(async () => {
+    await config.codeSearch.instance.update('public');
   });
 
   it('opens browser window', async () => {

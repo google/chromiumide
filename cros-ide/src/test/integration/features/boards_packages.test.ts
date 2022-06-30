@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'jasmine';
-import * as vscode from 'vscode';
+import * as config from '../../../services/config';
 import {Source} from '../../../common/common_util';
 import {WrapFs} from '../../../common/cros';
 import {TEST_ONLY} from '../../../features/boards_packages';
@@ -15,14 +15,14 @@ import {
   putFiles,
   tempDir,
 } from '../../testing';
-import {installVscodeDouble} from '../doubles';
-import {fakeGetConfiguration} from '../fakes/workspace_configuration';
+import {installVscodeDouble, installFakeConfigs} from '../doubles';
 
 const {BoardItem, PackageItem, BoardPackageProvider, BoardsPackages} =
   TEST_ONLY;
 
 describe('Boards and Packages view', () => {
-  const {vscodeSpy} = installVscodeDouble();
+  const {vscodeSpy, vscodeEmitters} = installVscodeDouble();
+  installFakeConfigs(vscodeSpy, vscodeEmitters);
   const {fakeExec} = installFakeExec();
   const temp = tempDir();
 
@@ -82,10 +82,7 @@ describe('Boards and Packages view', () => {
       '/build/coral/x': 'x',
     });
 
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
-    vscode.workspace
-      .getConfiguration('cros-ide')
-      .update('boardsAndPackages.showWelcomeMessage', false);
+    await config.boardsAndPackages.showWelcomeMessage.update(false);
 
     fakeExec.on(
       'cros_workon',
@@ -151,10 +148,7 @@ chromeos-base/shill`;
       }),
     ]);
 
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
-    vscode.workspace
-      .getConfiguration('cros-ide')
-      .update('boardsAndPackages.showWelcomeMessage', false);
+    await config.boardsAndPackages.showWelcomeMessage.update(false);
 
     fakeExec.on(
       'cros_workon',
@@ -166,10 +160,7 @@ chromeos-base/shill`;
   });
 
   it('opens ebuild file', async () => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
-    vscode.workspace
-      .getConfiguration('cros-ide')
-      .update('boardsAndPackages.showWelcomeMessage', false);
+    await config.boardsAndPackages.showWelcomeMessage.update(false);
 
     const chrootService = jasmine.createSpyObj<ChrootService>('chrootService', [
       'exec',

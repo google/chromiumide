@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'jasmine';
 import * as fs from 'fs';
+import 'jasmine';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../common/common_util';
@@ -12,11 +12,11 @@ import {CLANGD_EXTENSION} from '../../../../features/cpp_code_completion/constan
 import {CompilationDatabase} from '../../../../features/cpp_code_completion/cpp_code_completion';
 import {Packages} from '../../../../features/cpp_code_completion/packages';
 import {ChrootService} from '../../../../services/chroot';
+import * as config from '../../../../services/config';
 import * as bgTaskStatus from '../../../../ui/bg_task_status';
 import {buildFakeChroot, cleanState, tempDir} from '../../../testing';
-import {installVscodeDouble} from '../../doubles';
 import {ConsoleOutputChannel} from '../../../testing/fakes';
-import {fakeGetConfiguration} from '../../fakes/workspace_configuration';
+import {installVscodeDouble, installFakeConfigs} from '../../doubles';
 import {SpiedFakeCompdbService} from './spied_fake_compdb_service';
 
 function newEventWaiter(
@@ -31,6 +31,11 @@ function newEventWaiter(
 
 describe('C++ code completion', () => {
   const {vscodeSpy, vscodeEmitters} = installVscodeDouble();
+  installFakeConfigs(vscodeSpy, vscodeEmitters);
+
+  beforeEach(async () => {
+    await config.board.update('amd64-generic');
+  });
 
   const temp = tempDir();
   const state = cleanState(async () => {
@@ -58,10 +63,6 @@ describe('C++ code completion', () => {
   });
 
   it('runs for platform2 C++ file', async () => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
-    vscode.workspace
-      .getConfiguration('cros-ide')
-      .update('board', 'amd64-generic');
     const clangd = jasmine.createSpyObj<vscode.Extension<unknown>>('clangd', [
       'activate',
     ]);
@@ -96,10 +97,6 @@ describe('C++ code completion', () => {
   });
 
   it('runs for platform2 GN file', async () => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
-    vscode.workspace
-      .getConfiguration('cros-ide')
-      .update('board', 'amd64-generic');
     const clangd = jasmine.createSpyObj<vscode.Extension<unknown>>('clangd', [
       'activate',
     ]);
@@ -129,10 +126,6 @@ describe('C++ code completion', () => {
   });
 
   it('does not run on C++ file save', async () => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
-    vscode.workspace
-      .getConfiguration('cros-ide')
-      .update('board', 'amd64-generic');
     const clangd = jasmine.createSpyObj<vscode.Extension<unknown>>('clangd', [
       'activate',
     ]);
@@ -156,10 +149,6 @@ describe('C++ code completion', () => {
   });
 
   it('does not run for C++ file if it has already run for the same package', async () => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
-    vscode.workspace
-      .getConfiguration('cros-ide')
-      .update('board', 'amd64-generic');
     const clangd = jasmine.createSpyObj<vscode.Extension<unknown>>('clangd', [
       'activate',
     ]);
@@ -216,10 +205,6 @@ describe('C++ code completion', () => {
   });
 
   it('runs for C++ file if compilation database has been removed', async () => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
-    vscode.workspace
-      .getConfiguration('cros-ide')
-      .update('board', 'amd64-generic');
     const clangd = jasmine.createSpyObj<vscode.Extension<unknown>>('clangd', [
       'activate',
     ]);
@@ -264,11 +249,6 @@ describe('C++ code completion', () => {
   });
 
   it('does not run if clangd extension is not installed', async () => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
-    vscode.workspace
-      .getConfiguration('cros-ide')
-      .update('board', 'amd64-generic');
-
     const done = newEventWaiter(state.compilationDatabase);
 
     vscodeEmitters.window.onDidChangeActiveTextEditor.fire({

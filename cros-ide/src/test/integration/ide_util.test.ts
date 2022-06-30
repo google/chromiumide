@@ -4,12 +4,11 @@
 
 import * as assert from 'assert';
 import * as path from 'path';
-import * as vscode from 'vscode';
 import {WrapFs} from '../../common/cros';
 import * as ideUtil from '../../ide_util';
+import * as config from '../../services/config';
 import * as testing from '../testing';
-import {installVscodeDouble} from './doubles';
-import {fakeGetConfiguration} from './fakes/workspace_configuration';
+import {installVscodeDouble, installFakeConfigs} from './doubles';
 
 describe('IDE utilities', () => {
   const tempDir = testing.tempDir();
@@ -90,13 +89,11 @@ describe('IDE utilities', () => {
 describe('getOrSelectTargetBoard', () => {
   const tempDir = testing.tempDir();
 
-  const {vscodeSpy} = installVscodeDouble();
+  const {vscodeSpy, vscodeEmitters} = installVscodeDouble();
+  installFakeConfigs(vscodeSpy, vscodeEmitters);
 
   it('returns stored board', async () => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
-    vscode.workspace
-      .getConfiguration('cros-ide')
-      .update('board', 'amd64-generic');
+    await config.board.update('amd64-generic');
     const chroot = await testing.buildFakeChroot(tempDir.path);
 
     expect(await ideUtil.getOrSelectTargetBoard(new WrapFs(chroot))).toBe(
@@ -105,19 +102,15 @@ describe('getOrSelectTargetBoard', () => {
   });
 
   it('returns error if no board has been setup', async () => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
     const chroot = await testing.buildFakeChroot(tempDir.path);
 
     expect(await ideUtil.getOrSelectTargetBoard(new WrapFs(chroot))).toEqual(
       new ideUtil.NoBoardError()
     );
-    expect(vscode.workspace.getConfiguration('cros-ide').get('board')).toBe(
-      undefined
-    );
+    expect(config.board.get()).toBe('');
   });
 
   it('shows default board', async () => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
     const chroot = await testing.buildFakeChroot(tempDir.path);
     await testing.putFiles(chroot, {
       '/build/amd64-generic/x': 'x',
@@ -135,13 +128,10 @@ describe('getOrSelectTargetBoard', () => {
     expect(await ideUtil.getOrSelectTargetBoard(new WrapFs(chroot))).toBe(
       'amd64-generic'
     );
-    expect(
-      vscode.workspace.getConfiguration('cros-ide').get<string>('board')
-    ).toBe('amd64-generic');
+    expect(config.board.get()).toBe('amd64-generic');
   });
 
   it('shows boards to select', async () => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
     const chroot = await testing.buildFakeChroot(tempDir.path);
     await testing.putFiles(chroot, {
       '/build/amd64-generic/x': 'x',
@@ -166,13 +156,10 @@ describe('getOrSelectTargetBoard', () => {
     expect(await ideUtil.getOrSelectTargetBoard(new WrapFs(chroot))).toBe(
       'coral'
     );
-    expect(
-      vscode.workspace.getConfiguration('cros-ide').get<string>('board')
-    ).toBe('coral');
+    expect(config.board.get()).toBe('coral');
   });
 
   it('returns null if message is dismissed', async () => {
-    vscodeSpy.workspace.getConfiguration.and.callFake(fakeGetConfiguration());
     const chroot = await testing.buildFakeChroot(tempDir.path);
     await testing.putFiles(chroot, {
       '/build/amd64-generic/x': 'x',
@@ -188,8 +175,6 @@ describe('getOrSelectTargetBoard', () => {
       .and.returnValue(undefined);
 
     expect(await ideUtil.getOrSelectTargetBoard(new WrapFs(chroot))).toBe(null);
-    expect(
-      vscode.workspace.getConfiguration('cros-ide').get<string>('board')
-    ).toBe(undefined);
+    expect(config.board.get()).toBe('');
   });
 });
