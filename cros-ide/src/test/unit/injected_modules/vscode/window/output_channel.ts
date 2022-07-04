@@ -3,9 +3,22 @@
 // found in the LICENSE file.
 
 import type * as vscode from 'vscode'; // import types only
-import {VoidOutputChannel} from '../../../../testing/fakes';
+
+// Copy of fakes.VoidOutputChannel.
+// We copy it here because the injected vscode module cannot import
+// other packages (b/237621808).
+class VoidOutputChannel implements vscode.OutputChannel {
+  constructor(public readonly name: string) {}
+
+  append(): void {}
+  appendLine(): void {}
+  replace(): void {}
+  clear(): void {}
+  show(): void {}
+  hide(): void {}
+  dispose(): void {}
+}
 
 export function createOutputChannel(name: string): vscode.OutputChannel {
-  // TODO(b/237621808): Remove the dependency to fakes.
   return new VoidOutputChannel(name);
 }
