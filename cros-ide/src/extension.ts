@@ -107,7 +107,7 @@ export async function activate(
 
   // Avoid network operations in tests.
   if (context.extensionMode !== vscode.ExtensionMode.Test) {
-    checkUpdates.run(context);
+    checkUpdates.run(chrootService);
   }
 
   metrics.send({

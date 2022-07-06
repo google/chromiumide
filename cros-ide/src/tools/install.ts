@@ -182,8 +182,12 @@ export async function installDev(exe: string) {
  *
  * @throws Error if install fails
  */
-export async function install(exe: string, forceVersion?: semver.SemVer) {
-  const src = await findArchive(forceVersion);
+export async function install(
+  exe: string,
+  forceVersion?: semver.SemVer,
+  gsutil: string = GSUTIL
+) {
+  const src = await findArchive(forceVersion, gsutil);
 
   if (src.version.compare('0.0.10') <= 0) {
     assertInsideChroot();
@@ -194,7 +198,7 @@ export async function install(exe: string, forceVersion?: semver.SemVer) {
   await commonUtil.withTempDir(async td => {
     const dst = path.join(td, src.name);
 
-    await execute(GSUTIL, ['cp', src.url(), dst]);
+    await execute(gsutil, ['cp', src.url(), dst]);
     const args = ['--install-extension', dst];
     if (forceVersion) {
       args.push('--force');

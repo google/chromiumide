@@ -2,31 +2,41 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as path from 'path';
 import * as vscode from 'vscode';
 import * as semver from 'semver';
 import * as ideUtil from './ide_util';
 import * as install from './tools/install';
+import * as chroot from './services/chroot';
 
-export async function run(_context: vscode.ExtensionContext) {
+export async function run(chrootService: chroot.ChrootService) {
   const extension = vscode.extensions.getExtension('google.cros-ide');
   // This should not happen.
   if (!extension) {
     return;
   }
-  const installed = new semver.SemVer(extension.packageJSON.version);
+  const source = chrootService.source();
+  if (!source) {
+    return;
+  }
+  const gsutil = path.join(source.root, 'chromite/scripts/gsutil');
 
-  const latest = (
-    await install.findArchive(/* version = */ undefined, 'gsutil')
-  ).version;
+  const installed = new semver.SemVer(extension.packageJSON.version);
+  const latest = (await install.findArchive(/* version = */ undefined, gsutil))
+    .version;
 
   if (installed.compare(latest) < 0) {
-    showInstallPrompt(installed.toString(), latest.toString());
+    showInstallPrompt(installed, latest, gsutil);
   }
 }
 
 const INSTALL = 'Install';
 
-export async function showInstallPrompt(installed: string, available: string) {
+export async function showInstallPrompt(
+  installed: semver.SemVer,
+  available: semver.SemVer,
+  gsutil: string
+) {
   const selection = await vscode.window.showInformationMessage(
     `New version of CrOS IDE is available (installed: ${installed}, available: ${available}).`,
     INSTALL,
@@ -53,7 +63,7 @@ export async function showInstallPrompt(installed: string, available: string) {
   }
 
   try {
-    await install.install(exe);
+    await install.install(exe, available, gsutil);
   } catch (e) {
     await handleFailure(e as Error);
     return;

@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as semver from 'semver';
 import * as checkUpdates from '../../check_updates';
 import {installVscodeDouble} from './doubles';
 
@@ -17,8 +18,9 @@ describe('Check update', () => {
       )
       .and.returnValue(Promise.resolve('Dismiss'));
     await checkUpdates.showInstallPrompt(
-      /* installed = */ '0.0.1',
-      /* available = */ '0.0.2'
+      /* installed = */ new semver.SemVer('0.0.1'),
+      /* available = */ new semver.SemVer('0.0.2'),
+      'path/to/gsutil'
     );
 
     // TODO(oka): test install is not called, removing this line.

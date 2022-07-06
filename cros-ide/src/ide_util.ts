@@ -146,17 +146,26 @@ function findExecutable(appRoot: string, name: string): string | Error {
  */
 export function vscodeExecutablePath(
   appRoot = vscode.env.appRoot,
-  appName = vscode.env.appName
+  appName = vscode.env.appName,
+  remoteName = vscode.env.remoteName
 ): string | Error {
+  let executableName;
   // code-server's appName differs depending on the version.
   if (appName === 'code-server' || appName === 'Code - OSS') {
-    return findExecutable(appRoot, 'code-server');
+    executableName = 'code-server';
   } else if (appName === 'Visual Studio Code') {
-    return findExecutable(appRoot, 'remote-cli/code');
+    executableName = 'code';
   } else if (appName === 'Visual Studio Code - Insiders') {
-    return findExecutable(appRoot, 'remote-cli/code-insiders');
+    executableName = 'code-insiders';
+  } else {
+    return new Error(`vscode app name not recognized: ${appName}`);
   }
-  return new Error(`vscode app name not recognized: ${appName}`);
+  const executableSubPath =
+    remoteName === 'ssh-remote'
+      ? path.join('remote-cli', executableName)
+      : executableName;
+
+  return findExecutable(appRoot, executableSubPath);
 }
 
 export function isCodeServer(appHost = vscode.env.appHost): boolean {
