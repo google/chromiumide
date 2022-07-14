@@ -81,8 +81,7 @@
         "command": "cros-ide.deviceManagement.flashPrebuiltImage",
         "category": "CrOS",
         "title": "Flash Image to Device",
-        "icon": "$(cloud-download)",
-        "enablement": "config.cros-ide.underDevelopment.deviceManagement"
+        "icon": "$(cloud-download)"
       },
       {
         "command": "cros-ide.deviceManagement.crosfleetLogin",
@@ -248,12 +247,12 @@
         },
         {
           "command": "cros-ide.deviceManagement.flashPrebuiltImage",
-          "when": "view == devices && viewItem =~ /^device-/ && config.cros-ide.underDevelopment.deviceManagement",
+          "when": "view == devices && viewItem =~ /^device-/",
           "group": "inline@3"
         },
         {
           "command": "cros-ide.deviceManagement.flashPrebuiltImage",
-          "when": "view == devices && viewItem =~ /^device-/ && config.cros-ide.underDevelopment.deviceManagement",
+          "when": "view == devices && viewItem =~ /^device-/",
           "group": "2_operation@1"
         },
         {
