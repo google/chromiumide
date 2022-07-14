@@ -4,7 +4,6 @@
 
 import * as vscode from 'vscode';
 import * as dateFns from 'date-fns';
-import * as config from '../../services/config';
 import * as deviceRepository from './device_repository';
 
 export enum ItemKind {
@@ -125,10 +124,10 @@ export class DeviceTreeDataProvider
 
   async getChildren(parent?: Item): Promise<Item[]> {
     if (parent === undefined) {
-      const items = [new CategoryItem(deviceRepository.DeviceCategory.OWNED)];
-      if (config.underDevelopment.deviceManagement.get()) {
-        items.push(new CategoryItem(deviceRepository.DeviceCategory.LEASED));
-      }
+      const items = [
+        new CategoryItem(deviceRepository.DeviceCategory.OWNED),
+        new CategoryItem(deviceRepository.DeviceCategory.LEASED),
+      ];
       return items;
     }
 

@@ -130,9 +130,6 @@ export class LeasedDeviceRepository implements vscode.Disposable {
   }
 
   async checkLogin(): Promise<boolean> {
-    if (!config.underDevelopment.deviceManagement.get()) {
-      return false;
-    }
     return await this.crosfleetRunner.checkLogin();
   }
 
@@ -146,9 +143,6 @@ export class LeasedDeviceRepository implements vscode.Disposable {
   }
 
   private async getDevicesUncached(): Promise<LeasedDevice[]> {
-    if (!config.underDevelopment.deviceManagement.get()) {
-      return [];
-    }
     if (!(await this.checkLogin())) {
       return [];
     }

@@ -50,11 +50,6 @@ describe('Device tree data provider', () => {
   const cipdRepository = fakes.installFakeCipd(fakeExec);
   const fakeCrosfleet = fakes.installFakeCrosfleet(fakeExec, cipdRepository);
 
-  // Enable experimental features.
-  beforeEach(async () => {
-    await config.underDevelopment.deviceManagement.update(true);
-  });
-
   const state = testing.cleanState(() => {
     const ownedDeviceRepository = new repository.OwnedDeviceRepository();
     const leasedDeviceRepository = new repository.LeasedDeviceRepository(

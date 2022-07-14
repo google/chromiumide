@@ -73,11 +73,6 @@ describe('Owned device repository', () => {
 });
 
 describe('Leased device repository', () => {
-  // Enable experimental features.
-  beforeEach(async () => {
-    await config.underDevelopment.deviceManagement.update(true);
-  });
-
   const clock = jasmine.clock();
   beforeEach(() => {
     clock.install();

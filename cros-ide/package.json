@@ -86,22 +86,19 @@
       {
         "command": "cros-ide.deviceManagement.crosfleetLogin",
         "category": "CrOS",
-        "title": "Log in to crosfleet",
-        "enablement": "config.cros-ide.underDevelopment.deviceManagement"
+        "title": "Log in to crosfleet"
       },
       {
         "command": "cros-ide.deviceManagement.refreshLeases",
         "category": "CrOS",
         "title": "Refresh Leased Device List",
-        "icon": "$(refresh)",
-        "enablement": "config.cros-ide.underDevelopment.deviceManagement"
+        "icon": "$(refresh)"
       },
       {
         "command": "cros-ide.deviceManagement.addLease",
         "category": "CrOS",
         "title": "Lease a Device",
-        "icon": "$(add)",
-        "enablement": "config.cros-ide.underDevelopment.deviceManagement"
+        "icon": "$(add)"
       },
       {
         "command": "cros-ide.deviceManagement.copyHostname",
