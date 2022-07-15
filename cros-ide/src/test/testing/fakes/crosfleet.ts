@@ -9,7 +9,7 @@ import * as crosfleet from '../../../features/device_management/crosfleet';
 import * as testing from '..';
 
 export class FakeCrosfleet {
-  private loggedIn: boolean = true;
+  private loggedIn = true;
   private leases: crosfleet.LeaseInfo[] = [];
 
   constructor() {}

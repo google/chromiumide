@@ -53,4 +53,32 @@ module.exports = {
   settings: {
     'import/core-modules': ['vscode'],
   },
+
+  // Enable TS-dependent rules only for *.ts files. Otherwise eslint gives
+  // errors on linting *.js files, such as .eslintrc.js itself.
+  overrides: [
+    {
+      files: ['*.ts'],
+      parser: '@typescript-eslint/parser',
+      rules: {
+        // TODO(b/239106925): Make these rules error.
+        '@typescript-eslint/no-floating-promises': 'warn',
+        '@typescript-eslint/no-misused-promises': 'warn',
+      },
+      overrides: [
+        {
+          files: ['src/**/*.ts'],
+          parserOptions: {
+            project: 'tsconfig.json',
+          },
+        },
+        {
+          files: ['views/src/**/*.ts'],
+          parserOptions: {
+            project: 'views/tsconfig.json',
+          },
+        },
+      ],
+    },
+  ],
 };
