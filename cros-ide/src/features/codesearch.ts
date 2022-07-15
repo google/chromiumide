@@ -44,7 +44,7 @@ function getCodeSearchToolConfig(
 async function openCurrentFile(textEditor: vscode.TextEditor) {
   const result = await getCurrentFile(textEditor);
   if (result) {
-    vscode.env.openExternal(vscode.Uri.parse(result));
+    void vscode.env.openExternal(vscode.Uri.parse(result));
     metrics.send({
       category: 'interactive',
       group: 'codesearch',
@@ -79,7 +79,9 @@ async function getCurrentFile(
 
   const csConfig = getCodeSearchToolConfig(fullpath);
   if (!csConfig) {
-    vscode.window.showErrorMessage("Could not find 'generate_cs_path' script");
+    void vscode.window.showErrorMessage(
+      "Could not find 'generate_cs_path' script"
+    );
     return;
   }
   const {executable, cwd} = csConfig;
@@ -98,13 +100,15 @@ async function getCurrentFile(
   });
 
   if (res instanceof Error) {
-    vscode.window.showErrorMessage('Could not run generate_cs_path: ' + res);
+    void vscode.window.showErrorMessage(
+      'Could not run generate_cs_path: ' + res
+    );
     return;
   }
 
   const {exitStatus, stdout, stderr} = res;
   if (exitStatus) {
-    vscode.window.showErrorMessage(
+    void vscode.window.showErrorMessage(
       `generate_cs_path returned an error: ${stderr}`
     );
     metrics.send({
@@ -136,7 +140,7 @@ function searchSelection(textEditor: vscode.TextEditor) {
     path: '/search',
     query: `q=${selectedText}`,
   });
-  vscode.env.openExternal(uri);
+  void vscode.env.openExternal(uri);
   metrics.send({
     category: 'interactive',
     group: 'codesearch',

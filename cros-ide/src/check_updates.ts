@@ -86,7 +86,7 @@ async function handleFailure(e: Error) {
     UPDATE_MANUALLY
   );
   if (selection === UPDATE_MANUALLY) {
-    vscode.env.openExternal(
+    void vscode.env.openExternal(
       vscode.Uri.parse('http://go/cros-ide-quickstart#updating')
     );
   }

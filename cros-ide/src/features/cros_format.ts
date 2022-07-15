@@ -57,7 +57,7 @@ class CrosFormat implements vscode.DocumentFormattingEditProvider {
     );
 
     if (formatterOutput instanceof Error) {
-      vscode.window.showInformationMessage(formatterOutput.message);
+      void vscode.window.showInformationMessage(formatterOutput.message);
       return undefined;
     }
 

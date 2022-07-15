@@ -127,12 +127,12 @@ class BoardsPackages {
       }
     );
     if (res instanceof Error) {
-      vscode.window.showErrorMessage(res.message);
+      void vscode.window.showErrorMessage(res.message);
       return;
     }
     const {exitStatus, stderr} = res;
     if (exitStatus !== 0) {
-      vscode.window.showErrorMessage(`cros_workon failed: ${stderr}`);
+      void vscode.window.showErrorMessage(`cros_workon failed: ${stderr}`);
     }
   }
 
@@ -149,13 +149,13 @@ class BoardsPackages {
       }
     );
     if (res instanceof Error) {
-      vscode.window.showErrorMessage(res.message);
+      void vscode.window.showErrorMessage(res.message);
       return;
     }
     const relFileName = res.stdout.trim().substring('/mnt/host/source/'.length);
     const srcRoot = this.chrootService.source();
     if (!srcRoot) {
-      vscode.window.showErrorMessage('Cannot find source directory');
+      void vscode.window.showErrorMessage('Cannot find source directory');
       return;
     }
     const fileName = srcRoot.realpath(relFileName);

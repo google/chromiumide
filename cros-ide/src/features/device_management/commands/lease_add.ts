@@ -114,7 +114,7 @@ export async function addLease(context: CommandContext): Promise<void> {
       'Open Documentation'
     );
     if (choice) {
-      vscode.env.openExternal(
+      void vscode.env.openExternal(
         vscode.Uri.parse('http://goto.google.com/chromeos-lab-duts-ssh')
       );
     }

@@ -6,7 +6,9 @@ import * as vscode from 'vscode';
 
 export function activate(_context: vscode.ExtensionContext) {
   vscode.commands.registerCommand('cros-ide.fileIdeBug', () => {
-    vscode.env.openExternal(vscode.Uri.parse('http://go/cros-ide-new-bug'));
+    void vscode.env.openExternal(
+      vscode.Uri.parse('http://go/cros-ide-new-bug')
+    );
   });
 
   const feedbackStatusBarItem = vscode.window.createStatusBarItem(

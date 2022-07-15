@@ -69,7 +69,7 @@ export class Coverage {
   private async showReport(pkg: Package) {
     const index = await this.findCoverageFile(pkg, 'index.html');
     if (!index) {
-      vscode.window.showInformationMessage('Report not found');
+      void vscode.window.showInformationMessage('Report not found');
       return;
     }
     // TODO(ttylenda): This will not work on code-server running over SSH tunnel.

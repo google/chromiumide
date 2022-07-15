@@ -111,7 +111,7 @@ export class ChrootService {
     // (The first folder needs to be non-CrOS, because when it changes,
     // then the extensions restart.)
     if (currentChroot && currentChroot !== selected) {
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         `Chroot change ${currentChroot} → ${selected} will be ignored. ` +
           'CrOS IDE requires reloading the window to change the chroot.'
       );

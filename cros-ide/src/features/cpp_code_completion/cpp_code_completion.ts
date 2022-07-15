@@ -317,7 +317,7 @@ function uiItemsForError(
         button: {
           name: 'Open document',
           action: () => {
-            vscode.env.openExternal(
+            void vscode.env.openExternal(
               vscode.Uri.parse(
                 'https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md#build-the-packages-for-your-board'
               )
@@ -333,7 +333,7 @@ function uiItemsForError(
         button: {
           name: 'File a bug',
           action: () => {
-            vscode.env.openExternal(
+            void vscode.env.openExternal(
               vscode.Uri.parse('http://go/cros-ide-new-bug')
             );
           },
