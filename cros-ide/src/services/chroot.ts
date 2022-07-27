@@ -57,7 +57,11 @@ export class ChrootService {
 
   private setPaths(chroot?: commonUtil.Chroot) {
     // Context for the custom `when` clause in boards and packages view.
-    vscode.commands.executeCommand('setContext', 'cros-ide.chrootPath', chroot);
+    void vscode.commands.executeCommand(
+      'setContext',
+      'cros-ide.chrootPath',
+      chroot
+    );
     this.chrootFs = chroot ? new WrapFs(chroot) : undefined;
     this.sourceFs = chroot
       ? new WrapFs(commonUtil.sourceDir(chroot))
@@ -94,7 +98,7 @@ export class ChrootService {
 
     if (candidates.length > 1) {
       // Do not await to avoid blocking activate().
-      vscode.window.showErrorMessage(
+      void vscode.window.showErrorMessage(
         'CrOS IDE does not support multiple chroots, ' +
           `but found: [${candidates.join(', ')}]. Selecting ${selected}. ` +
           'Open ChromeOS sources from at most one chroot per workspace to fix this problem.'
