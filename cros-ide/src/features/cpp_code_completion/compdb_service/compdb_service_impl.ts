@@ -19,12 +19,22 @@ export class CompdbServiceImpl implements CompdbService {
     private readonly chrootService: ChrootService
   ) {}
 
+  async generate(board: string, packageInfo: PackageInfo) {
+    await this.generateInner(board, packageInfo, 'compdb_only');
+    // TODO(oka): Check if necessary files are all generated and if not run generateInner
+    // again with compilation_database flag.
+  }
+
   /**
    * Generates compilation database.
    *
    * @throws CompdbError on failure
    */
-  async generate(board: string, {sourceDir, atom}: PackageInfo) {
+  async generateInner(
+    board: string,
+    {sourceDir, atom}: PackageInfo,
+    useFlag: string
+  ) {
     const sourceFs = this.chrootService.source();
     const chrootFs = this.chrootService.chroot();
     if (!sourceFs || !chrootFs) {
@@ -39,7 +49,8 @@ export class CompdbServiceImpl implements CompdbService {
       atom,
       this.output,
       chrootFs,
-      this.chrootService
+      this.chrootService,
+      useFlag
     );
     const artifact = await ebuild.generate();
     if (artifact === undefined) {

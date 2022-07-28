@@ -19,7 +19,8 @@ export class Ebuild {
     private readonly atom: Atom,
     private readonly output: vscode.OutputChannel,
     private readonly chrootFs: WrapFs<commonUtil.Chroot>,
-    private readonly chrootService: ChrootService
+    private readonly chrootService: ChrootService,
+    private readonly useFlag = 'compdb_only'
   ) {}
 
   /**
@@ -112,7 +113,7 @@ export class Ebuild {
     const res = await this.chrootService.exec(
       'env',
       [
-        'USE=compdb_only',
+        'USE=' + this.useFlag,
         this.ebuildExecutable(),
         this.ebuild9999(),
         'clean',
