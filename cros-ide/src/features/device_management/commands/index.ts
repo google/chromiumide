@@ -8,6 +8,7 @@ import * as crosfleet from '../crosfleet';
 import * as repository from '../device_repository';
 import * as provider from '../device_tree_data_provider';
 import * as vnc from '../vnc_session';
+import * as ssh from '../ssh_session';
 import {CommandContext} from './common';
 import {connectToDeviceForShell} from './connect_ssh';
 import {connectToDeviceForScreen} from './connect_vnc';
@@ -18,6 +19,7 @@ import {deleteDevice} from './device_delete';
 import {flashPrebuiltImage} from './flash_prebuilt_image';
 import {addLease} from './lease_add';
 import {refreshLeases} from './lease_refresh';
+import {runTastTests} from './run_tast_tests';
 
 /**
  * Registers VSCode commands for device management features.
@@ -29,7 +31,8 @@ export function registerCommands(
   deviceRepository: repository.DeviceRepository,
   crosfleetRunner: crosfleet.CrosfleetRunner
 ): vscode.Disposable {
-  const sessions = new Map<string, vnc.VncSession>();
+  const vncSessions = new Map<string, vnc.VncSession>();
+  const sshSessions = new Map<string, ssh.SshSession>();
 
   const context: CommandContext = {
     extensionContext,
@@ -37,7 +40,8 @@ export function registerCommands(
     output,
     deviceRepository,
     crosfleetRunner,
-    sessions,
+    vncSessions,
+    sshSessions,
   };
 
   return vscode.Disposable.from(
@@ -74,6 +78,10 @@ export function registerCommands(
     vscode.commands.registerCommand(
       'cros-ide.deviceManagement.copyHostname',
       (item: provider.DeviceItem) => copyHostname(context, item)
+    ),
+    vscode.commands.registerCommand(
+      'cros-ide.deviceManagement.runTastTests',
+      () => runTastTests(context)
     ),
     vscode.commands.registerCommand(
       'cros-ide.deviceManagement.openLogs',

@@ -8,6 +8,7 @@ import * as crosfleet from '../crosfleet';
 import * as repository from '../device_repository';
 import * as provider from '../device_tree_data_provider';
 import * as sshConfig from '../ssh_config';
+import * as ssh from '../ssh_session';
 import * as vnc from '../vnc_session';
 
 /**
@@ -19,7 +20,8 @@ export interface CommandContext {
   readonly output: vscode.OutputChannel;
   readonly deviceRepository: repository.DeviceRepository;
   readonly crosfleetRunner: crosfleet.CrosfleetRunner;
-  readonly sessions: Map<string, vnc.VncSession>;
+  readonly vncSessions: Map<string, vnc.VncSession>;
+  readonly sshSessions: Map<string, ssh.SshSession>;
 }
 
 export async function promptNewHostname(
@@ -58,7 +60,6 @@ export async function promptKnownHostnameIfNeeded(
     const devices = await deviceRepository.getDevices();
     return devices.map(device => device.hostname);
   })();
-
   return await vscode.window.showQuickPick(hostnamesPromise, {
     title,
   });

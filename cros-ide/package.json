@@ -30,6 +30,7 @@
     "onCommand:cros-ide.deviceManagement.refreshLeases",
     "onCommand:cros-ide.deviceManagement.addLease",
     "onCommand:cros-ide.deviceManagement.copyHostname",
+    "onCommand:cros-ide.deviceManagement.runTastTests",
     "onCommand:cros-ide.refreshBoardsPackages",
     "onCommand:cros-ide.codeSearchOpenCurrentFile",
     "onCommand:cros-ide.codeSearchCopyCurrentFile",
@@ -104,6 +105,13 @@
         "command": "cros-ide.deviceManagement.copyHostname",
         "category": "CrOS",
         "title": "Copy Hostname"
+      },
+      {
+        "command": "cros-ide.deviceManagement.runTastTests",
+        "category": "CrOS",
+        "title": "Run tast tests",
+        "icon": "$(play)",
+        "enablement": "config.cros-ide.underDevelopment.runTastTests"
       },
       {
         "command": "cros-ide.refreshBoardsPackages",
@@ -213,6 +221,13 @@
         },
         {
           "command": "cros-ide.codeSearchSearchForSelection"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "cros-ide.deviceManagement.runTastTests",
+          "when": "config.cros-ide.underDevelopment.runTastTests && resourcePath =~ /\/src\/platform\/tast-tests[^\/]*\/src\/chromiumos\/tast\/(local|remote)\/bundles\/[^\/]+\/[^\/]+\/[^\/]+.go$/",
+          "group": "navigation"
         }
       ],
       "view/title": [
@@ -376,6 +391,11 @@
         "cros-ide.underDevelopment.gerrit": {
           "type": "boolean",
           "description": "Enable Gerrit support (incomplete)",
+          "default": false
+        },
+        "cros-ide.underDevelopment.runTastTests": {
+          "type": "boolean",
+          "description": "Enable running tast tests (incomplete)",
           "default": false
         },
         "cros-ide.deviceManagement.devices": {

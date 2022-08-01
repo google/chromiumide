@@ -27,7 +27,7 @@ export async function connectToDeviceForScreen(
   }
 
   // If there's an existing session, just reveal its panel.
-  const existingSession = context.sessions.get(hostname);
+  const existingSession = context.vncSessions.get(hostname);
   if (existingSession) {
     existingSession.revealPanel();
     return;
@@ -40,9 +40,9 @@ export async function connectToDeviceForScreen(
     context.output
   );
   newSession.onDidDispose(() => {
-    context.sessions.delete(hostname);
+    context.vncSessions.delete(hostname);
   });
-  context.sessions.set(hostname, newSession);
+  context.vncSessions.set(hostname, newSession);
 
   await newSession.start();
 }

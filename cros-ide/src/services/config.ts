@@ -70,6 +70,7 @@ export const underDevelopment = {
   ),
   testCoverage: new ConfigValue<boolean>('underDevelopment.testCoverage'),
   gerrit: new ConfigValue<boolean>('underDevelopment.gerrit'),
+  runTastTests: new ConfigValue<boolean>('underDevelopment.runTastTests'),
 };
 
 export const deviceManagement = {

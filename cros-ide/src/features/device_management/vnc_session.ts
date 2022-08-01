@@ -8,6 +8,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as ws from 'ws';
 import * as commonUtil from '../../common/common_util';
+import * as netUtil from '../../common/net_util';
 import * as sshUtil from './ssh_util';
 import * as webviewShared from './webview_shared';
 
@@ -67,7 +68,7 @@ export class VncSession {
     output: vscode.OutputChannel,
     proxyProtocol?: ProxyProtocol
   ): Promise<VncSession> {
-    const forwardPort = await findUnusedPort();
+    const forwardPort = await netUtil.findUnusedPort();
     return new VncSession(
       hostname,
       context,
@@ -491,18 +492,6 @@ function replaceAll(s: string, patterns: ReplacePattern[]): string {
     s = s.replace(pattern.from, pattern.to);
   }
   return s;
-}
-
-async function findUnusedPort(): Promise<number> {
-  return new Promise<number>(resolve => {
-    const server = net.createServer();
-    server.listen(0, 'localhost', () => {
-      const port = (server.address() as net.AddressInfo).port;
-      server.close(() => {
-        resolve(port);
-      });
-    });
-  });
 }
 
 // Type-safe wrapper of vscode.Webview.postMessage.
