@@ -26,7 +26,7 @@ export async function run(chrootService: chroot.ChrootService) {
     .version;
 
   if (installed.compare(latest) < 0) {
-    showInstallPrompt(installed, latest, gsutil);
+    await showInstallPrompt(installed, latest, gsutil);
   }
 }
 
