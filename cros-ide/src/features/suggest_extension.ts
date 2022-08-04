@@ -30,6 +30,7 @@ export function activate(context: vscode.ExtensionContext): void {
         'Go extension provides rich language support for the Go programming language. ' +
         'Would you like to install it?',
       availableForCodeServer: true,
+      suggestOnlyInCodeServer: true,
     },
   ];
 
@@ -47,6 +48,8 @@ interface Recommendation {
   // Whether the recommended extension is available for both the regular VS Code and
   // code-server. It is assumed that the former is a superset of the latter.
   availableForCodeServer: boolean;
+
+  suggestOnlyInCodeServer?: boolean;
 }
 /**
  * Registers a recommendation.
@@ -89,6 +92,10 @@ class Recommender implements vscode.Disposable {
 
     // Do not suggest an extension if it is unavailable for the current environment.
     if (this.isCodeServer && !this.recommendation.availableForCodeServer) {
+      return;
+    }
+
+    if (this.recommendation.suggestOnlyInCodeServer && !this.isCodeServer) {
       return;
     }
 
