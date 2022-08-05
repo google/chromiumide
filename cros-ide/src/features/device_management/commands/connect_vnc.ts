@@ -20,8 +20,7 @@ export async function connectToDeviceForScreen(
   const hostname = await promptKnownHostnameIfNeeded(
     'Connect to Device',
     item,
-    context.ownedDeviceRepository,
-    context.leasedDeviceRepository
+    context.deviceRepository
   );
   if (!hostname) {
     return;

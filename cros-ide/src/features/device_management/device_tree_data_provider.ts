@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import * as dateFns from 'date-fns';
-import * as deviceRepository from './device_repository';
+import * as repository from './device_repository';
 
 export enum ItemKind {
   DEVICE,
@@ -18,7 +18,7 @@ export class DeviceItem extends vscode.TreeItem {
   readonly hostname: string;
   readonly iconPath = new vscode.ThemeIcon('device-desktop');
 
-  constructor(device: deviceRepository.Device) {
+  constructor(device: repository.Device) {
     super(device.hostname, vscode.TreeItemCollapsibleState.None);
     this.hostname = device.hostname;
   }
@@ -27,7 +27,7 @@ export class DeviceItem extends vscode.TreeItem {
 export class OwnedDeviceItem extends DeviceItem {
   readonly contextValue = 'device-owned';
 
-  constructor(public readonly device: deviceRepository.OwnedDevice) {
+  constructor(public readonly device: repository.OwnedDevice) {
     super(device);
   }
 }
@@ -35,7 +35,7 @@ export class OwnedDeviceItem extends DeviceItem {
 export class LeasedDeviceItem extends DeviceItem {
   readonly contextValue = 'device-leased';
 
-  constructor(public readonly device: deviceRepository.LeasedDevice) {
+  constructor(public readonly device: repository.LeasedDevice) {
     super(device);
     this.description = `${device.board ?? '???'}/${device.model ?? '???'}`;
     if (device.deadline) {
@@ -47,15 +47,15 @@ export class LeasedDeviceItem extends DeviceItem {
 export class CategoryItem extends vscode.TreeItem {
   readonly kind = ItemKind.CATEGORY;
 
-  constructor(public readonly category: deviceRepository.DeviceCategory) {
+  constructor(public readonly category: repository.DeviceCategory) {
     super(
-      category === deviceRepository.DeviceCategory.OWNED
+      category === repository.DeviceCategory.OWNED
         ? 'My Devices'
         : 'Leased Devices',
       vscode.TreeItemCollapsibleState.Expanded
     );
     this.contextValue =
-      category === deviceRepository.DeviceCategory.OWNED
+      category === repository.DeviceCategory.OWNED
         ? 'category-owned'
         : 'category-leased';
   }
@@ -103,16 +103,10 @@ export class DeviceTreeDataProvider
     this.onDidChangeTreeDataEmitter,
   ];
 
-  constructor(
-    private readonly ownedDeviceRepository: deviceRepository.OwnedDeviceRepository,
-    private readonly leasedDeviceRepository: deviceRepository.LeasedDeviceRepository
-  ) {
+  constructor(private readonly deviceRepository: repository.DeviceRepository) {
     // Subscribe for device repository updates.
     this.subscriptions.push(
-      ownedDeviceRepository.onDidChange(() => {
-        this.onDidChangeTreeDataEmitter.fire();
-      }),
-      leasedDeviceRepository.onDidChange(() => {
+      deviceRepository.onDidChange(() => {
         this.onDidChangeTreeDataEmitter.fire();
       })
     );
@@ -125,8 +119,8 @@ export class DeviceTreeDataProvider
   async getChildren(parent?: Item): Promise<Item[]> {
     if (parent === undefined) {
       const items = [
-        new CategoryItem(deviceRepository.DeviceCategory.OWNED),
-        new CategoryItem(deviceRepository.DeviceCategory.LEASED),
+        new CategoryItem(repository.DeviceCategory.OWNED),
+        new CategoryItem(repository.DeviceCategory.LEASED),
       ];
       return items;
     }
@@ -135,19 +129,19 @@ export class DeviceTreeDataProvider
       const items: Item[] = [];
       let needLogin = false;
       switch (parent.category) {
-        case deviceRepository.DeviceCategory.OWNED:
+        case repository.DeviceCategory.OWNED:
           items.push(
-            ...this.ownedDeviceRepository
+            ...this.deviceRepository.owned
               .getDevices()
               .map(d => new OwnedDeviceItem(d))
           );
           break;
-        case deviceRepository.DeviceCategory.LEASED:
-          if (!(await this.leasedDeviceRepository.checkLogin())) {
+        case repository.DeviceCategory.LEASED:
+          if (!(await this.deviceRepository.leased.checkLogin())) {
             needLogin = true;
           } else {
             items.push(
-              ...(await this.leasedDeviceRepository.getDevices()).map(
+              ...(await this.deviceRepository.leased.getDevices()).map(
                 d => new LeasedDeviceItem(d)
               )
             );
@@ -160,7 +154,7 @@ export class DeviceTreeDataProvider
       } else if (items.length === 0) {
         items.push(
           new PlaceholderItem(
-            parent.category === deviceRepository.DeviceCategory.OWNED
+            parent.category === repository.DeviceCategory.OWNED
               ? 'No device configured yet'
               : 'No leased device'
           )

@@ -12,5 +12,5 @@ export async function refreshLeases(context: CommandContext): Promise<void> {
     action: 'refresh leases',
   });
 
-  context.leasedDeviceRepository.refresh();
+  context.deviceRepository.leased.refresh();
 }

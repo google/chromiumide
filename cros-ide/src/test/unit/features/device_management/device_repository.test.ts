@@ -232,3 +232,133 @@ describe('Leased device repository', () => {
     ]);
   });
 });
+
+describe('Device repository', () => {
+  const clock = jasmine.clock();
+  beforeEach(() => {
+    clock.install();
+    clock.mockDate(new Date('2000-01-01T00:00:00Z'));
+  });
+  afterEach(() => {
+    clock.uninstall();
+  });
+
+  const {fakeExec} = testing.installFakeExec();
+  const cipdRepository = fakes.installFakeCipd(fakeExec);
+  const fakeCrosfleet = fakes.installFakeCrosfleet(fakeExec, cipdRepository);
+
+  const state = testing.cleanState(() => {
+    const deviceRepository = new repository.DeviceRepository(
+      new crosfleet.CrosfleetRunner(
+        cipdRepository,
+        new fakes.VoidOutputChannel()
+      )
+    );
+    return {
+      deviceRepository,
+    };
+  });
+
+  afterEach(() => {
+    state.deviceRepository.dispose();
+  });
+
+  it('returns list of devices', async () => {
+    // getDevices initially returns an empty list.
+    expect(await state.deviceRepository.getDevices()).toEqual([]);
+
+    // Add two owned devices.
+    await state.deviceRepository.owned.addDevice('localhost:1111');
+    await state.deviceRepository.owned.addDevice('localhost:2222');
+
+    // Set fake leases.
+    fakeCrosfleet.setLeases([
+      {
+        hostname: 'cros333',
+        board: 'board3',
+        model: 'model3',
+        deadline: new Date('2000-01-01T00:03:00Z'),
+      },
+      {
+        hostname: 'cros444',
+        board: 'board4',
+        model: 'model4',
+        deadline: new Date('2000-01-01T00:04:00Z'),
+      },
+    ]);
+
+    // getDevices returns owned devices, but not leased devices because it is
+    // cached.
+    expect(await state.deviceRepository.getDevices()).toEqual([
+      {
+        category: repository.DeviceCategory.OWNED,
+        hostname: 'localhost:1111',
+      },
+      {
+        category: repository.DeviceCategory.OWNED,
+        hostname: 'localhost:2222',
+      },
+    ]);
+
+    // Request to clear the cache.
+    state.deviceRepository.leased.refresh();
+
+    // getDevices returns all devices.
+    expect(await state.deviceRepository.getDevices()).toEqual([
+      {
+        category: repository.DeviceCategory.OWNED,
+        hostname: 'localhost:1111',
+      },
+      {
+        category: repository.DeviceCategory.OWNED,
+        hostname: 'localhost:2222',
+      },
+      {
+        category: repository.DeviceCategory.LEASED,
+        hostname: 'cros333',
+        board: 'board3',
+        model: 'model3',
+        deadline: new Date('2000-01-01T00:03:00Z'),
+      },
+      {
+        category: repository.DeviceCategory.LEASED,
+        hostname: 'cros444',
+        board: 'board4',
+        model: 'model4',
+        deadline: new Date('2000-01-01T00:04:00Z'),
+      },
+    ]);
+  });
+
+  it('notifies on owned device updates', async () => {
+    // Subscribe to changes before updating devices.
+    const didChange = new Promise<void>(resolve => {
+      const subscription = state.deviceRepository.onDidChange(() => {
+        subscription.dispose();
+        resolve();
+      });
+    });
+
+    // Add a device.
+    await state.deviceRepository.owned.addDevice('localhost:1111');
+
+    // Ensure that onDidChange event fired.
+    await didChange;
+  });
+
+  it('notifies on leased device refresh requests', async () => {
+    // Subscribe to changes before updating devices.
+    const didChange = new Promise<void>(resolve => {
+      const subscription = state.deviceRepository.onDidChange(() => {
+        subscription.dispose();
+        resolve();
+      });
+    });
+
+    // Request refresh.
+    state.deviceRepository.leased.refresh();
+
+    // Ensure that onDidChange event fired.
+    await didChange;
+  });
+});

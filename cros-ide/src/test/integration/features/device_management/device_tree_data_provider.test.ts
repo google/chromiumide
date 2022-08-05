@@ -51,28 +51,24 @@ describe('Device tree data provider', () => {
   const fakeCrosfleet = fakes.installFakeCrosfleet(fakeExec, cipdRepository);
 
   const state = testing.cleanState(() => {
-    const ownedDeviceRepository = new repository.OwnedDeviceRepository();
-    const leasedDeviceRepository = new repository.LeasedDeviceRepository(
+    const deviceRepository = new repository.DeviceRepository(
       new crosfleet.CrosfleetRunner(
         cipdRepository,
         new fakes.VoidOutputChannel()
       )
     );
     const deviceTreeDataProvider = new provider.DeviceTreeDataProvider(
-      ownedDeviceRepository,
-      leasedDeviceRepository
+      deviceRepository
     );
     return {
-      ownedDeviceRepository,
-      leasedDeviceRepository,
+      deviceRepository,
       deviceTreeDataProvider,
     };
   });
 
   afterEach(() => {
     state.deviceTreeDataProvider.dispose();
-    state.ownedDeviceRepository.dispose();
-    state.leasedDeviceRepository.dispose();
+    state.deviceRepository.dispose();
   });
 
   it('builds a correct tree', async () => {

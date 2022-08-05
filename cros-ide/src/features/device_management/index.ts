@@ -28,26 +28,20 @@ export async function activate(
     'CrOS IDE: Device Management'
   );
   const crosfleetRunner = new crosfleet.CrosfleetRunner(cipdRepository, output);
-  const ownedDeviceRepository = new repository.OwnedDeviceRepository();
-  const leasedDeviceRepository = new repository.LeasedDeviceRepository(
-    crosfleetRunner
-  );
+  const deviceRepository = new repository.DeviceRepository(crosfleetRunner);
   const commandsDisposable = commands.registerCommands(
     context,
     chrootService,
     output,
-    ownedDeviceRepository,
-    leasedDeviceRepository,
+    deviceRepository,
     crosfleetRunner
   );
   const deviceTreeDataProvider = new provider.DeviceTreeDataProvider(
-    ownedDeviceRepository,
-    leasedDeviceRepository
+    deviceRepository
   );
 
   context.subscriptions.push(
-    ownedDeviceRepository,
-    leasedDeviceRepository,
+    deviceRepository,
     commandsDisposable,
     deviceTreeDataProvider
   );

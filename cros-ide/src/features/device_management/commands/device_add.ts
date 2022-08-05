@@ -14,11 +14,11 @@ export async function addDevice(context: CommandContext): Promise<void> {
 
   const hostname = await promptNewHostname(
     'Add New Device',
-    context.ownedDeviceRepository
+    context.deviceRepository.owned
   );
   if (!hostname) {
     return;
   }
 
-  await context.ownedDeviceRepository.addDevice(hostname);
+  await context.deviceRepository.owned.addDevice(hostname);
 }

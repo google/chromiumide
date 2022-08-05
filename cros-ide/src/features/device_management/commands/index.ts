@@ -26,8 +26,7 @@ export function registerCommands(
   extensionContext: vscode.ExtensionContext,
   chrootService: chroot.ChrootService,
   output: vscode.OutputChannel,
-  ownedDeviceRepository: repository.OwnedDeviceRepository,
-  leasedDeviceRepository: repository.LeasedDeviceRepository,
+  deviceRepository: repository.DeviceRepository,
   crosfleetRunner: crosfleet.CrosfleetRunner
 ): vscode.Disposable {
   const sessions = new Map<string, vnc.VncSession>();
@@ -36,8 +35,7 @@ export function registerCommands(
     extensionContext,
     chrootService,
     output,
-    ownedDeviceRepository,
-    leasedDeviceRepository,
+    deviceRepository,
     crosfleetRunner,
     sessions,
   };

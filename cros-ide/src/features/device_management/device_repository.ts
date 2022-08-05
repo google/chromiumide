@@ -195,3 +195,45 @@ export class LeasedDeviceRepository implements vscode.Disposable {
     });
   }
 }
+
+/**
+ * Provides a merged view of OwnedDeviceRepository and LeasedDeviceRepository.
+ * It is still possible to access child device repositories via read-only fields.
+ */
+export class DeviceRepository {
+  private readonly onDidChangeEmitter = new vscode.EventEmitter<void>();
+  readonly onDidChange = this.onDidChangeEmitter.event;
+
+  private readonly subscriptions: vscode.Disposable[] = [
+    this.onDidChangeEmitter,
+  ];
+
+  readonly owned: OwnedDeviceRepository;
+  readonly leased: LeasedDeviceRepository;
+
+  constructor(crosfleetRunner: crosfleet.CrosfleetRunner) {
+    this.owned = new OwnedDeviceRepository();
+    this.leased = new LeasedDeviceRepository(crosfleetRunner);
+
+    this.subscriptions.push(this.owned, this.leased);
+
+    this.subscriptions.push(
+      this.owned.onDidChange(() => {
+        this.onDidChangeEmitter.fire();
+      }),
+      this.leased.onDidChange(() => {
+        this.onDidChangeEmitter.fire();
+      })
+    );
+  }
+
+  dispose(): void {
+    vscode.Disposable.from(...this.subscriptions).dispose();
+  }
+
+  async getDevices(): Promise<(OwnedDevice | LeasedDevice)[]> {
+    const ownedDevices = this.owned.getDevices();
+    const leasedDevices = await this.leased.getDevices();
+    return [...ownedDevices, ...leasedDevices];
+  }
+}

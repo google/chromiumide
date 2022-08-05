@@ -17,8 +17,7 @@ export interface CommandContext {
   readonly extensionContext: vscode.ExtensionContext;
   readonly chrootService: chroot.ChrootService;
   readonly output: vscode.OutputChannel;
-  readonly ownedDeviceRepository: repository.OwnedDeviceRepository;
-  readonly leasedDeviceRepository: repository.LeasedDeviceRepository;
+  readonly deviceRepository: repository.DeviceRepository;
   readonly crosfleetRunner: crosfleet.CrosfleetRunner;
   readonly sessions: Map<string, vnc.VncSession>;
 }
@@ -46,21 +45,18 @@ export async function promptNewHostname(
 export async function promptKnownHostnameIfNeeded(
   title: string,
   item: provider.DeviceItem | undefined,
-  ownedDeviceRepository: repository.OwnedDeviceRepository,
-  leasedDeviceRepository: repository.LeasedDeviceRepository
+  deviceRepository:
+    | repository.DeviceRepository
+    | repository.OwnedDeviceRepository
+    | repository.LeasedDeviceRepository
 ): Promise<string | undefined> {
   if (item) {
     return item.hostname;
   }
 
   const hostnamesPromise = (async () => {
-    const ownedHostnames = ownedDeviceRepository
-      .getDevices()
-      .map(device => device.hostname);
-    const leasedHostnames = (await leasedDeviceRepository.getDevices()).map(
-      device => device.hostname
-    );
-    return [...ownedHostnames, ...leasedHostnames];
+    const devices = await deviceRepository.getDevices();
+    return devices.map(device => device.hostname);
   })();
 
   return await vscode.window.showQuickPick(hostnamesPromise, {
