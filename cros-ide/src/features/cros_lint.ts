@@ -174,11 +174,16 @@ export async function goLintEnv(
   const goBin = path.join(chroot, '/usr/bin');
   // Add goBin to the PATH so that cros lint can lint go files
   // outside the chroot.
-  const newPathVar = `${env.PATH}:${goBin}`;
-  const toolsGopathConfig = config.goExtension.toolsGopath.get();
-  return toolsGopathConfig === null
-    ? {PATH: newPathVar}
-    : {PATH: `${toolsGopathConfig}:${newPathVar}`};
+  let newPathVar = `${env.PATH}:${goBin}`;
+  // Prepend go.toolsGopath if available
+  if (vscode.extensions.getExtension('golang.Go')) {
+    const toolsGopathConfig = config.goExtension.toolsGopath.get();
+    if (toolsGopathConfig) {
+      newPathVar = `${toolsGopathConfig}:${newPathVar}`;
+    }
+  }
+
+  return {PATH: newPathVar};
 }
 
 // Wrapper to handle any errors thrown by updateDiagnostics.
