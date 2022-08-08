@@ -61,9 +61,8 @@ module.exports = {
       files: ['*.ts'],
       parser: '@typescript-eslint/parser',
       rules: {
-        // TODO(b/239106925): Make these rules error.
-        '@typescript-eslint/no-floating-promises': 'warn',
-        '@typescript-eslint/no-misused-promises': 'warn',
+        '@typescript-eslint/no-floating-promises': 'error',
+        '@typescript-eslint/no-misused-promises': 'error',
       },
       overrides: [
         {
