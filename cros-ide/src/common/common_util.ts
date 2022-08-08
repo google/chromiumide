@@ -93,7 +93,7 @@ export class JobManager<T> {
   offer(job: () => Promise<T>): Promise<T | null> {
     return new Promise((resolve, reject) => {
       this.tasks.push(new Task(job, resolve, reject));
-      this.handle();
+      void this.handle();
     });
   }
 
