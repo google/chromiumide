@@ -73,26 +73,33 @@ export async function runTastTests(context: CommandContext): Promise<void> {
   }
 
   // Get list of available tests.
+  const testName = `${category}.${testFuncName[1]}`;
   const target = `localhost:${defaultForwardPort}`;
-  const res = await context.chrootService.exec('tast', ['list', target], {
-    sudoReason: 'to get list of available tests.',
-  });
-  if (res instanceof Error) {
-    context.output.appendLine(res.message);
+  let testList = undefined;
+  try {
+    testList = await getAvailableTests(context, target, testName);
+  } catch (err: unknown) {
+    const choice = await vscode.window.showErrorMessage(
+      'Error finding available tests.',
+      'Open Logs'
+    );
+    if (choice) {
+      context.output.show();
+    }
     return;
   }
-  const testName = `${category}.${testFuncName[1]}`;
-  // Tast tests can specify parameterized tests. Check for these as options.
-  const testNameRE = new RegExp(`^${testName}(?:\\.\\w+)*$`, 'gm');
-  const matches = [...res.stdout.matchAll(testNameRE)];
-  const testOptions = matches.map(match => match[0]);
-  if (testOptions.length === 0) {
+  if (testList === undefined) {
+    void vscode.window.showWarningMessage('Cancelled getting available tests.');
+    return;
+  }
+  if (testList.length === 0) {
     void vscode.window.showInformationMessage(
-      `This is not a test avaialble for ${hostname}`
+      `This is not a test available for ${hostname}`
     );
     return;
   }
-  const choice = await vscode.window.showQuickPick(testOptions, {
+  // Show available test options.
+  const choice = await vscode.window.showQuickPick(testList, {
     title: 'Test Options',
     canPickMany: true,
   });
@@ -117,4 +124,44 @@ function terminalForHost(hostname: string): vscode.Terminal | undefined {
     }
   }
   return undefined;
+}
+
+/**
+ * Gets available tests for a given test name.
+ *
+ * @param context The current command context.
+ * @param target The target to run the `tast list` command on.
+ * @param testName The name of the test to search for in the `tast list` results.
+ * @returns It returns the list of possible tests to run. Only returns undefined
+ * if the operation is cancelled.
+ */
+async function getAvailableTests(
+  context: CommandContext,
+  target: string,
+  testName: string
+): Promise<string[] | undefined> {
+  // Show a progress notification as this is a long operation.
+  return await vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      cancellable: true,
+      title: 'Getting available tests for host...',
+    },
+    async (_progress, token) => {
+      const res = await context.chrootService.exec('tast', ['list', target], {
+        sudoReason: 'to get list of available tests.',
+      });
+      if (token.isCancellationRequested) {
+        return undefined;
+      }
+      if (res instanceof Error) {
+        context.output.append(res.message);
+        throw res;
+      }
+      // Tast tests can specify parameterized tests. Check for these as options.
+      const testNameRE = new RegExp(`^${testName}(?:\\.\\w+)*$`, 'gm');
+      const matches = [...res.stdout.matchAll(testNameRE)];
+      return matches.map(match => match[0]);
+    }
+  );
 }
