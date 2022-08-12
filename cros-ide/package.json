@@ -170,6 +170,12 @@
         "category": "CrOS",
         "title": "Show Coverage Report",
         "enablement": "config.cros-ide.underDevelopment.testCoverage"
+      },
+      {
+        "command": "cros-ide.gerrit",
+        "category": "CrOS",
+        "title": "Gerrit Demo",
+        "enablement": "config.cros-ide.underDevelopment.gerrit"
       }
     ],
     "viewsContainers": {
