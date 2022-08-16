@@ -28,7 +28,7 @@ async function main() {
   }
 }
 
-type CheckResult = {
+export type CheckResult = {
   notFoundHeaders: string[];
 };
 
