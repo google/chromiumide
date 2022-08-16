@@ -26,10 +26,10 @@ export class ConsoleOutputChannel implements vscode.OutputChannel {
   constructor(public readonly name = 'console') {}
 
   append(value: string): void {
-    console.log(value);
+    process.stdout.write(value);
   }
   appendLine(value: string): void {
-    console.log(`${value}\n`);
+    process.stdout.write(`${value}\n`);
   }
 
   replace(): void {}
