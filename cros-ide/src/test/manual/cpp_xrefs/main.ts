@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import * as commander from 'commander';
+import * as clangd from './clangd';
 import * as compdb from './compdb';
 import {installFakes} from './fakes';
 
@@ -14,6 +15,7 @@ async function main() {
     .description('CLI to test C++ xrefs')
     .usage('npm run manual-test:cpp_xrefs -- <command>')
     .version('0.0.1');
+  clangd.installCommand(program);
   compdb.installCommand(program);
   await program.parseAsync();
 }
