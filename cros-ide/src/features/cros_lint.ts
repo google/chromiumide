@@ -46,7 +46,7 @@ export function activate(
 /** Describes how to run a linter and parse its output. */
 interface LintConfig {
   /**
-   * Returns the executable name to lint the realpath. It returns undefined in case linter is not found.
+   * Returns the executable name to lint the realpath. It returns undefined in case linter should not be applied.
    */
   executable(realpath: string): Promise<string | undefined>;
   arguments(path: string): string[];
@@ -65,6 +65,21 @@ interface LintConfig {
 const GNLINT_PATH = 'src/platform2/common-mk/gnlint.py';
 const TAST_RE = /^.*\/platform\/(tast-tests-private|tast-tests|tast).*/;
 const CROS_PATH = 'chromite/bin/cros';
+const CHECK_LIBCHROME_PATH =
+  'src/platform/libchrome/libchrome_tools/developer-tools/presubmit/check-libchrome.py';
+// List of directories whose files should be run against check-libchrome.py.
+const CHECK_LIBCHROME_SRC_DIRS = [
+  'src/aosp/packages/modules/Bluetooth/',
+  'src/aosp/frameworks/ml/',
+  'src/aosp/system/update_engine/',
+  'src/partner_private/brother_mlaser/',
+  'src/partner_private/fibocom-firmware/',
+  'src/partner_private/huddly/',
+  'src/platform2/',
+  'src/platform/',
+  'src/third_party/atrusctl/',
+  'src/third_party/virtual_usb_printer/',
+];
 
 async function crosExeFor(realpath: string): Promise<string | undefined> {
   const chroot = commonUtil.findChroot(realpath);
@@ -76,61 +91,93 @@ async function crosExeFor(realpath: string): Promise<string | undefined> {
 }
 
 // Don't forget to update package.json when adding more languages.
-const lintConfigs = new Map<string, LintConfig>([
+const languageToLintConfigs = new Map<string, LintConfig[]>([
   [
     'cpp',
-    {
-      executable: realpath => crosExeFor(realpath),
-      arguments: (path: string) => ['lint', path],
-      parse: parseCrosLintCpp,
-    },
+    [
+      {
+        executable: realpath => crosExeFor(realpath),
+        arguments: (path: string) => ['lint', path],
+        parse: parseCrosLintCpp,
+      },
+      {
+        executable: async realpath => {
+          const chroot = commonUtil.findChroot(realpath);
+          if (chroot === undefined) {
+            return undefined;
+          }
+          const source = commonUtil.sourceDir(chroot);
+          const filepath = realpath.slice(source.length + 1); // To trim / of source dir
+          for (const dir of CHECK_LIBCHROME_SRC_DIRS) {
+            if (filepath.startsWith(dir)) {
+              return path.join(source, CHECK_LIBCHROME_PATH);
+            }
+          }
+          return undefined;
+        },
+        arguments: (path: string) => [path],
+        parse: parseLibchromeCheck,
+      },
+    ],
   ],
   [
     'gn',
-    {
-      executable: async realpath => {
-        const chroot = commonUtil.findChroot(realpath);
-        if (chroot === undefined) {
-          return undefined;
-        }
-        const source = commonUtil.sourceDir(chroot);
-        return path.join(source, GNLINT_PATH);
+    [
+      {
+        executable: async realpath => {
+          const chroot = commonUtil.findChroot(realpath);
+          if (chroot === undefined) {
+            return undefined;
+          }
+          const source = commonUtil.sourceDir(chroot);
+          return path.join(source, GNLINT_PATH);
+        },
+        arguments: (path: string) => [path],
+        parse: parseCrosLintGn,
+        // gnlint.py needs to be run inside ChromiumOS source tree,
+        // otherwise it complains about formatting.
+        cwd: (exePath: string) => path.dirname(exePath),
       },
-      arguments: (path: string) => [path],
-      parse: parseCrosLintGn,
-      // gnlint.py needs to be run inside ChromiumOS source tree,
-      // otherwise it complains about formatting.
-      cwd: (exePath: string) => path.dirname(exePath),
-    },
+    ],
   ],
   [
     'python',
-    {
-      executable: realpath => crosExeFor(realpath),
-      arguments: (path: string) => ['lint', path],
-      parse: parseCrosLintPython,
-    },
+    [
+      {
+        executable: realpath => crosExeFor(realpath),
+        arguments: (path: string) => ['lint', path],
+        parse: parseCrosLintPython,
+      },
+    ],
   ],
   [
     'shellscript',
-    {
-      executable: realpath => crosExeFor(realpath),
-      arguments: (path: string) => ['lint', '--output=parseable', path],
-      parse: parseCrosLintShell,
-    },
+    [
+      {
+        executable: realpath => crosExeFor(realpath),
+        arguments: (path: string) => ['lint', '--output=parseable', path],
+        parse: parseCrosLintShell,
+      },
+    ],
   ],
   [
     'go',
-    {
-      executable: realpath =>
-        !TAST_RE.test(realpath) ? crosExeFor(realpath) : tastLintExe(realpath),
-      arguments: (path: string) =>
-        TAST_RE.test(path) ? [path] : ['lint', path],
-      parse: parseCrosLintGo,
-      cwd: (exePath: string) =>
-        TAST_RE.test(exePath) ? path.dirname(path.dirname(exePath)) : undefined,
-      env: (execPath: string) => goLintEnv(execPath),
-    },
+    [
+      {
+        executable: realpath =>
+          !TAST_RE.test(realpath)
+            ? crosExeFor(realpath)
+            : tastLintExe(realpath),
+        arguments: (path: string) =>
+          TAST_RE.test(path) ? [path] : ['lint', path],
+        parse: parseCrosLintGo,
+        cwd: (exePath: string) =>
+          TAST_RE.test(exePath)
+            ? path.dirname(path.dirname(exePath))
+            : undefined,
+        env: (execPath: string) => goLintEnv(execPath),
+      },
+    ],
   ],
 ]);
 
@@ -247,8 +294,8 @@ async function updateDiagnostics(
   log: logs.LoggingBundle
 ): Promise<void> {
   if (document && document.uri.scheme === 'file') {
-    const lintConfig = lintConfigs.get(document.languageId);
-    if (!lintConfig) {
+    const lintConfigs = languageToLintConfigs.get(document.languageId);
+    if (!lintConfigs) {
       // Sent metrics just to track languages.
       metrics.send({
         category: 'background',
@@ -265,49 +312,54 @@ async function updateDiagnostics(
       return;
     }
 
-    const name = await lintConfig.executable(realpath);
-    if (!name) {
-      log.channel.append(
-        `Could not find lint executable for ${document.uri.fsPath}\n`
-      );
-      return;
-    }
-    const args = lintConfig.arguments(realpath);
-    const cwd = lintConfig.cwd?.(name);
-    const env = await lintConfig.env?.(name, realpath);
-    const res = await commonUtil.exec(name, args, {
-      logger: log.channel,
-      ignoreNonZeroExit: true,
-      logStdout: true,
-      cwd: cwd,
-      env: env,
-    });
-    if (res instanceof Error) {
-      log.channel.append(res.message);
-      statusManager.setTask(log.taskId, {
-        status: bgTaskStatus.TaskStatus.ERROR,
-        command: log.showLogCommand,
+    const diagnosticsCollection: vscode.Diagnostic[] = [];
+    for (const lintConfig of lintConfigs) {
+      const name = await lintConfig.executable(realpath);
+      if (!name) {
+        log.channel.append(
+          `Do not apply lint executable for ${document.uri.fsPath}\n`
+        );
+        continue;
+      }
+      const args = lintConfig.arguments(realpath);
+      const cwd = lintConfig.cwd?.(name);
+      const env = await lintConfig.env?.(name, realpath);
+      const res = await commonUtil.exec(name, args, {
+        logger: log.channel,
+        ignoreNonZeroExit: true,
+        logStdout: true,
+        cwd: cwd,
+        env: env,
       });
-      return;
+      if (res instanceof Error) {
+        log.channel.append(res.message);
+        statusManager.setTask(log.taskId, {
+          status: bgTaskStatus.TaskStatus.ERROR,
+          command: log.showLogCommand,
+        });
+        return;
+      }
+      const {stdout, stderr} = res;
+      const diagnostics = lintConfig.parse(stdout, stderr, document);
+      if (res.exitStatus !== 0 && diagnostics.length === 0) {
+        log.channel.append(
+          `lint command returned ${res.exitStatus}, but no diagnostics were parsed by CrOS IDE\n`
+        );
+        statusManager.setTask(log.taskId, {
+          status: bgTaskStatus.TaskStatus.ERROR,
+          command: log.showLogCommand,
+        });
+        metrics.send({
+          category: 'error',
+          group: 'lint',
+          description: 'non-zero linter exit, but no diagnostics',
+        });
+        return;
+      }
+      diagnosticsCollection.push(...diagnostics);
     }
-    const {stdout, stderr} = res;
-    const diagnostics = lintConfig.parse(stdout, stderr, document);
-    collection.set(document.uri, diagnostics);
-    if (res.exitStatus !== 0 && diagnostics.length === 0) {
-      log.channel.append(
-        `lint command returned ${res.exitStatus}, but no diagnostics were parsed by CrOS IDE\n`
-      );
-      statusManager.setTask(log.taskId, {
-        status: bgTaskStatus.TaskStatus.ERROR,
-        command: log.showLogCommand,
-      });
-      metrics.send({
-        category: 'error',
-        group: 'lint',
-        description: 'non-zero linter exit, but no diagnostics',
-      });
-      return;
-    }
+
+    collection.set(document.uri, diagnosticsCollection);
     statusManager.setTask(log.taskId, {
       status: bgTaskStatus.TaskStatus.OK,
       command: log.showLogCommand,
@@ -317,7 +369,7 @@ async function updateDiagnostics(
       group: 'lint',
       action: 'update',
       label: document.languageId,
-      value: diagnostics.length,
+      value: diagnosticsCollection.length,
     });
   }
 }
@@ -349,6 +401,27 @@ export function parseCrosLintCpp(
     const message = match[3];
     if (sameFile(document.uri.fsPath, file)) {
       diagnostics.push(createDiagnostic(message, line));
+    }
+  }
+  return diagnostics;
+}
+
+export function parseLibchromeCheck(
+  stdout: string,
+  stderr: string,
+  document: vscode.TextDocument
+): vscode.Diagnostic[] {
+  const lineRE =
+    /^In File (.+) line ([0-9]+) col ([0-9]+), found .+ \(pattern: .+\), (.+)/gm;
+  const diagnostics: vscode.Diagnostic[] = [];
+  let match: RegExpExecArray | null;
+  while ((match = lineRE.exec(stderr)) !== null) {
+    const file = match[1];
+    const line = Number(match[2]);
+    const startCol = Number(match[3]);
+    const message = match[4];
+    if (sameFile(document.uri.fsPath, file)) {
+      diagnostics.push(createDiagnostic(message, line, startCol));
     }
   }
   return diagnostics;

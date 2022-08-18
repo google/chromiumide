@@ -26,6 +26,23 @@ Total errors found: 2
 11:21:52: ERROR: Found lint errors in 1 files.
 `;
 
+const libchromeFileName = 'cros-disks/aaa.h';
+
+const libchromeFileContents = `#ifndef CROS_DISKS_AAA_H_
+#define CROS_DISKS_AAA_H_
+
+#include <absl/types/optional.h>
+
+namespace {
+    absl::optional<int> a;
+}
+
+#endif  // CROS_DISKS_AAA_H_
+`;
+
+const libchromeLintOutput = `In File cros-disks/aaa.h line 4 col 2, found include <absl/types/optional.h (pattern: (include.*absl/types/optional.h|absl::(optional|make_optional|nullopt))), Use std::optional. absl::optional is an alias of std::optional. See go/use-std-optional-in-cros for discussion.
+In File cros-disks/aaa.h line 7 col 3, found absl::optional (pattern: (include.*absl/types/optional.h|absl::(optional|make_optional|nullopt))), Use std::optional. absl::optional is an alias of std::optional. See go/use-std-optional-in-cros for discussion.`;
+
 const pythonFileName = 'cros-disks/aaa.py';
 
 const pythonAbsoluteFileName = '/absolute/path/to/cros-disks/aaa.py';
@@ -108,6 +125,7 @@ class TestDocumentProvider implements vscode.TextDocumentContentProvider {
 const documentProvider = new TestDocumentProvider(
   new Map<string, string>([
     [cppFileName, cppFileContents],
+    [libchromeFileName, libchromeFileContents],
     [pythonFileName, pythonFileContents],
     [pythonAbsoluteFileName, pythonFileContents],
     [shellFileName, shellFileContents],
@@ -141,6 +159,37 @@ describe('Lint Integration', () => {
           new vscode.Position(3, Number.MAX_VALUE)
         ),
         'Do not use unnamed namespaces in header files.  See https://google.github.io/styleguide/cppguide.html#Namespaces for more information.',
+        vscode.DiagnosticSeverity.Warning
+      ),
+    ];
+    assert.deepStrictEqual(expected, actual);
+  });
+
+  it('parses libchrome errors', async () => {
+    const uri = vscode.Uri.from({scheme: scheme, path: libchromeFileName});
+    const textDocument = await vscode.workspace.openTextDocument(uri);
+    const actual = crosLint.parseLibchromeCheck(
+      '',
+      libchromeLintOutput,
+      textDocument
+    );
+    await extensionTesting.closeDocument(textDocument);
+    assert.strictEqual(actual.length, 2);
+    const expected: vscode.Diagnostic[] = [
+      new vscode.Diagnostic(
+        new vscode.Range(
+          new vscode.Position(3, 1),
+          new vscode.Position(3, Number.MAX_VALUE)
+        ),
+        'Use std::optional. absl::optional is an alias of std::optional. See go/use-std-optional-in-cros for discussion.',
+        vscode.DiagnosticSeverity.Warning
+      ),
+      new vscode.Diagnostic(
+        new vscode.Range(
+          new vscode.Position(6, 2),
+          new vscode.Position(6, Number.MAX_VALUE)
+        ),
+        'Use std::optional. absl::optional is an alias of std::optional. See go/use-std-optional-in-cros for discussion.',
         vscode.DiagnosticSeverity.Warning
       ),
     ];
