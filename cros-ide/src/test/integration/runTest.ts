@@ -15,10 +15,12 @@ async function main() {
     // Passed to --extensionTestsPath
     const extensionTestsPath = path.resolve(__dirname, './index');
 
+    // Use --disable-gpu to clear some errors reported in the log.
+    //
     // Use . as the workspace to open when the VS Code starts.
     // This prevents VS Code from opening the last used workspace,
     // which could involve connecting somewhere over ssh.
-    const launchArgs = ['.'];
+    const launchArgs = ['--disable-gpu', '.'];
 
     // Download VS Code, unzip it and run the integration test
     await runTests({extensionDevelopmentPath, extensionTestsPath, launchArgs});
