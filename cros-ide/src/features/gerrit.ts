@@ -4,6 +4,8 @@
 
 import * as vscode from 'vscode';
 import * as https from 'https';
+import * as path from 'path';
+import * as fs from 'fs';
 
 export function activate(context: vscode.ExtensionContext) {
   void vscode.window.showInformationMessage('Hello GerritIntegration!!');
@@ -17,7 +19,7 @@ export function activate(context: vscode.ExtensionContext) {
 async function showGerritComments() {
   // TODO(teramon): Construct the URL parsing Git commit
   const commentsUrl =
-    'https://chromium-review.googlesource.com/changes/Ifbd244655871bbed11f4aa9c18f195502a691704/comments';
+    'https://chromium-review.googlesource.com/changes/I3657a22eae0f8fbe0601f26c7647be3134572ac0/comments';
   const controller = vscode.comments.createCommentController(
     'comment-sample',
     'comment-API-sample'
@@ -28,7 +30,7 @@ async function showGerritComments() {
     const contentJson = JSON.parse(commentsJson) as ChangeComments;
     for (const [key, value] of Object.entries(contentJson)) {
       contentJson[key].forEach(msg => {
-        showCommentInfo(controller, msg);
+        showCommentInfo(controller, msg, key);
       });
       console.log(value);
     }
@@ -82,14 +84,21 @@ type CommentRange = {
 
 function showCommentInfo(
   controller: vscode.CommentController,
-  commentInfo: CommentInfo
+  commentInfo: CommentInfo,
+  filePath: string
 ) {
-  const dataRange = new vscode.Range(
-    commentInfo.range.start_line - 1,
-    commentInfo.range.start_character,
-    commentInfo.range.end_line - 1,
-    commentInfo.range.end_character
-  );
+  let dataRange;
+  if (commentInfo.range !== undefined) {
+    dataRange = new vscode.Range(
+      commentInfo.range.start_line - 1,
+      commentInfo.range.start_character,
+      commentInfo.range.end_line - 1,
+      commentInfo.range.end_character
+    );
+  } else {
+    // comments for the entire file
+    dataRange = new vscode.Range(0, 0, 0, 0);
+  }
   const newComment: vscode.Comment[] = [
     {
       author: {
@@ -99,6 +108,26 @@ function showCommentInfo(
       mode: vscode.CommentMode.Preview,
     },
   ];
-  const dataUri = vscode.window.activeTextEditor?.document.uri;
-  controller.createCommentThread(dataUri!, dataRange, newComment);
+  const activeFileUri = vscode.window.activeTextEditor?.document.uri;
+  if (!activeFileUri) {
+    return;
+  }
+  const gitDir = findGitDir(activeFileUri.path);
+  if (!gitDir) {
+    void vscode.window.showErrorMessage('Git directory not found');
+  }
+  const dataUri = vscode.Uri.file(gitDir + '/' + filePath);
+  controller.createCommentThread(dataUri, dataRange, newComment);
+}
+
+function findGitDir(filePath: string): string | undefined {
+  let parent: string = path.dirname(filePath);
+  while (!fs.existsSync(path.join(parent, '.git'))) {
+    const grandParent = path.dirname(parent);
+    if (grandParent === parent) {
+      return undefined;
+    }
+    parent = path.dirname(parent);
+  }
+  return parent;
 }
