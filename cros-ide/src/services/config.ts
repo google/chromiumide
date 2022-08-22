@@ -74,6 +74,7 @@ export const underDevelopment = {
   triciumSpellchecker: new ConfigValue<boolean>(
     'underDevelopment.triciumSpellchecker'
   ),
+  systemLogViewer: new ConfigValue<boolean>('underDevelopment.systemLogViewer'),
 };
 
 export const deviceManagement = {

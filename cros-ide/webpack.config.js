@@ -82,6 +82,7 @@ const viewsConfig = {
   // https://webpack.js.org/configuration/entry-context/
   entry: {
     vnc: './views/src/vnc.ts',
+    syslog: './views/src/syslog.ts',
   },
   output: {
     path: path.resolve(__dirname, 'dist', 'views'),

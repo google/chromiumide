@@ -12,6 +12,7 @@ import * as ssh from '../ssh_session';
 import {CommandContext} from './common';
 import {connectToDeviceForShell} from './connect_ssh';
 import {connectToDeviceForScreen} from './connect_vnc';
+import {openSystemLogViewer} from './systemlog_view';
 import {copyHostname} from './copy_hostname';
 import {crosfleetLogin} from './crosfleet_login';
 import {addDevice} from './device_add';
@@ -59,6 +60,10 @@ export function registerCommands(
     vscode.commands.registerCommand(
       'cros-ide.deviceManagement.connectToDeviceForShell',
       (item?: provider.DeviceItem) => connectToDeviceForShell(context, item)
+    ),
+    vscode.commands.registerCommand(
+      'cros-ide.deviceManagement.openSystemLogViewer',
+      (item?: provider.DeviceItem) => openSystemLogViewer(context, item)
     ),
     vscode.commands.registerCommand(
       'cros-ide.deviceManagement.flashPrebuiltImage',

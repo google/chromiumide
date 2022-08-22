@@ -11,6 +11,7 @@ import * as commonUtil from '../../common/common_util';
 import * as netUtil from '../../common/net_util';
 import * as sshUtil from './ssh_util';
 import * as webviewShared from './webview_shared';
+import {escapeForHtmlAttribute, replaceAll} from './html_util';
 
 /**
  * Represents a protocol used between the WebView and localhost.
@@ -473,27 +474,6 @@ class MessagePassingProxy implements vscode.Disposable {
 /**
  * Escapes a string for embedding in HTML attribute values.
  */
-function escapeForHtmlAttribute(s: string): string {
-  return s
-    .replace(/&/g, '&amp;')
-    .replace(/'/g, '&apos;')
-    .replace(/"/g, '&quot;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-interface ReplacePattern {
-  from: RegExp;
-  to: string;
-}
-
-function replaceAll(s: string, patterns: ReplacePattern[]): string {
-  for (const pattern of patterns) {
-    s = s.replace(pattern.from, pattern.to);
-  }
-  return s;
-}
-
 // Type-safe wrapper of vscode.Webview.postMessage.
 async function postServerMessage(
   webview: vscode.Webview,
