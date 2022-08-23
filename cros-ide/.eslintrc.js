@@ -63,6 +63,9 @@ module.exports = {
       rules: {
         '@typescript-eslint/no-floating-promises': 'error',
         '@typescript-eslint/no-misused-promises': 'error',
+        // unbound-method is not aware of expect(...), so we disable it in tests
+        // (see overrides below).
+        '@typescript-eslint/unbound-method': ['error', {ignoreStatic: true}],
       },
       overrides: [
         {
@@ -75,6 +78,12 @@ module.exports = {
           files: ['views/src/**/*.ts'],
           parserOptions: {
             project: 'views/tsconfig.json',
+          },
+        },
+        {
+          files: ['*.test.ts'],
+          rules: {
+            '@typescript-eslint/unbound-method': 'off',
           },
         },
       ],
