@@ -61,9 +61,11 @@ export async function activate(
     }
   }
 
-  vscode.commands.registerCommand('cros-ide.resetUserID', async () => {
-    await metricsConfig.generateValidUserId();
-  });
+  context.subscriptions.push(
+    vscode.commands.registerCommand('cros-ide.resetUserID', async () => {
+      await metricsConfig.generateValidUserId();
+    })
+  );
 }
 
 const trackingIdTesting = 'UA-221509619-1';

@@ -4,12 +4,14 @@
 
 import * as vscode from 'vscode';
 
-export function activate(_context: vscode.ExtensionContext) {
-  vscode.commands.registerCommand('cros-ide.fileIdeBug', () => {
-    void vscode.env.openExternal(
-      vscode.Uri.parse('http://go/cros-ide-new-bug')
-    );
-  });
+export function activate(context: vscode.ExtensionContext) {
+  context.subscriptions.push(
+    vscode.commands.registerCommand('cros-ide.fileIdeBug', () => {
+      void vscode.env.openExternal(
+        vscode.Uri.parse('http://go/cros-ide-new-bug')
+      );
+    })
+  );
 
   const feedbackStatusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Right,

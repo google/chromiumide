@@ -34,29 +34,33 @@ export function activate(
   );
   updateBoardStatus(boardStatusBarItem);
 
-  vscode.commands.registerCommand('cros-ide.selectBoard', async () => {
-    const chroot = chrootService.chroot();
-    if (chroot === undefined) {
-      return;
-    }
-    const board = await ideUtil.selectAndUpdateTargetBoard(chroot, {
-      suggestMostRecent: false,
-    });
-    if (board instanceof ideUtil.NoBoardError) {
-      await vscode.window.showErrorMessage(`Selecting board: ${board.message}`);
-      return;
-    }
-    // Type-check that errors are handled.
-    ((_: string | null) => {})(board);
-    if (board) {
-      metrics.send({
-        category: 'interactive',
-        group: 'misc',
-        action: 'select target board',
-        label: board,
+  context.subscriptions.push(
+    vscode.commands.registerCommand('cros-ide.selectBoard', async () => {
+      const chroot = chrootService.chroot();
+      if (chroot === undefined) {
+        return;
+      }
+      const board = await ideUtil.selectAndUpdateTargetBoard(chroot, {
+        suggestMostRecent: false,
       });
-    }
-  });
+      if (board instanceof ideUtil.NoBoardError) {
+        await vscode.window.showErrorMessage(
+          `Selecting board: ${board.message}`
+        );
+        return;
+      }
+      // Type-check that errors are handled.
+      ((_: string | null) => {})(board);
+      if (board) {
+        metrics.send({
+          category: 'interactive',
+          group: 'misc',
+          action: 'select target board',
+          label: board,
+        });
+      }
+    })
+  );
 }
 
 function updateBoardStatus(boardStatusBarItem: vscode.StatusBarItem) {

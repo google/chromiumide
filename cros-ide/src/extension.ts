@@ -52,8 +52,10 @@ export async function activate(
   // Activate metrics first so that other components can emit metrics on activation.
   await metrics.activate(context);
 
-  vscode.commands.registerCommand(ideUtil.SHOW_UI_LOG.command, () =>
-    ideUtil.getUiLogger().show()
+  context.subscriptions.push(
+    vscode.commands.registerCommand(ideUtil.SHOW_UI_LOG.command, () =>
+      ideUtil.getUiLogger().show()
+    )
   );
 
   // The logger that should be used by linters/code-formatters.

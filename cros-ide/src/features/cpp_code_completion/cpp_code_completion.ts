@@ -27,8 +27,10 @@ export function activate(
   chrootService: ChrootService
 ) {
   const output = vscode.window.createOutputChannel('CrOS IDE: C++ Support');
-  vscode.commands.registerCommand(SHOW_LOG_COMMAND.command, () =>
-    output.show()
+  context.subscriptions.push(
+    vscode.commands.registerCommand(SHOW_LOG_COMMAND.command, () =>
+      output.show()
+    )
   );
 
   const compdbService = new CompdbServiceImpl(output, chrootService);
