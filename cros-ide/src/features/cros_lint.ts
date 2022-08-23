@@ -60,6 +60,10 @@ interface LintConfig {
    */
   cwd?(exePath: string): string | undefined;
   env?(exePath: string, path: string): Promise<NodeJS.ProcessEnv | undefined>;
+
+  // If true, allow empty diagnostics even when linter returned non-zero exit code.
+  // Otherwise, such case is raised to an IDE error status.
+  ignoreEmptyDiagnostics?: boolean | undefined;
 }
 
 const GNLINT_PATH = 'src/platform2/common-mk/gnlint.py';
@@ -137,6 +141,9 @@ const languageToLintConfigs = new Map<string, LintConfig[]>([
         // gnlint.py needs to be run inside ChromiumOS source tree,
         // otherwise it complains about formatting.
         cwd: (exePath: string) => path.dirname(exePath),
+        // gnlint.py exits with non-zero code when syntax error exists,
+        // but not handled here because those overlap with other exetnsions.
+        ignoreEmptyDiagnostics: true,
       },
     ],
   ],
@@ -147,6 +154,8 @@ const languageToLintConfigs = new Map<string, LintConfig[]>([
         executable: realpath => crosExeFor(realpath),
         arguments: (path: string) => ['lint', path],
         parse: parseCrosLintPython,
+        // The linter exits with non-zero code when the file is not auto-formatted.
+        ignoreEmptyDiagnostics: true,
       },
     ],
   ],
@@ -345,16 +354,18 @@ async function updateDiagnostics(
         log.channel.append(
           `lint command returned ${res.exitStatus}, but no diagnostics were parsed by CrOS IDE\n`
         );
-        statusManager.setTask(log.taskId, {
-          status: bgTaskStatus.TaskStatus.ERROR,
-          command: log.showLogCommand,
-        });
-        metrics.send({
-          category: 'error',
-          group: 'lint',
-          description: 'non-zero linter exit, but no diagnostics',
-        });
-        return;
+        if (!lintConfig.ignoreEmptyDiagnostics) {
+          statusManager.setTask(log.taskId, {
+            status: bgTaskStatus.TaskStatus.ERROR,
+            command: log.showLogCommand,
+          });
+          metrics.send({
+            category: 'error',
+            group: 'lint',
+            description: `non-zero linter exit, but no diagnostics (${document.languageId})`,
+          });
+          return;
+        }
       }
       diagnosticsCollection.push(...diagnostics);
     }
