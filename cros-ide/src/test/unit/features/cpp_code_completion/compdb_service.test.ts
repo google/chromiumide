@@ -31,7 +31,7 @@ describe('Compdb service', () => {
       'env',
       testing.exactMatch(
         [
-          'USE=compdb_only',
+          'USE=compdb_only test',
           'ebuild-amd64-generic',
           '/mnt/host/source/src/third_party/chromiumos-overlay/chromeos-base/codelab/codelab-9999.ebuild',
           'clean',
@@ -78,7 +78,7 @@ describe('Compdb service', () => {
       'env',
       testing.exactMatch(
         [
-          'USE=compdb_only',
+          'USE=compdb_only test',
           'ebuild-amd64-generic',
           '/mnt/host/source/src/third_party/chromiumos-overlay/chromeos-base/codelab/codelab-9999.ebuild',
           'clean',

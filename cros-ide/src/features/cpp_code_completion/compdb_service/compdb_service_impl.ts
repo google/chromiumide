@@ -22,11 +22,12 @@ export class CompdbServiceImpl implements CompdbService {
   ) {}
 
   async generate(board: string, packageInfo: PackageInfo) {
-    const compdbPath = await this.generateInner(
-      board,
-      packageInfo,
-      'compdb_only'
-    );
+    // Add 'test' USE flag so that compdb includes test files.
+    // This doesn't cause tests to be run, because we don't run the src_test phase.
+    const compdbPath = await this.generateInner(board, packageInfo, [
+      'compdb_only',
+      'test',
+    ]);
     if (!compdbPath) {
       return;
     }
@@ -40,7 +41,10 @@ export class CompdbServiceImpl implements CompdbService {
       `Running compilation for ${packageInfo.atom} to create generated C++ files`
     );
     // Run compilation to generate C++ files (from mojom files, for example).
-    await this.generateInner(board, packageInfo, 'compilation_database');
+    await this.generateInner(board, packageInfo, [
+      'compilation_database',
+      'test',
+    ]);
   }
 
   /**
@@ -51,7 +55,7 @@ export class CompdbServiceImpl implements CompdbService {
   async generateInner(
     board: string,
     {sourceDir, atom}: PackageInfo,
-    useFlag: string
+    useFlags: string[]
   ): Promise<string | undefined> {
     const sourceFs = this.chrootService.source();
     const chrootFs = this.chrootService.chroot();
@@ -68,7 +72,7 @@ export class CompdbServiceImpl implements CompdbService {
       this.output,
       chrootFs,
       this.chrootService,
-      useFlag
+      useFlags
     );
     const artifact = await ebuild.generate();
     if (artifact === undefined) {
