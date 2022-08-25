@@ -43,14 +43,29 @@ export interface ExtensionApi {
 export async function activate(
   context: vscode.ExtensionContext
 ): Promise<ExtensionApi> {
+  // Activate metrics first so that other components can emit metrics on activation.
+  await metrics.activate(context);
+
+  try {
+    return await postMetricsActivate(context);
+  } catch (err) {
+    metrics.send({
+      category: 'error',
+      group: 'misc',
+      description: `activate failed: ${err}`,
+    });
+    throw err;
+  }
+}
+
+async function postMetricsActivate(
+  context: vscode.ExtensionContext
+): Promise<ExtensionApi> {
   assertOutsideChroot();
 
   const statusManager = bgTaskStatus.activate(context);
   const chrootService = chroot.activate(context);
   const cipdRepository = new cipd.CipdRepository();
-
-  // Activate metrics first so that other components can emit metrics on activation.
-  await metrics.activate(context);
 
   context.subscriptions.push(
     vscode.commands.registerCommand(ideUtil.SHOW_UI_LOG.command, () =>
