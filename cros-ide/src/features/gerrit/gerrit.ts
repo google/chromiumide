@@ -6,31 +6,29 @@ import * as vscode from 'vscode';
 import * as https from 'https';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as commonUtil from '../common/common_util';
+import * as commonUtil from '../../common/common_util';
 
 export function activate(context: vscode.ExtensionContext) {
-  void vscode.window.showInformationMessage('Hello GerritIntegration!!');
   const demoCmd = vscode.commands.registerCommand('cros-ide.gerrit', () => {
     const activeEditor = vscode.window.activeTextEditor;
     if (activeEditor) {
-      return showGerritComments(activeEditor);
+      return showGerritComments(activeEditor.document);
     }
   });
   context.subscriptions.push(demoCmd);
 }
 
-async function showGerritComments(activeEditor: vscode.TextEditor) {
+async function showGerritComments(activeDocument: vscode.TextDocument) {
   const latestCommit: commonUtil.ExecResult | Error = await commonUtil.exec(
     'git',
     ['show', '-s'],
-    {cwd: path.dirname(activeEditor.document.fileName)}
+    {cwd: path.dirname(activeDocument.fileName)}
   );
   if (latestCommit instanceof Error) {
     void vscode.window.showErrorMessage(
       'Failed to detect a commit'
       // TODO(teramon): Avoid showing the error message more than once.
     );
-
     return;
   }
   const changeIdRegex = /Change-Id: (I[0-9a-z]*)/;
@@ -51,7 +49,7 @@ async function showGerritComments(activeEditor: vscode.TextEditor) {
     const commentsContent = await httpsGet(commentsUrl);
     const commentsJson = commentsContent.substring(')]}\n'.length);
     const contentJson = JSON.parse(commentsJson) as ChangeComments;
-    const gitDir = findGitDir(activeEditor.document.fileName);
+    const gitDir = findGitDir(activeDocument.fileName);
     if (!gitDir) {
       void vscode.window.showErrorMessage(
         'Git directory not found'
