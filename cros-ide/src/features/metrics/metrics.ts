@@ -87,6 +87,7 @@ type FeatureGroup =
   | 'device'
   | 'lint'
   | 'package'
+  | 'spellchecker'
   | 'misc';
 
 // Fields common to InteractiveEvent and BackgroundEvent.

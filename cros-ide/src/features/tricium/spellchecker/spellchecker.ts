@@ -3,10 +3,11 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import * as cipd from '../../../common/cipd';
 import * as chroot from '../../../services/chroot';
 import * as bgTaskStatus from '../../../ui/bg_task_status';
+import * as metrics from '../../metrics/metrics';
 import * as tricium from '../tricium';
-import * as cipd from '../../../common/cipd';
 import * as executor from './executor';
 
 // Spellchecker demonstrates integration between Tricium's functions
@@ -46,8 +47,13 @@ export async function activate(
       outputChannel
     );
   } catch (err) {
-    // TODO(b:217287367): send metrics
-    outputChannel.append(`Could not download Tricium spellchecker: ${err}`);
+    const description = `Could not download Tricium spellchecker: ${err}`;
+    outputChannel.append(description);
+    metrics.send({
+      category: 'error',
+      group: 'spellchecker',
+      description: description,
+    });
     return;
   }
 
@@ -139,8 +145,12 @@ class Spellchecker {
     );
 
     if (results instanceof Error) {
-      // TODO(ttylenda): send metrics
       this.setStatus(bgTaskStatus.TaskStatus.ERROR);
+      metrics.send({
+        category: 'error',
+        group: 'spellchecker',
+        description: `Spellchecker failed: ${results}`,
+      });
       return;
     }
 
@@ -165,6 +175,15 @@ class Spellchecker {
         }
         diagnostics.push(diagnostic);
       }
+    }
+
+    if (diagnostics.length) {
+      metrics.send({
+        category: 'background',
+        group: 'spellchecker',
+        action: 'diagnostics',
+        value: diagnostics.length,
+      });
     }
 
     this.diagnosticCollection.set(doc.uri, diagnostics);
