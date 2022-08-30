@@ -2,13 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as assert from 'assert';
 import * as vscode from 'vscode';
 import {
-  TEST_ONLY,
   StatusManager,
   TaskId,
   TaskStatus,
+  TEST_ONLY,
 } from '../../../ui/bg_task_status';
 
 const {StatusManagerImpl, StatusBarHandler, StatusTreeData} = TEST_ONLY;
@@ -17,18 +16,23 @@ describe('Background Task Status', () => {
   const errorBgColor = new vscode.ThemeColor('statusBarItem.errorBackground');
 
   function assertShowsError(statusBarItem: vscode.StatusBarItem) {
-    assert.deepStrictEqual(statusBarItem.text, '$(error) CrOS IDE');
-    assert.deepStrictEqual(statusBarItem.tooltip, 'Background Tasks (Errors)');
-    assert.deepStrictEqual(statusBarItem.backgroundColor, errorBgColor);
+    expect(statusBarItem).toEqual(
+      jasmine.objectContaining({
+        text: '$(error) CrOS IDE',
+        tooltip: 'Background Tasks (Errors)',
+        backgroundColor: errorBgColor,
+      })
+    );
   }
 
   function assertShowsOk(statusBarItem: vscode.StatusBarItem) {
-    assert.deepStrictEqual(statusBarItem.text, '$(check) CrOS IDE');
-    assert.deepStrictEqual(
-      statusBarItem.tooltip,
-      'Background Tasks (No Problems)'
+    expect(statusBarItem).toEqual(
+      jasmine.objectContaining({
+        text: '$(check) CrOS IDE',
+        tooltip: 'Background Tasks (No Problems)',
+        backgroundColor: undefined,
+      })
     );
-    assert.deepStrictEqual(statusBarItem.backgroundColor, undefined);
   }
 
   let statusBarItem: vscode.StatusBarItem;
@@ -75,20 +79,36 @@ describe('Background Task Status', () => {
     statusManager.setTask('running', {status: TaskStatus.RUNNING});
     statusManager.setTask('ok', {status: TaskStatus.OK});
     statusManager.setTask('error', {status: TaskStatus.ERROR});
-    assert.deepStrictEqual(statusBarItem.text, '$(sync~spin) CrOS IDE');
-    assert.deepStrictEqual(statusBarItem.backgroundColor, errorBgColor);
+    expect(statusBarItem).toEqual(
+      jasmine.objectContaining({
+        text: '$(sync~spin) CrOS IDE',
+        backgroundColor: errorBgColor,
+      })
+    );
 
     statusManager.deleteTask('running');
-    assert.deepStrictEqual(statusBarItem.text, '$(error) CrOS IDE');
-    assert.deepStrictEqual(statusBarItem.backgroundColor, errorBgColor);
+    expect(statusBarItem).toEqual(
+      jasmine.objectContaining({
+        text: '$(error) CrOS IDE',
+        backgroundColor: errorBgColor,
+      })
+    );
 
     statusManager.deleteTask('error');
-    assert.deepStrictEqual(statusBarItem.text, '$(check) CrOS IDE');
-    assert.deepStrictEqual(statusBarItem.backgroundColor, undefined);
+    expect(statusBarItem).toEqual(
+      jasmine.objectContaining({
+        text: '$(check) CrOS IDE',
+        backgroundColor: undefined,
+      })
+    );
 
     statusManager.deleteTask('ok');
-    assert.deepStrictEqual(statusBarItem.text, '$(check) CrOS IDE');
-    assert.deepStrictEqual(statusBarItem.backgroundColor, undefined);
+    expect(statusBarItem).toEqual(
+      jasmine.objectContaining({
+        text: '$(check) CrOS IDE',
+        backgroundColor: undefined,
+      })
+    );
   });
 
   it('implements TreeDataProvider.getChildren()', () => {
@@ -96,7 +116,9 @@ describe('Background Task Status', () => {
     statusManager.setTask('task-2', {status: TaskStatus.OK});
 
     const children = statusTreeData.getChildren(undefined) as TaskId[];
-    assert.deepStrictEqual(children.sort(), ['task-1', 'task-2']);
+    expect(children).toEqual(
+      jasmine.arrayWithExactContents(['task-1', 'task-2'])
+    );
   });
 
   it('provides TreeItems with status icons', () => {
@@ -116,9 +138,9 @@ describe('Background Task Status', () => {
       const treeItem = statusTreeData.getTreeItem(
         tc.taskName
       ) as vscode.TreeItem;
-      assert.deepStrictEqual(treeItem.label, tc.taskName);
+      expect(treeItem.label).toEqual(tc.taskName);
       const icon = treeItem.iconPath! as vscode.ThemeIcon;
-      assert.deepStrictEqual(icon.id, tc.iconId);
+      expect(icon.id).toEqual(tc.iconId);
     }
   });
 
@@ -127,11 +149,11 @@ describe('Background Task Status', () => {
     statusManager.setTask('task-1', {status: TaskStatus.OK, command});
 
     let treeItem = statusTreeData.getTreeItem('task-1') as vscode.TreeItem;
-    assert.deepStrictEqual(treeItem.command, command);
+    expect(treeItem.command).toEqual(command);
 
     statusManager.deleteTask('task-1');
     statusManager.setTask('task-1', {status: TaskStatus.OK});
     treeItem = statusTreeData.getTreeItem('task-1') as vscode.TreeItem;
-    assert.deepStrictEqual(treeItem.command, undefined);
+    expect(treeItem.command).toBeUndefined();
   });
 });
