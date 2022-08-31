@@ -384,6 +384,28 @@
           "description": "Disable the new logic to automatically detect a Portage package from the filepath, and use hardcoded mapping instead",
           "default": false
         },
+        "cros-ide.platformEC.board": {
+          "type": "string",
+          "description": "EC target, for example, bloonchipper."
+        },
+        "cros-ide.platformEC.mode": {
+          "type": "string",
+          "enum": [
+            "RW",
+            "RO"
+          ],
+          "description": "Firmware mode.",
+          "default": "RW"
+        },
+        "cros-ide.platformEC.build": {
+          "type": "string",
+          "enum": [
+            "Makefile",
+            "Zephyr"
+          ],
+          "description": "Build system.",
+          "default": "Makefile"
+        },
         "cros-ide.underDevelopment.crosFormat": {
           "type": "boolean",
           "description": "Format files with 'cros format' (under development)",
