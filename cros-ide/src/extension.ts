@@ -23,6 +23,7 @@ import * as gn from './features/gn';
 import * as hints from './features/hints';
 import * as feedback from './features/metrics/feedback';
 import * as metrics from './features/metrics/metrics';
+import * as platformEc from './features/platform_ec';
 import * as shortLinkProvider from './features/short_link_provider';
 import * as suggestExtension from './features/suggest_extension';
 import * as targetBoard from './features/target_board';
@@ -121,6 +122,10 @@ async function postMetricsActivate(
       chrootService,
       cipdRepository
     );
+  }
+
+  if (config.underDevelopment.platformEc.get()) {
+    platformEc.activate(context);
   }
 
   // Avoid network operations in tests.

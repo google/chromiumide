@@ -75,6 +75,7 @@ export const underDevelopment = {
     'underDevelopment.triciumSpellchecker'
   ),
   systemLogViewer: new ConfigValue<boolean>('underDevelopment.systemLogViewer'),
+  platformEc: new ConfigValue<boolean>('underDevelopment.platformEC'),
 };
 
 export const deviceManagement = {
@@ -84,6 +85,12 @@ export const deviceManagement = {
 export const metrics = {
   collectMetrics: new ConfigValue<boolean>('metrics.collectMetrics'),
   showMessage: new ConfigValue<boolean>('metrics.showMessage'),
+};
+
+export const platformEc = {
+  board: new ConfigValue<string>('platformEC.board'),
+  mode: new ConfigValue<'RO' | 'RW'>('platformEC.mode'),
+  build: new ConfigValue<'Makefile' | 'Zephyr'>('platformEC.build'),
 };
 
 export const goExtension = {
