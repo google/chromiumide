@@ -2,270 +2,216 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as fs from 'fs';
 import 'jasmine';
-import * as path from 'path';
 import * as vscode from 'vscode';
-import * as commonUtil from '../../../../common/common_util';
-import {WrapFs} from '../../../../common/cros';
 import {CLANGD_EXTENSION} from '../../../../features/cpp_code_completion/constants';
-import {CompilationDatabase} from '../../../../features/cpp_code_completion/cpp_code_completion';
-import {Packages} from '../../../../features/cpp_code_completion/packages';
-import {ChrootService} from '../../../../services/chroot';
-import * as config from '../../../../services/config';
-import * as bgTaskStatus from '../../../../ui/bg_task_status';
-import {buildFakeChroot, cleanState, tempDir} from '../../../testing';
-import {ConsoleOutputChannel} from '../../../testing/fakes';
+import {CppCodeCompletion} from '../../../../features/cpp_code_completion/cpp_code_completion';
 import {installVscodeDouble, installFakeConfigs} from '../../doubles';
-import {SpiedFakeCompdbService} from './spied_fake_compdb_service';
-
-function newEventWaiter(
-  compilationDatabase: CompilationDatabase
-): Promise<void> {
-  return new Promise(resolved => {
-    compilationDatabase.onEventHandledForTesting.push(() =>
-      resolved(undefined)
-    );
-  });
-}
+import * as bgTaskStatus from '../../../../ui/bg_task_status';
+import {ErrorDetails} from '../../../../features/cpp_code_completion/compdb_generator';
+import * as testing from '../../../testing';
+import * as fakes from '../../../testing/fakes';
 
 describe('C++ code completion', () => {
   const {vscodeSpy, vscodeEmitters} = installVscodeDouble();
   installFakeConfigs(vscodeSpy, vscodeEmitters);
 
-  beforeEach(async () => {
-    await config.board.update('amd64-generic');
-  });
-
-  const temp = tempDir();
-  const state = cleanState(async () => {
-    const osDir = temp.path;
-    const chroot = await buildFakeChroot(osDir);
-    const source = commonUtil.sourceDir(chroot);
-
-    const spiedFakeCompdbService = new SpiedFakeCompdbService(source);
-    // CompilationDatabase registers event handlers in the constructor.
-    const compilationDatabase = new CompilationDatabase(
-      new bgTaskStatus.TEST_ONLY.StatusManagerImpl(),
-      new Packages(new ChrootService(undefined, undefined)),
-      new ConsoleOutputChannel(),
-      spiedFakeCompdbService,
-      new ChrootService(new WrapFs(chroot), new WrapFs(source))
-    );
-    return {
-      source,
-      spiedFakeCompdbService,
-      compilationDatabase,
-    };
-  });
+  let cppCodeCompletion: undefined | CppCodeCompletion = undefined;
   afterEach(() => {
-    state.compilationDatabase.dispose();
+    cppCodeCompletion!.dispose();
+    cppCodeCompletion = undefined;
   });
 
-  it('runs for platform2 C++ file', async () => {
-    const clangd = jasmine.createSpyObj<vscode.Extension<unknown>>('clangd', [
-      'activate',
-    ]);
-    vscodeSpy.extensions.getExtension
-      .withArgs(CLANGD_EXTENSION)
-      .and.returnValue(clangd);
+  type TestCase = {
+    // Inputs
+    name: string;
+    maybeGenerateResponse: boolean;
+    hasClangd: boolean;
+    fireSaveTextDocument?: boolean;
+    fireChangeActiveTextEditor?: boolean;
+    // Expectations
+    wantGenerate: boolean;
+  };
 
-    const done = newEventWaiter(state.compilationDatabase);
+  const testCases: TestCase[] = [
+    {
+      name: 'generates on active editor change',
+      maybeGenerateResponse: true,
+      hasClangd: true,
+      fireChangeActiveTextEditor: true,
+      wantGenerate: true,
+    },
+    {
+      name: 'generates on file save',
+      maybeGenerateResponse: true,
+      hasClangd: true,
+      fireSaveTextDocument: true,
+      wantGenerate: true,
+    },
+    {
+      name: 'does not generate if shouldGenerate returns false',
+      maybeGenerateResponse: false,
+      hasClangd: true,
+      fireChangeActiveTextEditor: true,
+      wantGenerate: false,
+    },
+    {
+      name: 'does not generate if clangd extension is not installed',
+      maybeGenerateResponse: true,
+      hasClangd: false,
+      fireChangeActiveTextEditor: true,
+      wantGenerate: false,
+    },
+  ];
 
-    vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
-      document: {
-        fileName: path.join(state.source, 'src/platform2/cros-disks/foo.cc'),
-        languageId: 'cpp',
-      },
-    } as vscode.TextEditor);
+  for (const tc of testCases) {
+    it(tc.name, async () => {
+      // Set up
+      let generateCalled = false;
+      cppCodeCompletion = new CppCodeCompletion(
+        [
+          () => {
+            return {
+              name: 'fake',
+              shouldGenerate: async () => tc.maybeGenerateResponse,
+              generate: async () => {
+                generateCalled = true;
+              },
+              dispose: () => {},
+            };
+          },
+        ],
+        new bgTaskStatus.TEST_ONLY.StatusManagerImpl()
+      );
 
-    await done;
+      const clangd = tc.hasClangd
+        ? jasmine.createSpyObj<vscode.Extension<unknown>>('clangd', [
+            'activate',
+          ])
+        : undefined;
+      vscodeSpy.extensions.getExtension
+        .withArgs(CLANGD_EXTENSION)
+        .and.returnValue(clangd);
 
-    expect(clangd.activate).toHaveBeenCalledOnceWith();
-    expect(state.spiedFakeCompdbService.requests).toEqual([
-      {
-        board: 'amd64-generic',
-        packageInfo: {
-          sourceDir: 'src/platform2/cros-disks',
-          atom: 'chromeos-base/cros-disks',
-        },
-      },
-    ]);
-    expect(vscodeSpy.commands.executeCommand).toHaveBeenCalledOnceWith(
-      'clangd.restart'
+      const waiter = new Promise(resolve => {
+        cppCodeCompletion!.onDidMaybeGenerate(resolve);
+      });
+
+      // Fire event
+      const document = {} as vscode.TextDocument;
+      if (tc.fireChangeActiveTextEditor) {
+        vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
+          document,
+        } as vscode.TextEditor);
+      }
+      if (tc.fireSaveTextDocument) {
+        vscodeEmitters.workspace.onDidSaveTextDocument.fire(document);
+      }
+
+      await waiter;
+
+      // Check
+      if (tc.wantGenerate) {
+        expect(generateCalled).toBeTrue();
+        expect(clangd!.activate).toHaveBeenCalledOnceWith();
+      } else {
+        expect(generateCalled).toBeFalse();
+        if (clangd) {
+          expect(clangd.activate).not.toHaveBeenCalled();
+        }
+      }
+    });
+  }
+});
+
+describe('C++ code completion on failure', () => {
+  const {vscodeSpy, vscodeEmitters} = installVscodeDouble();
+  installFakeConfigs(vscodeSpy, vscodeEmitters);
+
+  let cppCodeCompletion: undefined | CppCodeCompletion = undefined;
+  afterEach(() => {
+    cppCodeCompletion!.dispose();
+    cppCodeCompletion = undefined;
+  });
+
+  it('shows error unless ignored', async () => {
+    const buttonLabel = 'the button';
+    let pushButton: string | undefined = undefined; // clicked button
+    let errorKind = 'foo'; // thrown error kind
+    let actionTriggeredCount = 0;
+
+    // Set up
+    vscodeSpy.window.createOutputChannel.and.returnValue(
+      new fakes.VoidOutputChannel()
     );
-  });
+    vscodeSpy.window.showErrorMessage.and.callFake(async () => pushButton);
 
-  it('runs for platform2 GN file', async () => {
-    const clangd = jasmine.createSpyObj<vscode.Extension<unknown>>('clangd', [
-      'activate',
-    ]);
-    vscodeSpy.extensions.getExtension
-      .withArgs(CLANGD_EXTENSION)
-      .and.returnValue(clangd);
-
-    const done = newEventWaiter(state.compilationDatabase);
-
-    vscodeEmitters.workspace.onDidSaveTextDocument.fire({
-      fileName: path.join(state.source, 'src/platform2/cros-disks/BUILD.gn'),
-      languageId: 'gn',
-    } as vscode.TextDocument);
-
-    await done;
-
-    expect(clangd.activate).toHaveBeenCalledOnceWith();
-    expect(state.spiedFakeCompdbService.requests).toEqual([
-      {
-        board: 'amd64-generic',
-        packageInfo: {
-          sourceDir: 'src/platform2/cros-disks',
-          atom: 'chromeos-base/cros-disks',
+    cppCodeCompletion = new CppCodeCompletion(
+      [
+        () => {
+          return {
+            name: 'fake',
+            shouldGenerate: async () => true,
+            generate: async () => {
+              throw new ErrorDetails(errorKind, 'error!', {
+                label: buttonLabel,
+                action: () => actionTriggeredCount++,
+              });
+            },
+            dispose: () => {},
+          };
         },
-      },
-    ]);
-  });
-
-  it('does not run on C++ file save', async () => {
-    const clangd = jasmine.createSpyObj<vscode.Extension<unknown>>('clangd', [
-      'activate',
-    ]);
-    vscodeSpy.extensions.getExtension
-      .withArgs(CLANGD_EXTENSION)
-      .and.returnValue(clangd);
-
-    const done = newEventWaiter(state.compilationDatabase);
-
-    vscodeEmitters.workspace.onDidSaveTextDocument.fire({
-      fileName: path.join(state.source, 'src/platform2/cros-disks/foo.cc'),
-      languageId: 'cpp',
-    } as vscode.TextDocument);
-
-    await done;
-
-    expect(clangd.activate).not.toHaveBeenCalled();
-
-    // The service should not have been called.
-    expect(state.spiedFakeCompdbService.requests).toEqual([]);
-  });
-
-  it('does not run for C++ file if it has already run for the same package', async () => {
-    const clangd = jasmine.createSpyObj<vscode.Extension<unknown>>('clangd', [
-      'activate',
-    ]);
-    vscodeSpy.extensions.getExtension
-      .withArgs(CLANGD_EXTENSION)
-      .and.returnValue(clangd);
-
-    let done = newEventWaiter(state.compilationDatabase);
-
-    // A C++ file in the cros-disks project is opened.
-    vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
-      document: {
-        fileName: path.join(state.source, 'src/platform2/cros-disks/foo.cc'),
-        languageId: 'cpp',
-      },
-    } as vscode.TextEditor);
-
-    await done;
-
-    // The service is called and generates compdb.
-    expect(state.spiedFakeCompdbService.requests.length).toBe(1);
-
-    done = newEventWaiter(state.compilationDatabase);
-
-    // Another C++ file in the cros-disks project is opened.
-    vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
-      document: {
-        fileName: path.join(state.source, 'src/platform2/cros-disks/bar.cc'),
-        languageId: 'cpp',
-      },
-    } as vscode.TextEditor);
-
-    await done;
-
-    // The service is not called because compdb has been already generated.
-    expect(state.spiedFakeCompdbService.requests.length).toBe(1);
-
-    done = newEventWaiter(state.compilationDatabase);
-
-    // A C++ file in the codelab project is opened.
-    vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
-      document: {
-        fileName: path.join(state.source, 'src/platform2/codelab/baz.cc'),
-        languageId: 'cpp',
-      },
-    } as vscode.TextEditor);
-
-    await done;
-
-    expect(clangd.activate).toHaveBeenCalledOnceWith();
-
-    // The service is called because compdb has not been generated for codelab.
-    expect(state.spiedFakeCompdbService.requests.length).toBe(2);
-  });
-
-  it('runs for C++ file if compilation database has been removed', async () => {
-    const clangd = jasmine.createSpyObj<vscode.Extension<unknown>>('clangd', [
-      'activate',
-    ]);
-    vscodeSpy.extensions.getExtension
-      .withArgs(CLANGD_EXTENSION)
-      .and.returnValue(clangd);
-
-    let done = newEventWaiter(state.compilationDatabase);
-
-    // A C++ file in the cros-disks project is opened.
-    vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
-      document: {
-        fileName: path.join(state.source, 'src/platform2/cros-disks/foo.cc'),
-        languageId: 'cpp',
-      },
-    } as vscode.TextEditor);
-
-    await done;
-
-    // The service is called and generates compdb.
-    expect(state.spiedFakeCompdbService.requests.length).toBe(1);
-
-    // Remove the generated file.
-    await fs.promises.rm(
-      path.join(state.source, 'src/platform2/cros-disks/compile_commands.json')
+      ],
+      new bgTaskStatus.TEST_ONLY.StatusManagerImpl()
     );
 
-    done = newEventWaiter(state.compilationDatabase);
+    const clangd = jasmine.createSpyObj<vscode.Extension<unknown>>('clangd', [
+      'activate',
+    ]);
+    vscodeSpy.extensions.getExtension
+      .withArgs(CLANGD_EXTENSION)
+      .and.returnValue(clangd);
 
-    // Another C++ file in the cros-disks project is opened.
-    vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
-      document: {
-        fileName: path.join(state.source, 'src/platform2/cros-disks/bar.cc'),
-        languageId: 'cpp',
-      },
-    } as vscode.TextEditor);
+    const fireEvent = async () => {
+      const waiter = new Promise(resolve => {
+        cppCodeCompletion!.onDidMaybeGenerate(resolve);
+      });
 
-    await done;
+      vscodeEmitters.workspace.onDidSaveTextDocument.fire(
+        {} as vscode.TextDocument
+      );
 
-    // The service called because compdb has been removed.
-    expect(state.spiedFakeCompdbService.requests.length).toBe(2);
+      await waiter;
+
+      // User events are handled asynchronously.
+      await testing.flushMicrotasks();
+    };
+
+    // Start testing
+    pushButton = buttonLabel;
+
+    await fireEvent();
+
+    expect(actionTriggeredCount).toEqual(1);
+
+    await fireEvent();
+
+    expect(actionTriggeredCount).toEqual(2);
+
+    pushButton = 'Ignore';
+
+    await fireEvent(); // ignore current error kind
+
+    pushButton = buttonLabel;
+
+    await fireEvent();
+
+    expect(actionTriggeredCount).toEqual(2);
+
+    errorKind = 'qux'; // new kind of error
+
+    await fireEvent();
+
+    expect(actionTriggeredCount).toEqual(3);
   });
-
-  it('does not run if clangd extension is not installed', async () => {
-    const done = newEventWaiter(state.compilationDatabase);
-
-    vscodeEmitters.window.onDidChangeActiveTextEditor.fire({
-      document: {
-        fileName: '/mnt/host/source/src/platform2/cros-disks/foo.cc',
-        languageId: 'cpp',
-      },
-    } as vscode.TextEditor);
-
-    await done;
-
-    expect(state.spiedFakeCompdbService.requests).toEqual([]);
-  });
-
-  // TODO(oka): Test error handling.
-  // * When compdb generation fails, it should show an error message with the
-  //   next action to take.
-  // * An error message is not popped up if the user already seen the error in
-  //   this session.
 });

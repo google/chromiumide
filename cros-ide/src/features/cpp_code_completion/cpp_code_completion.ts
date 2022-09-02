@@ -2,142 +2,108 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as fs from 'fs';
 import * as vscode from 'vscode';
-import * as commonUtil from '../../common/common_util';
-import * as metrics from '../../features/metrics/metrics';
-import * as ideUtil from '../../ide_util';
-import {ChrootService} from '../../services/chroot';
-import * as config from '../../services/config';
+import * as metrics from '../metrics/metrics';
 import * as bgTaskStatus from '../../ui/bg_task_status';
-import * as compdbService from './compdb_service';
-import {
-  CompdbError,
-  CompdbErrorKind,
-  CompdbService,
-  CompdbServiceImpl,
-} from './compdb_service';
+import * as servicesChroot from '../../services/chroot';
+import * as commonUtil from '../../common/common_util';
+import {CompdbGenerator, ErrorDetails} from './compdb_generator';
 import {CLANGD_EXTENSION, SHOW_LOG_COMMAND} from './constants';
-import {Atom, PackageInfo, Packages} from './packages';
+import {Platform2CompdbGenerator} from './platform2_compdb_generator';
 
 export function activate(
   context: vscode.ExtensionContext,
   statusManager: bgTaskStatus.StatusManager,
-  chrootService: ChrootService
+  chrootService: servicesChroot.ChrootService
 ) {
   context.subscriptions.push(
-    chrootService.onDidActivate(crosFs => {
-      const output = vscode.window.createOutputChannel('CrOS IDE: C++ Support');
-      context.subscriptions.push(
-        vscode.commands.registerCommand(SHOW_LOG_COMMAND.command, () =>
-          output.show()
-        )
-      );
-
-      const compdbService = new CompdbServiceImpl(output, crosFs);
-
-      const useHardcodedMapping =
-        config.cppCodeCompletion.useHardcodedMapping.get();
-      context.subscriptions.push(
-        new CompilationDatabase(
-          statusManager,
-          new Packages(chrootService, !useHardcodedMapping),
-          output,
-          compdbService,
-          chrootService
-        )
-      );
-    })
+    new CppCodeCompletion(
+      [output => new Platform2CompdbGenerator(chrootService, output)],
+      statusManager
+    )
   );
 }
 
 const STATUS_BAR_TASK_NAME = 'C++ xrefs generation';
 
-export class CompilationDatabase implements vscode.Disposable {
-  private readonly jobManager = new commonUtil.JobManager<void>();
-  private readonly disposables: vscode.Disposable[] = [];
-  // Packages for which compdb has been generated in this session.
-  private readonly generated = new Set<Atom>();
-  // Store errors to avoid showing the same error many times.
-  private readonly ignoredError: Set<CompdbErrorKind> = new Set();
+type GeneratorFactory = (output: vscode.OutputChannel) => CompdbGenerator;
 
-  // Indicates CompilationDatabase activated clangd
-  // (it might have been already activated independently, in which case we will
-  // activate it again - not ideal, but not a problem either).
+export class CppCodeCompletion implements vscode.Disposable {
+  readonly output = vscode.window.createOutputChannel('CrOS IDE: C++ Support');
+
+  private readonly onDidMaybeGenerateEmitter = new vscode.EventEmitter<void>();
+  readonly onDidMaybeGenerate = this.onDidMaybeGenerateEmitter.event;
+
+  private readonly subscriptions: vscode.Disposable[] = [
+    this.output,
+    vscode.commands.registerCommand(SHOW_LOG_COMMAND.command, () =>
+      this.output.show()
+    ),
+    vscode.window.onDidChangeActiveTextEditor(async editor => {
+      if (editor?.document) {
+        await this.maybeGenerate(editor.document);
+        this.onDidMaybeGenerateEmitter.fire();
+      }
+    }),
+    vscode.workspace.onDidSaveTextDocument(async document => {
+      await this.maybeGenerate(document);
+      this.onDidMaybeGenerateEmitter.fire();
+    }),
+  ];
+
+  private readonly generators: CompdbGenerator[] = [];
+
+  private readonly jobManager = new commonUtil.JobManager<void>();
+  // Store errors to avoid showing the same error many times.
+  private readonly ignoredErrors = new Set<string>();
+
+  // Indicates clangd extension has been activated (it might have been already
+  // activated independently, in which case we will activate it again - not
+  // ideal, but not a problem either).
   private clangdActivated = false;
 
-  // Ensures that error message about no chroot is shown only once.
-  private noChrootHandled = false;
-
-  // Callbacks called after an event has been handled.
-  readonly onEventHandledForTesting = new Array<() => void>();
-
   constructor(
-    private readonly statusManager: bgTaskStatus.StatusManager,
-    private readonly packages: Packages,
-    private readonly log: vscode.OutputChannel,
-    private readonly compdbService: CompdbService,
-    private readonly chrootService: ChrootService
+    generatorFactories: GeneratorFactory[],
+    private readonly statusManager: bgTaskStatus.StatusManager
   ) {
-    this.disposables.push(
-      vscode.window.onDidChangeActiveTextEditor(async editor => {
-        if (editor?.document.languageId === 'cpp') {
-          await this.maybeGenerate(
-            editor.document,
-            /* skipIfAlreadyGenerated = */ true
-          );
-        }
-        this.onEventHandledForTesting.forEach(f => f());
-      })
-    );
-
-    // Update compilation database when a GN file is updated.
-    this.disposables.push(
-      vscode.workspace.onDidSaveTextDocument(async document => {
-        if (document.fileName.match(/\.gni?$/)) {
-          await this.maybeGenerate(document, false);
-        }
-        this.onEventHandledForTesting.forEach(f => f());
-      })
-    );
-
-    const document = vscode.window.activeTextEditor?.document;
-    if (document) {
-      void this.maybeGenerate(document, false);
+    for (const f of generatorFactories) {
+      const generator = f(this.output);
+      this.generators.push(generator);
+      this.subscriptions.push(generator);
     }
   }
 
   dispose() {
-    for (const d of this.disposables) {
-      d.dispose();
-    }
+    vscode.Disposable.from(...this.subscriptions).dispose();
   }
 
-  // Generate compilation database for clangd if needed.
-  private async maybeGenerate(
-    document: vscode.TextDocument,
-    skipIfAlreadyGenerated: boolean
-  ) {
+  private async maybeGenerate(document: vscode.TextDocument) {
+    const generators = [];
+    for (const g of this.generators) {
+      if (await g.shouldGenerate(document)) {
+        generators.push(g);
+      }
+    }
+    if (generators.length === 0) {
+      return;
+    }
+    if (generators.length > 1) {
+      const name = 'more than one compdb generators';
+      if (!this.ignoredErrors.has(name)) {
+        void vscode.window.showErrorMessage(
+          'Internal error: There are more than one compdb generators for document ' +
+            document.fileName
+        );
+        this.ignoredErrors.add(name);
+        // TODO(oka): send metrics.
+      }
+    }
     if (!(await this.ensureClangdIsActivated())) {
       return;
     }
-    const packageInfo = await this.packages.fromFilepath(document.fileName);
-    if (!packageInfo) {
-      return;
+    for (const g of generators) {
+      await this.generate(g, document);
     }
-    if (!this.shouldGenerate(packageInfo, skipIfAlreadyGenerated)) {
-      return;
-    }
-    if (!this.chrootService.chroot()) {
-      await this.handleNoChroot(document.fileName);
-      return;
-    }
-    const board = await this.board();
-    if (!board) {
-      return;
-    }
-
-    await this.generate(board, packageInfo);
   }
 
   private async ensureClangdIsActivated() {
@@ -156,80 +122,11 @@ export class CompilationDatabase implements vscode.Disposable {
     return true;
   }
 
-  private shouldGenerate(
-    packageInfo: PackageInfo,
-    skipIfAlreadyGenerated: boolean
-  ): boolean {
-    if (!skipIfAlreadyGenerated || !this.generated.has(packageInfo.atom)) {
-      return true;
-    }
-    const source = this.chrootService.source();
-    if (
-      source &&
-      !fs.existsSync(compdbService.destination(source.root, packageInfo))
-    ) {
-      return true;
-    }
-    return false;
-  }
-
-  private async handleNoChroot(fileName: string) {
-    if (this.noChrootHandled) {
-      return;
-    }
-    this.noChrootHandled = true;
-
-    // Send metrics before showing the message, because they don't seem
-    // to be sent if the user does not act on the message.
-    metrics.send({
-      category: 'background',
-      group: 'misc',
-      action: 'cpp xrefs generation without chroot',
-    });
-
-    // platform2 user may prefer subdirectories
-    const gitFolder = commonUtil.findGitDir(fileName);
-
-    const openGitFolder = gitFolder ? `Open ${gitFolder}` : undefined;
-    const openOtherFolder = gitFolder ? 'Open Other' : 'Open Folder';
-
-    const buttons = openGitFolder ? [openGitFolder] : [];
-    buttons.push(openOtherFolder);
-
-    const selection = await vscode.window.showErrorMessage(
-      'Generating C++ xrefs requires opening a folder with CrOS sources.',
-      ...buttons
-    );
-
-    if (selection === openOtherFolder) {
-      await vscode.commands.executeCommand('vscode.openFolder');
-    } else if (gitFolder && selection === openGitFolder) {
-      await vscode.commands.executeCommand(
-        'vscode.openFolder',
-        vscode.Uri.file(gitFolder)
-      );
-    }
-  }
-
-  private async board(): Promise<string | undefined> {
-    const chroot = this.chrootService.chroot();
-    if (chroot === undefined) {
-      return undefined;
-    }
-    const board = await ideUtil.getOrSelectTargetBoard(chroot);
-    if (board instanceof ideUtil.NoBoardError) {
-      await vscode.window.showErrorMessage(
-        `Generate compilation database: ${board.message}`
-      );
-      return undefined;
-    } else if (board === null) {
-      return undefined;
-    }
-    return board;
-  }
-
-  private async generate(board: string, packageInfo: PackageInfo) {
-    // Below, we create compilation database based on the project and the board.
+  private async generate(
+    generator: CompdbGenerator,
+    document: vscode.TextDocument
+  ) {
+    // Below, we create a compilation database.
     // Generating the database is time consuming involving execution of external
     // processes, so we ensure it to run only one at a time using the manager.
     await this.jobManager.offer(async () => {
@@ -237,35 +134,44 @@ export class CompilationDatabase implements vscode.Disposable {
         status: bgTaskStatus.TaskStatus.RUNNING,
         command: SHOW_LOG_COMMAND,
       });
+      const canceller = new vscode.CancellationTokenSource();
       try {
+        const action = `${generator.name}: generate compdb`;
         metrics.send({
           category: 'background',
           group: 'cppxrefs',
-          action: 'generate compdb',
+          action,
         });
-        await this.compdbService.generate(board, packageInfo);
+        // TODO(oka): Make the operation cancellable.
+        await generator.generate(document, canceller.token);
+        canceller.dispose();
         await vscode.commands.executeCommand('clangd.restart');
       } catch (e) {
-        if (e instanceof CompdbError) {
-          metrics.send({
-            category: 'error',
-            group: 'cppxrefs',
-            description: e.details.kind,
-          });
-          if (!this.ignoredError.has(e.details.kind)) {
-            this.showErrorMessageWithShowLogOption(board, e);
-          }
-        }
+        canceller.dispose();
 
-        this.log.appendLine((e as Error).message);
-        console.error(e);
+        const rawError = e as ErrorDetails;
+        const errorKind = `${generator.name}: ${rawError.kind}`;
+        if (this.ignoredErrors.has(errorKind)) {
+          return;
+        }
+        const error: ErrorDetails = new ErrorDetails(
+          errorKind,
+          rawError.message,
+          ...rawError.buttons
+        );
+        metrics.send({
+          category: 'error',
+          group: 'cppxrefs',
+          description: error.kind,
+        });
+        this.output.appendLine(error.message);
+        this.showErrorMessage(error);
         this.statusManager.setTask(STATUS_BAR_TASK_NAME, {
           status: bgTaskStatus.TaskStatus.ERROR,
           command: SHOW_LOG_COMMAND,
         });
         return;
       }
-      this.generated.add(packageInfo.atom);
       this.statusManager.setTask(STATUS_BAR_TASK_NAME, {
         status: bgTaskStatus.TaskStatus.OK,
         command: SHOW_LOG_COMMAND,
@@ -273,79 +179,32 @@ export class CompilationDatabase implements vscode.Disposable {
     });
   }
 
-  private showErrorMessageWithShowLogOption(board: string, e: CompdbError) {
+  showErrorMessage(error: ErrorDetails) {
     const SHOW_LOG = 'Show Log';
     const IGNORE = 'Ignore';
 
-    const {message, button} = uiItemsForError(board, e);
-    const buttons: string[] = (button ? [button.name] : []).concat(
-      SHOW_LOG,
-      IGNORE
-    );
+    const buttons = [];
+    for (const {label} of error.buttons) {
+      buttons.push(label);
+    }
+    buttons.concat(SHOW_LOG, IGNORE);
 
     // `await` cannot be used, because it blocks forever if the
-    // message is dismissed by timeout.
-    void vscode.window.showErrorMessage(message, ...buttons).then(value => {
-      if (button && value === button.name) {
-        button.action();
-      } else if (value === SHOW_LOG) {
-        this.log.show();
-      } else if (value === IGNORE) {
-        this.ignoredError.add(e.details.kind);
-      }
-    });
-  }
-}
-
-type Button = {
-  name: string;
-  action: () => void;
-};
-
-function uiItemsForError(
-  board: string,
-  e: CompdbError
-): {message: string; button?: Button} {
-  switch (e.details.kind) {
-    case CompdbErrorKind.RemoveCache:
-      return {
-        message: `Failed to generate cross reference; try removing the file ${e.details.cache} and reload the IDE`,
-      };
-      // TODO(oka): Add a button to open the terminal with the command to run.
-      break;
-    case CompdbErrorKind.RunEbuild: {
-      const buildPackages = `build_packages --board=${board}`;
-      return {
-        message: `Failed to generate cross reference; try running "${buildPackages}" in chroot and reload the IDE`,
-        button: {
-          name: 'Open document',
-          action: () => {
-            void vscode.env.openExternal(
-              vscode.Uri.parse(
-                'https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md#build-the-packages-for-your-board'
-              )
-            );
-          },
-        },
-      };
-    }
-    case CompdbErrorKind.NotGenerated:
-      return {
-        message:
-          'Failed to generate cross reference: compile_commands_chroot.json was not created; file a bug on go/cros-ide-new-bug',
-        button: {
-          name: 'File a bug',
-          action: () => {
-            void vscode.env.openExternal(
-              vscode.Uri.parse('http://go/cros-ide-new-bug')
-            );
-          },
-        },
-      };
-    case CompdbErrorKind.CopyFailed:
-      return {
-        message: `Failed to generate cross reference; try removing ${e.details.destination} and reload the IDE`,
-        // TODO(oka): Add a button to open the terminal with the command to run.
-      };
+    // message is dismissed due to timeout.
+    void vscode.window
+      .showErrorMessage(error.message, ...buttons)
+      .then(value => {
+        for (const {label, action} of error.buttons) {
+          if (label === value) {
+            action();
+            return;
+          }
+        }
+        if (value === SHOW_LOG) {
+          this.output.show();
+        } else if (value === IGNORE) {
+          this.ignoredErrors.add(error.kind);
+        }
+      });
   }
 }
