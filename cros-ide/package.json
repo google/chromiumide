@@ -414,6 +414,11 @@
           "description": "Enable display system log viewer (incomplete)",
           "default": false
         },
+        "cros-ide.underDevelopment.triciumSpellchecker": {
+          "type": "boolean",
+          "description": "Enable Tricium Spellchecker (b/217287367).",
+          "default": false
+        },
         "cros-ide.deviceManagement.devices": {
           "type": "array",
           "scope": "machine-overridable",
