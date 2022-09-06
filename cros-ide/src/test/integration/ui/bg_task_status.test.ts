@@ -39,13 +39,19 @@ describe('Background Task Status', () => {
   }
 
   let statusBarItem: vscode.StatusBarItem;
+  let progressItem: vscode.StatusBarItem;
   let statusManager: StatusManager;
   let statusTreeData: vscode.TreeDataProvider<TaskName>;
 
   beforeEach(() => {
     statusBarItem = vscode.window.createStatusBarItem();
     statusBarItem.show();
-    const statusBarHandler = new StatusBarHandler(statusBarItem);
+    // progressItem is a spy, because we need to track show() and hide()
+    progressItem = jasmine.createSpyObj<vscode.StatusBarItem>('progressItem', [
+      'show',
+      'hide',
+    ]);
+    const statusBarHandler = new StatusBarHandler(statusBarItem, progressItem);
     // We need an extra const , because there's no onChange in StatusManager.
     const sm = new StatusManagerImpl();
     sm.onChange(statusBarHandler.refresh.bind(statusBarHandler));
@@ -54,6 +60,11 @@ describe('Background Task Status', () => {
     statusManager = sm;
     statusTreeData = std;
   });
+
+  function expectProgress(times: {show: number; hide: number}) {
+    expect(progressItem.show).toHaveBeenCalledTimes(times.show);
+    expect(progressItem.hide).toHaveBeenCalledTimes(times.hide);
+  }
 
   afterEach(() => {
     statusBarItem.dispose();
@@ -79,16 +90,23 @@ describe('Background Task Status', () => {
   });
 
   it('shows abbreviated status of tasks (running -> errors -> warnings -> ok)', () => {
+    // When the status manager is created it triggers a refresh without any tasks
+    // and hides the progress bar.
+    expectProgress({show: 0, hide: 1});
+
     statusManager.setTask('running', {status: TaskStatus.RUNNING});
     statusManager.setTask('ok', {status: TaskStatus.OK});
     statusManager.setTask('error', {status: TaskStatus.ERROR});
     expect(statusBarItem).toEqual(
       jasmine.objectContaining({
-        text: '$(sync~spin) CrOS IDE',
+        text: '$(error) CrOS IDE',
         backgroundColor: errorBgColor,
-        tooltip: 'Running running',
+        tooltip: 'Errors: error',
       })
     );
+
+    expectProgress({show: 3, hide: 1});
+    expect(progressItem.text).toEqual('$(sync~spin) Running running...');
 
     statusManager.deleteTask('running');
     expect(statusBarItem).toEqual(
@@ -98,6 +116,7 @@ describe('Background Task Status', () => {
         tooltip: 'Errors: error',
       })
     );
+    expectProgress({show: 3, hide: 2});
 
     statusManager.deleteTask('error');
     expect(statusBarItem).toEqual(
@@ -107,6 +126,7 @@ describe('Background Task Status', () => {
         tooltip: 'No Problems',
       })
     );
+    expectProgress({show: 3, hide: 3});
 
     statusManager.deleteTask('ok');
     expect(statusBarItem).toEqual(
@@ -116,6 +136,7 @@ describe('Background Task Status', () => {
         tooltip: 'No Problems',
       })
     );
+    expectProgress({show: 3, hide: 4});
   });
 
   it('implements TreeDataProvider.getChildren()', () => {

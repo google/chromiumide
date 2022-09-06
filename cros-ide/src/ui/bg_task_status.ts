@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import * as ideUtil from '../ide_util';
 
 /**
- * Manages two UI elements showing task status: `StatusBarItem`, which is created here,
+ * Manages UI elements showing task status: two status bar items, which are created here,
  * and `cros-ide-status` view, which is defined in `package.json`.
  *
  * @returns `StatusManager` which allows other packages to create tasks with a status.
@@ -23,11 +23,17 @@ export function activate(context: vscode.ExtensionContext): StatusManager {
   );
   statusBarItem.command = 'cros-ide-status.focus';
   statusBarItem.show();
-  context.subscriptions.push(statusBarItem);
+
+  const progressItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left
+  );
+  progressItem.command = 'cros-ide-status.focus';
+
+  context.subscriptions.push(statusBarItem, progressItem);
 
   const statusManager = new StatusManagerImpl();
 
-  const statusBarHandler = new StatusBarHandler(statusBarItem);
+  const statusBarHandler = new StatusBarHandler(statusBarItem, progressItem);
   statusManager.onChange(statusBarHandler.refresh.bind(statusBarHandler));
 
   const statusTreeData = new StatusTreeData();
@@ -137,41 +143,42 @@ class StatusManagerImpl implements StatusManager {
 }
 
 class StatusBarHandler {
-  constructor(private readonly statusBarItem: vscode.StatusBarItem) {}
+  constructor(
+    private readonly statusBarItem: vscode.StatusBarItem,
+    private readonly progressItem: vscode.StatusBarItem
+  ) {}
 
   /**
-   * Adjusts appearance of the status bar based on status of tasks.
+   * Adjusts appearance of the status bar items based on status of tasks.
    *
-   * The background of the status bar item is determined by the presence of errors
-   * or warnings alone.
+   * The background of the main status bar item is determined by the presence of errors.
    *
-   * The icon is a spinning circle if some tasks are running. If nothing is running at the moment,
-   * then the icon is chosen based on the presence or lack of errors.
+   * If there are running tasks, then they are shown as a separate item
+   * with a spinner icon.
    */
   refresh(statusManagerImpl: StatusManagerImpl) {
-    let icon: string;
-    let background: vscode.ThemeColor | undefined;
-    let tooltip: string | undefined;
-
     const errorTasks = statusManagerImpl.getErrorTasks();
     if (errorTasks.length) {
-      icon = `$(${getIcon(TaskStatus.ERROR)})`;
-      background = new vscode.ThemeColor('statusBarItem.errorBackground');
-      tooltip = `Errors: ${errorTasks.sort().join(', ')}`;
+      this.statusBarItem.text = `$(${getIcon(TaskStatus.ERROR)}) CrOS IDE`;
+      this.statusBarItem.backgroundColor = new vscode.ThemeColor(
+        'statusBarItem.errorBackground'
+      );
+      this.statusBarItem.tooltip = `Errors: ${errorTasks.sort().join(', ')}`;
     } else {
-      icon = `$(${getIcon(TaskStatus.OK)})`;
-      background = undefined;
-      tooltip = 'No Problems';
+      this.statusBarItem.text = `$(${getIcon(TaskStatus.OK)}) CrOS IDE`;
+      this.statusBarItem.backgroundColor = undefined;
+      this.statusBarItem.tooltip = 'No Problems';
     }
-    this.statusBarItem.backgroundColor = background;
 
     const runningTasks = statusManagerImpl.getRunningTasks();
     if (runningTasks.length) {
-      icon = `$(${getIcon(TaskStatus.RUNNING)})`;
-      tooltip = `Running ${runningTasks.sort().join(', ')}`;
+      const icon = getIcon(TaskStatus.RUNNING);
+      const list = runningTasks.sort().join(', ');
+      this.progressItem.text = `$(${icon}) Running ${list}...`;
+      this.progressItem.show();
+    } else {
+      this.progressItem.hide();
     }
-    this.statusBarItem.text = `${icon} CrOS IDE`;
-    this.statusBarItem.tooltip = tooltip;
   }
 }
 
