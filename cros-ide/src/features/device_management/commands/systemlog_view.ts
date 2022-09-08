@@ -35,25 +35,30 @@ export async function openSystemLogViewer(
 
   const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), '/'));
   const textFile = 'syslog.txt';
+  const canceller = new vscode.CancellationTokenSource();
 
   const createSyslogCommand =
     shutil.escapeArray(
       sshUtil.buildSshCommand(hostname, context.extensionContext.extensionUri)
     ) +
-    ' cat /var/log/messages > ' +
+    ' tail -n+1 -F /var/log/messages > ' +
     tempDir +
     '/' +
     textFile;
 
   // TODO: Avoid going through sh.
-  const result = await commonUtil.exec('sh', ['-c', createSyslogCommand], {
+  const result = commonUtil.exec('sh', ['-c', createSyslogCommand], {
     logger: context.output,
+    cancellationToken: canceller.token,
   });
-  if (result instanceof Error) {
-    void vscode.window.showErrorMessage('Failed to get syslog: ${result}');
-    await fs.promises.rmdir(tempDir, {recursive: true});
-    return;
-  }
+
+  void (async () => {
+    const getError = await result;
+    if (getError instanceof Error) {
+      void vscode.window.showErrorMessage('Failed to get syslog: ${result}');
+      return;
+    }
+  })();
 
   const panel = vscode.window.createWebviewPanel(
     'systemLog',
@@ -73,6 +78,7 @@ export async function openSystemLogViewer(
 
   panel.onDidDispose(async () => {
     await fs.promises.rmdir(tempDir, {recursive: true});
+    canceller.cancel();
   });
 }
 

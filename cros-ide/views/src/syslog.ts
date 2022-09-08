@@ -5,13 +5,21 @@
 async function onReady(): Promise<void> {
   const container = document.getElementById('main')!;
   const syslogUrl = container.dataset.syslogUrl!;
-  const syslog = await getData(syslogUrl);
-  const syslogs = syslog.split(/\n/);
-  const arrayString: string[][] = [];
-  for (let i = 0; i < syslogs.length; i++) {
-    arrayString[i] = makeElement(syslogs[i]);
-  }
-  makeTable(arrayString, container);
+  setInterval(() => {
+    void (async () => {
+      try {
+        const syslog = await getData(syslogUrl);
+        const syslogs = syslog.split(/\n/);
+        const arrayString: string[][] = [];
+        for (let i = 0; i < syslogs.length; i++) {
+          arrayString[i] = makeElement(syslogs[i]);
+        }
+        makeTable(arrayString, container);
+      } catch (err) {
+        //If cannot get data, can pass through.
+      }
+    })();
+  }, 1000);
 }
 
 async function getData(url: string): Promise<string> {
