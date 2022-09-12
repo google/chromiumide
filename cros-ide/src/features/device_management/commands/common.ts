@@ -4,6 +4,7 @@
 
 import * as vscode from 'vscode';
 import * as chroot from '../../../services/chroot';
+import * as abandonedDevices from '../abandoned_devices';
 import * as crosfleet from '../crosfleet';
 import * as repository from '../device_repository';
 import * as provider from '../device_tree_data_provider';
@@ -22,6 +23,7 @@ export interface CommandContext {
   readonly crosfleetRunner: crosfleet.CrosfleetRunner;
   readonly vncSessions: Map<string, vnc.VncSession>;
   readonly sshSessions: Map<string, ssh.SshSession>;
+  readonly abandonedDevices: abandonedDevices.AbandonedDevices;
 }
 
 export async function promptNewHostname(

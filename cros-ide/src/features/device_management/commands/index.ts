@@ -4,6 +4,7 @@
 
 import * as vscode from 'vscode';
 import * as chroot from '../../../services/chroot';
+import * as abandonedDevices from '../abandoned_devices';
 import * as crosfleet from '../crosfleet';
 import * as repository from '../device_repository';
 import * as provider from '../device_tree_data_provider';
@@ -31,7 +32,8 @@ export function registerCommands(
   chrootService: chroot.ChrootService,
   output: vscode.OutputChannel,
   deviceRepository: repository.DeviceRepository,
-  crosfleetRunner: crosfleet.CrosfleetRunner
+  crosfleetRunner: crosfleet.CrosfleetRunner,
+  abandonedDevices: abandonedDevices.AbandonedDevices
 ): vscode.Disposable {
   const vncSessions = new Map<string, vnc.VncSession>();
   const sshSessions = new Map<string, ssh.SshSession>();
@@ -44,6 +46,7 @@ export function registerCommands(
     crosfleetRunner,
     vncSessions,
     sshSessions,
+    abandonedDevices,
   };
 
   return vscode.Disposable.from(

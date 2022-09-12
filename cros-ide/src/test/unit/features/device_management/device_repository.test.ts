@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'jasmine';
+import * as abandonedDevices from '../../../../features/device_management/abandoned_devices';
 import * as crosfleet from '../../../../features/device_management/crosfleet';
 import * as repository from '../../../../features/device_management/device_repository';
 import * as config from '../../../../services/config';
@@ -87,13 +88,16 @@ describe('Leased device repository', () => {
   const fakeCrosfleet = fakes.installFakeCrosfleet(fakeExec, cipdRepository);
 
   const state = testing.cleanState(() => {
+    const abandonedDuts = new abandonedDevices.AbandonedDevices();
     const leasedDeviceRepository = new repository.LeasedDeviceRepository(
       new crosfleet.CrosfleetRunner(
         cipdRepository,
         new fakes.VoidOutputChannel()
-      )
+      ),
+      abandonedDuts
     );
     return {
+      abandonedDevices: abandonedDuts,
       leasedDeviceRepository,
     };
   });
@@ -137,6 +141,40 @@ describe('Leased device repository', () => {
         model: 'model3',
         deadline: new Date('2000-01-01T00:03:00Z'),
       },
+      {
+        category: repository.DeviceCategory.LEASED,
+        hostname: 'cros444',
+        board: 'board4',
+        model: 'model4',
+        deadline: new Date('2000-01-01T00:04:00Z'),
+      },
+    ]);
+  });
+
+  it('skips devices that were abandoned', async () => {
+    // Set fake leases.
+    fakeCrosfleet.setLeases([
+      {
+        hostname: 'cros333',
+        board: 'board3',
+        model: 'model3',
+        deadline: new Date('2000-01-01T00:03:00Z'),
+      },
+      {
+        hostname: 'cros444',
+        board: 'board4',
+        model: 'model4',
+        deadline: new Date('2000-01-01T00:04:00Z'),
+      },
+    ]);
+
+    await state.abandonedDevices.insert('cros333');
+    await state.abandonedDevices.insert('cros555');
+
+    state.leasedDeviceRepository.refresh();
+
+    // getDevices returns two devices.
+    expect(await state.leasedDeviceRepository.getDevices()).toEqual([
       {
         category: repository.DeviceCategory.LEASED,
         hostname: 'cros444',
@@ -252,7 +290,8 @@ describe('Device repository', () => {
       new crosfleet.CrosfleetRunner(
         cipdRepository,
         new fakes.VoidOutputChannel()
-      )
+      ),
+      new abandonedDevices.AbandonedDevices()
     );
     return {
       deviceRepository,

@@ -5,6 +5,7 @@
 import * as vscode from 'vscode';
 import * as dateFns from 'date-fns';
 import * as config from '../../services/config';
+import * as abandonedDevices from './abandoned_devices';
 import * as crosfleet from './crosfleet';
 
 // Represents the type of a device.
@@ -104,7 +105,10 @@ export class LeasedDeviceRepository implements vscode.Disposable {
   private cachedDevices: Promise<LeasedDevice[]> | undefined = undefined;
   private refreshTimer: vscode.Disposable | undefined = undefined;
 
-  constructor(private readonly crosfleetRunner: crosfleet.CrosfleetRunner) {
+  constructor(
+    private readonly crosfleetRunner: crosfleet.CrosfleetRunner,
+    private readonly abandonedDevice: abandonedDevices.AbandonedDevices
+  ) {
     this.subscriptions.push(
       crosfleetRunner.onDidChange(() => {
         this.refresh();
@@ -148,13 +152,16 @@ export class LeasedDeviceRepository implements vscode.Disposable {
     }
 
     const leases = await this.crosfleetRunner.listLeases();
-    return leases.map(l => ({
+    const abandonedLeases = await this.abandonedDevice.fetch();
+
+    const allDevices: LeasedDevice[] = leases.map(l => ({
       category: DeviceCategory.LEASED,
       hostname: l.hostname,
       board: l.board,
       model: l.model,
       deadline: l.deadline,
     }));
+    return allDevices.filter(ld => !abandonedLeases.includes(ld.hostname));
   }
 
   private async refreshOnEarliestDeadline(
@@ -211,9 +218,12 @@ export class DeviceRepository {
   readonly owned: OwnedDeviceRepository;
   readonly leased: LeasedDeviceRepository;
 
-  constructor(crosfleetRunner: crosfleet.CrosfleetRunner) {
+  constructor(
+    crosfleetRunner: crosfleet.CrosfleetRunner,
+    abandonedDevices: abandonedDevices.AbandonedDevices
+  ) {
     this.owned = new OwnedDeviceRepository();
-    this.leased = new LeasedDeviceRepository(crosfleetRunner);
+    this.leased = new LeasedDeviceRepository(crosfleetRunner, abandonedDevices);
 
     this.subscriptions.push(this.owned, this.leased);
 

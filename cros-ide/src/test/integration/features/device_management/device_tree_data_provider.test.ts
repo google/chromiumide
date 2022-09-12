@@ -4,13 +4,14 @@
 
 import 'jasmine';
 import * as vscode from 'vscode';
+import * as abandonedDevices from '../../../../features/device_management/abandoned_devices';
 import * as crosfleet from '../../../../features/device_management/crosfleet';
 import * as repository from '../../../../features/device_management/device_repository';
 import * as provider from '../../../../features/device_management/device_tree_data_provider';
 import * as config from '../../../../services/config';
 import * as testing from '../../../testing';
-import * as doubles from '../../doubles';
 import * as fakes from '../../../testing/fakes';
+import * as doubles from '../../doubles';
 
 interface RenderedTreeNode {
   item: vscode.TreeItem;
@@ -56,7 +57,8 @@ xdescribe('Device tree data provider', () => {
       new crosfleet.CrosfleetRunner(
         cipdRepository,
         new fakes.VoidOutputChannel()
-      )
+      ),
+      new abandonedDevices.AbandonedDevices()
     );
     const deviceTreeDataProvider = new provider.DeviceTreeDataProvider(
       deviceRepository

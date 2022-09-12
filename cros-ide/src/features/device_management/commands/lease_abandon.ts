@@ -42,6 +42,8 @@ export async function abandonLease(
         title: `Abandoning ${hostname}...`,
       },
       async (_progress, token) => {
+        // Register DUT as abandoned first, so it disappears for sure.
+        await context.abandonedDevices.insert(hostname);
         await context.crosfleetRunner.abandonLease(hostname, token);
       }
     );
