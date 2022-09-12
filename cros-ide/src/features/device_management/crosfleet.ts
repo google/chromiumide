@@ -153,6 +153,24 @@ export class CrosfleetRunner {
 
     this.onDidChangeEmitter.fire();
   }
+
+  /**
+   * Abandon a device.
+   *
+   * Abandoning a device is an asynchronous operation, so `crosflee dut leases`
+   * will return it for a few minutes after this operation finishes.
+   */
+  async abandonLease(
+    hostname: string,
+    token?: vscode.CancellationToken
+  ): Promise<void> {
+    const result = await this.exec(['dut', 'abandon', hostname], token);
+    if (result instanceof Error) {
+      throw result;
+    }
+
+    this.onDidChangeEmitter.fire();
+  }
 }
 
 /**

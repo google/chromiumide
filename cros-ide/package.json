@@ -30,6 +30,7 @@
     "onCommand:cros-ide.deviceManagement.crosfleetLogin",
     "onCommand:cros-ide.deviceManagement.refreshLeases",
     "onCommand:cros-ide.deviceManagement.addLease",
+    "onCommand:cros-ide.deviceManagement.abandonLease",
     "onCommand:cros-ide.deviceManagement.copyHostname",
     "onCommand:cros-ide.deviceManagement.runTastTests",
     "onCommand:cros-ide.refreshBoardsPackages",
@@ -107,6 +108,13 @@
         "category": "CrOS",
         "title": "Lease a Device",
         "icon": "$(add)"
+      },
+      {
+        "command": "cros-ide.deviceManagement.abandonLease",
+        "category": "CrOS",
+        "title": "Abandon the Device",
+        "icon": "$(close)",
+        "enablement": "config.cros-ide.underDevelopment.deviceManagement"
       },
       {
         "command": "cros-ide.deviceManagement.copyHostname",
@@ -303,6 +311,16 @@
           "command": "cros-ide.deviceManagement.addLease",
           "when": "view == devices && viewItem == category-leased",
           "group": "inline@1"
+        },
+        {
+          "command": "cros-ide.deviceManagement.abandonLease",
+          "when": "view == devices && viewItem == device-leased && config.cros-ide.underDevelopment.deviceManagement",
+          "group": "inline@9"
+        },
+        {
+          "command": "cros-ide.deviceManagement.abandonLease",
+          "when": "view == devices && viewItem == device-leased && config.cros-ide.underDevelopment.deviceManagement",
+          "group": "9_delete"
         },
         {
           "command": "cros-ide.deviceManagement.refreshLeases",
