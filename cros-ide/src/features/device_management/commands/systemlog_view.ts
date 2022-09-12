@@ -1,4 +1,4 @@
-// Copyright 2022 The ChromiumOS Authors.
+// Copyright 2022 The ChromiumOS Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -57,7 +57,7 @@ export async function openSystemLogViewer(
 
   const panel = vscode.window.createWebviewPanel(
     'systemLog',
-    'System Log: ${hostname}',
+    `System Log: ${hostname}`,
     vscode.ViewColumn.One,
     {
       localResourceRoots: [
