@@ -5,6 +5,13 @@
 async function onReady(): Promise<void> {
   const container = document.getElementById('main')!;
   const syslogUrl = container.dataset.syslogUrl!;
+  const syslog = await getData(syslogUrl);
+  const syslogs = syslog.split(/\n/);
+  const arrayString: string[][] = [];
+  for (let i = 0; i < syslogs.length; i++) {
+    arrayString[i] = makeElement(syslogs[i]);
+  }
+  makeTable(arrayString, container);
   setInterval(() => {
     void (async () => {
       try {
@@ -14,12 +21,39 @@ async function onReady(): Promise<void> {
         for (let i = 0; i < syslogs.length; i++) {
           arrayString[i] = makeElement(syslogs[i]);
         }
-        makeTable(arrayString, container);
+        displayTable(arrayString, container);
       } catch (err) {
         //If cannot get data, can pass through.
       }
     })();
   }, 1000);
+}
+
+function displayTable(arrayString: string[][], container: HTMLElement): void {
+  const filterWord = (document.getElementById('filter')! as HTMLInputElement)
+    .value;
+  if (filterWord !== '') {
+    arrayString = searchFilterWord(arrayString, filterWord);
+  }
+  container.removeChild(container.childNodes[0]);
+  makeTable(arrayString, container);
+}
+
+function searchFilterWord(
+  arrayString: string[][],
+  filterWord: string
+): string[][] {
+  const filteredArrayString: string[][] = [];
+  for (const line of arrayString) {
+    for (const item of line) {
+      const result = item.indexOf(filterWord);
+      if (result !== -1) {
+        filteredArrayString.push(line);
+        break;
+      }
+    }
+  }
+  return filteredArrayString;
 }
 
 async function getData(url: string): Promise<string> {
@@ -70,6 +104,7 @@ function colorLogs(line: string[], row: HTMLTableRowElement): void {
     row.style.border = '1px solid red';
   }
 }
+
 void (async () => {
   try {
     await onReady();
