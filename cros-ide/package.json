@@ -469,7 +469,7 @@
         "cros-ide.underDevelopment.newFileTemplate": {
           "type": "boolean",
           "description": "Enable template insertion for a new file",
-          "default": false
+          "default": true
         },
         "cros-ide.deviceManagement.devices": {
           "type": "array",
