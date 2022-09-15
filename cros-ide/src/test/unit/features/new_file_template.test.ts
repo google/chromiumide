@@ -12,6 +12,10 @@ describe('New file template', () => {
       /\/\/ Copyright \d+ The ChromiumOS Authors\n/
     );
 
+    expect(textToInsert('python')).toMatch(
+      /# Copyright \d+ The ChromiumOS Authors\n/
+    );
+
     expect(textToInsert('unknown')).toBeUndefined();
   });
 });
