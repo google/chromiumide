@@ -8,7 +8,6 @@
  * Keep this minimal - breakout GUI and App-Behavior to separate files.
  */
 import * as vscode from 'vscode';
-import * as checkUpdates from './check_updates';
 import * as cipd from './common/cipd';
 import * as commonUtil from './common/common_util';
 import * as boardsPackages from './features/boards_packages';
@@ -131,13 +130,6 @@ async function postMetricsActivate(
 
   if (config.underDevelopment.newFileTemplate.get()) {
     context.subscriptions.push(new newFileTemplate.NewFileTemplate());
-  }
-
-  // Avoid network operations in tests.
-  if (context.extensionMode !== vscode.ExtensionMode.Test) {
-    // Start checking for updates. The process will run in the background
-    // allowing the extension start without waiting.
-    checkUpdates.run();
   }
 
   metrics.send({
