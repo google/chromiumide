@@ -17,6 +17,8 @@ const defaultInstallDir = path.join(os.homedir(), '.cache/cros-ide/cipd');
  * get its file path.
  */
 export class CipdRepository {
+  private readonly cipdMutex = new commonUtil.Mutex();
+
   constructor(public readonly installDir = defaultInstallDir) {}
 
   private async ensurePackage(
@@ -24,16 +26,18 @@ export class CipdRepository {
     version: string,
     output: vscode.OutputChannel
   ): Promise<void> {
-    const result = await commonUtil.exec(
-      'cipd',
-      ['install', '-root', this.installDir, packageName, version],
-      {
-        logger: output,
+    await this.cipdMutex.runExclusive(async () => {
+      const result = await commonUtil.exec(
+        'cipd',
+        ['install', '-root', this.installDir, packageName, version],
+        {
+          logger: output,
+        }
+      );
+      if (result instanceof Error) {
+        throw result;
       }
-    );
-    if (result instanceof Error) {
-      throw result;
-    }
+    });
   }
 
   async ensureCrosfleet(output: vscode.OutputChannel): Promise<string> {

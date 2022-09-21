@@ -268,3 +268,83 @@ describe('getGitDir', () => {
     ).toBeUndefined();
   });
 });
+
+async function increnemtCount(filepath: string) {
+  const i = Number(await fs.promises.readFile(filepath, 'utf8'));
+  await fs.promises.writeFile(filepath, `${i + 1}`, 'utf8');
+}
+
+describe('Mutex', () => {
+  it('runs jobs sequentically', async () => {
+    const m = new commonUtil.Mutex();
+
+    const b1 = await testing.BlockingPromise.new('1');
+    const b2 = await testing.BlockingPromise.new(2);
+
+    let counter = 0;
+    const either = await testing.BlockingPromise.new(undefined);
+
+    const p1 = m.runExclusive(async () => {
+      counter += 1;
+      either.unblock();
+      return await b1.promise;
+    });
+    const p2 = m.runExclusive(async () => {
+      counter += 1;
+      either.unblock();
+      return await b2.promise;
+    });
+
+    await either.promise;
+
+    expect(counter).toBe(1);
+
+    b1.unblock();
+    b2.unblock();
+
+    await expectAsync(p1).toBeResolvedTo('1');
+    await expectAsync(p2).toBeResolvedTo(2);
+
+    expect(counter).toBe(2);
+  });
+
+  it('rejects if the job rejects', async () => {
+    const m = new commonUtil.Mutex();
+
+    await expectAsync(
+      m.runExclusive(async () => {
+        throw new Error('foo');
+      })
+    ).toBeRejectedWithError('foo');
+  });
+
+  const tempDir = testing.tempDir();
+  it('allows to update the same file', async () => {
+    const n = 10;
+
+    const file = path.join(tempDir.path, 'num.txt');
+    await fs.promises.writeFile(file, '0', 'utf8');
+
+    // Demonstrates updating a file concurrently fails.
+    const unguardedPromises = [];
+    for (let i = 0; i < n; i++) {
+      unguardedPromises.push(increnemtCount(file));
+    }
+    await Promise.all(unguardedPromises);
+    await expectAsync(fs.promises.readFile(file, 'utf8')).not.toBeResolvedTo(
+      '' + n
+    );
+
+    // Updating a file works as expected if guarded by a mutex.
+    await fs.promises.writeFile(file, '0', 'utf8');
+    const m = new commonUtil.Mutex();
+    const guardedPromises = [];
+    for (let i = 0; i < n; i++) {
+      guardedPromises.push(m.runExclusive(() => increnemtCount(file)));
+    }
+    await Promise.all(guardedPromises);
+    await expectAsync(fs.promises.readFile(file, 'utf8')).toBeResolvedTo(
+      '' + n
+    );
+  });
+});
