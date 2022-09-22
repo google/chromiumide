@@ -2,9 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as path from 'path';
 import * as vscode from 'vscode';
 import * as cipd from '../../../common/cipd';
+import * as commonUtil from '../../../common/common_util';
 import * as chroot from '../../../services/chroot';
+import * as config from '../../../services/config';
 import * as bgTaskStatus from '../../../ui/bg_task_status';
 import * as metrics from '../../metrics/metrics';
 import * as tricium from '../tricium';
@@ -53,10 +56,9 @@ export async function activate(
 
   const spellchecker = new Spellchecker(
     context,
-    triciumSpellchecker,
+    new executor.Executor(triciumSpellchecker, outputChannel),
     statusManager,
-    chrootService,
-    outputChannel
+    chrootService
   );
   spellchecker.subscribeToDocumentChanges(context);
 
@@ -74,6 +76,7 @@ const DIAGNOSTIC_CODE = 'tricium-spellchecker';
 
 class SpellcheckerDiagnostic extends vscode.Diagnostic {
   replacements: string[];
+  path?: string;
 
   constructor(range: vscode.Range, message: string) {
     super(range, message, vscode.DiagnosticSeverity.Information);
@@ -83,14 +86,13 @@ class SpellcheckerDiagnostic extends vscode.Diagnostic {
 }
 
 class Spellchecker {
-  readonly diagnosticCollection: vscode.DiagnosticCollection;
+  private readonly diagnosticCollection: vscode.DiagnosticCollection;
 
   constructor(
     context: vscode.ExtensionContext,
-    readonly toolPath: string,
-    readonly statusManager: bgTaskStatus.StatusManager,
-    readonly chrootService: chroot.ChrootService,
-    readonly outputChannel: vscode.OutputChannel
+    private readonly executor: executor.Executor,
+    private readonly statusManager: bgTaskStatus.StatusManager,
+    private readonly chrootService: chroot.ChrootService
   ) {
     this.diagnosticCollection =
       vscode.languages.createDiagnosticCollection('spellchecker');
@@ -100,17 +102,24 @@ class Spellchecker {
   /** Attach spellchecker to editor events. */
   subscribeToDocumentChanges(context: vscode.ExtensionContext): void {
     if (vscode.window.activeTextEditor) {
-      void this.refreshDiagnostics(vscode.window.activeTextEditor.document);
+      void this.refreshFileDiagnostics(vscode.window.activeTextEditor.document);
     }
     context.subscriptions.push(
-      vscode.workspace.onDidOpenTextDocument(
-        doc => void this.refreshDiagnostics(doc)
-      )
+      vscode.workspace.onDidOpenTextDocument(doc => {
+        void this.refreshFileDiagnostics(doc);
+        // The code below triggers spellchecker on the commit message for manually testing
+        // the feature during development.
+        //
+        // TODO(b:217287367): Check commit message when .git/HEAD changes.
+        if (config.underDevelopment.triciumSpellcheckerForCommitMessage.get()) {
+          void this.refreshCommitMessageDiagnostics(doc);
+        }
+      })
     );
 
     context.subscriptions.push(
       vscode.workspace.onDidSaveTextDocument(doc =>
-        this.refreshDiagnostics(doc)
+        this.refreshFileDiagnostics(doc)
       )
     );
 
@@ -119,8 +128,45 @@ class Spellchecker {
     );
   }
 
-  /** Execute Tricium binary and refreshes diagnostics for the document. */
-  private async refreshDiagnostics(doc: vscode.TextDocument): Promise<void> {
+  /** Execute Tricium binary and refresh diagnostics for the commit message. */
+  private async refreshCommitMessageDiagnostics(
+    doc: vscode.TextDocument
+  ): Promise<void> {
+    if (doc.uri.scheme !== 'file') {
+      return;
+    }
+
+    const dir = path.dirname(doc.uri.fsPath);
+    // TODO(b:217287367): Share logic with git_document.ts instead of just
+    // running the same command (requires improvement to avoid caching 'HEAD').
+    const result = await commonUtil.exec(
+      'git',
+      ['log', '--format=%B', '-n', '1', 'HEAD'],
+      {
+        cwd: dir,
+      }
+    );
+
+    // TODO(b:217287367): Handle errors instead of ignoring them.
+    if (result instanceof Error) {
+      return;
+    }
+    const commitMessage = result.stdout;
+
+    const gitUri = vscode.Uri.from({
+      scheme: 'gitmsg',
+      path: path.join(dir, 'COMMIT MESSAGE'),
+      query: 'HEAD',
+    });
+
+    const results = await this.executor.checkCommitMessage(commitMessage);
+    return this.refreshDiagnostics(gitUri, results);
+  }
+
+  /** Execute Tricium binary and refreshe diagnostics for the document. */
+  private async refreshFileDiagnostics(
+    doc: vscode.TextDocument
+  ): Promise<void> {
     if (doc.uri.scheme !== 'file') {
       return;
     }
@@ -131,13 +177,14 @@ class Spellchecker {
     }
 
     // TODO(b:217287367): Cancel the operation if the active editor changes.
-    const results = await executor.callSpellchecker(
-      sourceRoot,
-      doc.uri.fsPath,
-      this.toolPath,
-      this.outputChannel
-    );
+    const results = await this.executor.checkFile(sourceRoot, doc.uri.fsPath);
+    return this.refreshDiagnostics(doc.uri, results);
+  }
 
+  private async refreshDiagnostics(
+    uri: vscode.Uri,
+    results: tricium.Results | Error
+  ): Promise<void> {
     if (results instanceof Error) {
       this.setStatus(bgTaskStatus.TaskStatus.ERROR);
       metrics.send({
@@ -179,8 +226,7 @@ class Spellchecker {
         value: diagnostics.length,
       });
     }
-
-    this.diagnosticCollection.set(doc.uri, diagnostics);
+    this.diagnosticCollection.set(uri, diagnostics);
     this.setStatus(bgTaskStatus.TaskStatus.OK);
   }
 

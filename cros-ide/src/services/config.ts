@@ -74,6 +74,9 @@ export const underDevelopment = {
   triciumSpellchecker: new ConfigValue<boolean>(
     'underDevelopment.triciumSpellchecker'
   ),
+  triciumSpellcheckerForCommitMessage: new ConfigValue<boolean>(
+    'underDevelopment.triciumSpellcheckerForCommitMessage'
+  ),
   systemLogViewer: new ConfigValue<boolean>('underDevelopment.systemLogViewer'),
   platformEc: new ConfigValue<boolean>('underDevelopment.platformEC'),
   newFileTemplate: new ConfigValue<boolean>('underDevelopment.newFileTemplate'),

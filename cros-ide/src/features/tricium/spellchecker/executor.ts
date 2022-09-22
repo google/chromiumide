@@ -9,35 +9,54 @@ import * as vscode from 'vscode';
 import * as commonUtil from '../../../common/common_util';
 import * as tricium from '../tricium';
 
-/** Calls Tricium spellchecker for the input file and returns the result. */
-export async function callSpellchecker(
-  sourceRoot: string,
-  inputPath: string,
-  toolPath: string,
-  outputChannel: vscode.OutputChannel
-): Promise<tricium.Results | Error> {
-  // Build a directory in Tricium input format
-  const pathController = await TmpFs.create(sourceRoot, inputPath);
+/**
+ * Calls Tricium spellchecker for the input file or commitMessage
+ * and returns the result.
+ */
+export class Executor {
+  constructor(
+    private readonly toolPath: string,
+    private readonly outputChannel: vscode.OutputChannel
+  ) {}
 
-  const [inputDir, outputDir] = pathController.intputOutputDirs();
-  const res = await commonUtil.exec(
-    toolPath,
-    [`--input=${inputDir}`, `--output=${outputDir}`],
-    {
-      logStdout: true,
-      cwd: path.dirname(toolPath),
-      logger: outputChannel,
-    }
-  );
-
-  if (res instanceof Error) {
-    await pathController.removeDirTree();
-    return res;
+  async checkFile(
+    sourceRoot: string,
+    path: string
+  ): Promise<tricium.Results | Error> {
+    const pathController = await TmpFs.create({file: {sourceRoot, path}});
+    return this.callSpellchecker(pathController);
   }
 
-  const output = await pathController.readOutput();
-  await pathController.removeDirTree();
-  return JSON.parse(output);
+  async checkCommitMessage(
+    commitMessage: string
+  ): Promise<tricium.Results | Error> {
+    const pathController = await TmpFs.create({commitMessage});
+    return this.callSpellchecker(pathController);
+  }
+
+  private async callSpellchecker(
+    pathController: TmpFs
+  ): Promise<tricium.Results | Error> {
+    const [inputDir, outputDir] = pathController.intputOutputDirs();
+    const res = await commonUtil.exec(
+      this.toolPath,
+      [`--input=${inputDir}`, `--output=${outputDir}`],
+      {
+        logStdout: true,
+        cwd: path.dirname(this.toolPath),
+        logger: this.outputChannel,
+      }
+    );
+
+    if (res instanceof Error) {
+      await pathController.removeDirTree();
+      return res;
+    }
+
+    const output = await pathController.readOutput();
+    await pathController.removeDirTree();
+    return JSON.parse(output);
+  }
 }
 
 /** Manages paths and files used to communicate with Tricium. */
@@ -47,10 +66,13 @@ class TmpFs {
     private readonly triciumOutputDir: string
   ) {}
 
-  static async create(
-    sourceRoot: string,
-    inputFilePath: string
-  ): Promise<TmpFs> {
+  static async create(input: {
+    file?: {
+      sourceRoot: string;
+      path: string;
+    };
+    commitMessage?: string;
+  }): Promise<TmpFs> {
     // Create a temporary directory for communicating with the spellchecker.
     const tmpDir = await fs.promises.mkdtemp(
       path.join(os.tmpdir(), 'tricium-')
@@ -62,16 +84,28 @@ class TmpFs {
       recursive: true,
     });
 
-    // Source files need to be relative to the TMPDIR, so we are creating
-    // a symlink to real sources and use "fake" paths in files.json.
-    await fs.promises.symlink(sourceRoot, path.join(tmpDir, 'source'));
+    let files: tricium.File[] | undefined;
 
-    const fakePath = path.join(
-      '/source',
-      inputFilePath.substring(sourceRoot.length)
-    );
-    const filesJsonData = {
-      files: [{path: fakePath}],
+    if (input.file) {
+      // Source files need to be relative to the TMPDIR, so we are creating
+      // a symlink to real sources and use "fake" paths in files.json.
+      await fs.promises.symlink(
+        input.file.sourceRoot,
+        path.join(tmpDir, 'source')
+      );
+
+      const fakePath = path.join(
+        '/source',
+        input.file.path.substring(input.file.sourceRoot.length)
+      );
+
+      files = [{path: fakePath}];
+    }
+
+    // This will be read by https://source.chromium.org/chromium/infra/infra/+/main:go/src/infra/tricium/functions/spellchecker/spellchecker.go
+    const filesJsonData: tricium.DataFiles = {
+      files,
+      commit_message: input.commitMessage,
     };
     await fs.promises.writeFile(
       triciumInputFile,

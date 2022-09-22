@@ -14,7 +14,8 @@ export type Results = {
 export type Comment = {
   category: string;
   message: string;
-  path: string;
+  /** Not set for the commit message. */
+  path?: string;
   /** 1-based, inclusive. */
   startLine?: number;
   /** 1-based, inclusive. */
@@ -38,4 +39,14 @@ export type Replacement = {
   endLine: number;
   startChar: number;
   endChar: number;
+};
+
+/** Represents `Files` in data.proto. */
+export type DataFiles = {
+  files?: File[];
+  commit_message?: string;
+};
+
+export type File = {
+  path: string;
 };

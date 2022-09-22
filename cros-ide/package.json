@@ -460,6 +460,11 @@
           "description": "Enable Tricium Spellchecker (b/217287367).",
           "default": true
         },
+        "cros-ide.underDevelopment.triciumSpellcheckerForCommitMessage": {
+          "type": "boolean",
+          "description": "Spell check commit message (under development)",
+          "default": false
+        },
         "cros-ide.underDevelopment.platformEC": {
           "type": "boolean",
           "description": "Enable Platform EC support (under development)",
