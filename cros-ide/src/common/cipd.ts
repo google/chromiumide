@@ -87,6 +87,7 @@ export class CipdRepository {
         ['install', '-root', this.installDir, packageName, version],
         {
           logger: output,
+          logStdout: true,
           env,
         }
       );

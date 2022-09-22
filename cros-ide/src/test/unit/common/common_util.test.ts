@@ -351,3 +351,53 @@ describe('Mutex', () => {
     );
   });
 });
+
+describe('CacheOnSuccess', () => {
+  it('makes one on call on success', async () => {
+    let callCounter = 0;
+    const cacheOnSuccess = new commonUtil.CacheOnSuccess(async () => {
+      callCounter += 1;
+      return 'ok';
+    });
+
+    expect(await cacheOnSuccess.getOrThrow()).toEqual('ok');
+    expect(await cacheOnSuccess.getOrThrow()).toEqual('ok');
+    expect(callCounter).toEqual(1);
+  });
+
+  it('makes one retry on error', async () => {
+    let doThrow = true;
+    let callCounter = 0;
+
+    const cacheOnSuccess = new commonUtil.CacheOnSuccess(async () => {
+      callCounter += 1;
+      if (doThrow) {
+        throw new Error('testing retries');
+      }
+      return 'ok';
+    });
+
+    await expectAsync(cacheOnSuccess.getOrThrow()).toBeRejected();
+    doThrow = false;
+    await expectAsync(cacheOnSuccess.getOrThrow()).toBeResolvedTo('ok');
+    await expectAsync(cacheOnSuccess.getOrThrow()).toBeResolvedTo('ok');
+    expect(callCounter).toEqual(2);
+  });
+
+  it('reuses promises', async () => {
+    let promiseCount = 0;
+
+    const cacheOnSuccess = new commonUtil.CacheOnSuccess(async () => {
+      promiseCount += 1;
+      return 'ok';
+    });
+
+    const p1 = cacheOnSuccess.getOrThrow();
+    const p2 = cacheOnSuccess.getOrThrow();
+
+    await expectAsync(p1).toBeResolvedTo('ok');
+    await expectAsync(p2).toBeResolvedTo('ok');
+
+    expect(promiseCount).toEqual(1);
+  });
+});

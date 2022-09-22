@@ -89,32 +89,25 @@ export class CrosfleetRunner {
     this.onDidChangeEmitter,
   ];
 
-  // Caches the result of CipdRepository.ensureCrosfleet().
-  private executablePathPromise: Promise<string> | undefined = undefined;
+  /**
+   * File path to crosfleet CLI.
+   *
+   * Wrapping the code in CacheOnSuccess ensures that we avoid repeatedly
+   * downloading the tool, while allowing for retries on error.
+   */
+  private executablePath: commonUtil.CacheOnSuccess<string>;
 
   constructor(
     private readonly cipdRepository: cipd.CipdRepository,
     private readonly output: vscode.OutputChannel
-  ) {}
+  ) {
+    this.executablePath = new commonUtil.CacheOnSuccess(() =>
+      this.cipdRepository.ensureCrosfleet(this.output)
+    );
+  }
 
   dispose(): void {
     vscode.Disposable.from(...this.subscriptions).dispose();
-  }
-
-  /**
-   * Ensures the latest crosfleet CLI is downloaded and installed, and
-   * returns its file path.
-   *
-   * This method returns the same promise throughout the lifetime of
-   * CrosfleetRunner to avoid running the crosfleet CLI repeatedly.
-   */
-  private ensureExecutable(): Promise<string> {
-    if (this.executablePathPromise === undefined) {
-      this.executablePathPromise = this.cipdRepository.ensureCrosfleet(
-        this.output
-      );
-    }
-    return this.executablePathPromise;
   }
 
   /**
@@ -124,7 +117,7 @@ export class CrosfleetRunner {
     args: string[],
     token?: vscode.CancellationToken
   ): ReturnType<typeof commonUtil.exec> {
-    const executablePath = await this.ensureExecutable();
+    const executablePath = await this.executablePath.getOrThrow();
     return await commonUtil.exec(executablePath, args, {
       logger: this.output,
       cancellationToken: token,
@@ -149,7 +142,7 @@ export class CrosfleetRunner {
    * Performs the login to the crosfleet CLI by starting a terminal.
    */
   async login(): Promise<void> {
-    const executablePath = await this.ensureExecutable();
+    const executablePath = await this.executablePath.getOrThrow();
     const exitStatus = await runInTerminal(executablePath, ['login'], {
       name: 'crosfleet login',
     });

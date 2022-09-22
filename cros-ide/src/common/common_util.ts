@@ -444,3 +444,32 @@ export class Mutex<T> {
     }
   }
 }
+
+/**
+ * Utility which caches results of operations that complete successfully,
+ * but retires on failures.
+ */
+export class CacheOnSuccess<T> {
+  value: T | undefined;
+  promise: Promise<T> | undefined;
+
+  constructor(private readonly job: () => Promise<T>) {}
+
+  async getOrThrow(): Promise<T> {
+    if (this.value) {
+      return this.value;
+    }
+    if (this.promise) {
+      return this.promise;
+    }
+    try {
+      this.promise = this.job();
+      this.value = await this.promise;
+      return this.value;
+    } catch (err) {
+      this.value = undefined;
+      this.promise = undefined;
+      throw err;
+    }
+  }
+}
