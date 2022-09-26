@@ -9,17 +9,10 @@ You need a ChromiumOS chroot. If you are a new member and don't have it, please
 follow the [ChromiumOS Developer Guide] and set up your development environment,
 so you can [enter the chroot via cros_sdk].
 
-You also need `npm` and gsutil authentication, because the install script needs
-them.
-
--   Follow http://go/nodejs/installing-node to install npm.
--   Follow [Configure authentication (.boto)] to set up the `~/.boto` file.
-
 In this document, we assume ChromiumOS source code is in `~/chromiumos`.
 
 [chromiumos developer guide]: https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md
 [enter the chroot via cros_sdk]: https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md#Enter-the-chroot
-[configure authentication (.boto)]: https://chromium.googlesource.com/chromiumos/docs/+/HEAD/gsutil.md#setup
 
 ## 1. Install Visual Studio Code
 
@@ -75,30 +68,12 @@ machine, and open your working directory under `~/chromiumos/`.
 
 ## 3. Install the extension
 
-From your terminal run
+Open *View &rarr; Extensions* in VSCode (Ctrl+Shift+X), search [CrOS IDE] and
+install it.
 
-```shell
-(outside) $ ~/chromiumos/chromite/ide_tooling/cros-ide/install.sh
-```
+[cros ide]: https://marketplace.visualstudio.com/items?itemName=Google.cros-ide
 
-### Additional installation options
-
--   In case you are using code-server or VSCode Insiders, specify the VSCode
-    executable with `--exe` flag. For example
-
-```shell
-(outside) $ ~/chromiumos/chromite/ide_tooling/cros-ide/install.sh --exe ~/.local/bin/code-server
-```
-
--   You can install an old version of the extension (say 0.0.1), with the
-    `--force 0.0.1` flag.
-
-## 4. Open or reload VSCode
-
-Open VSCode, or reload it by either simply restarting it or opening the command
-palette (Ctrl+Shift+P) and type "Developer: Reload Window".
-
-## 5. Open a folder
+## 4. Open a folder
 
 Finally, open a folder with sources to let CrOS IDE detect the chroot. Select
 *File &rarr; Open Folder...*, choose, for example, `~/chromiumos/src/platform2`,
@@ -110,12 +85,6 @@ Check out [go/cros-ide-user-guide] to learn more about features, known issues,
 and useful tips.
 
 [go/cros-ide-user-guide]: http://go/cros-ide-user-guide
-
-### Updating
-
-Run the install script again as written in
-[Install the extension](#3_install-the-extension) and
-[open or reload VSCode](#4_open-or-reload-vscode).
 
 ### Filing bugs
 
