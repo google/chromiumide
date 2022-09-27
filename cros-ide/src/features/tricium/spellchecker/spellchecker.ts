@@ -47,13 +47,7 @@ export async function activate(
       outputChannel
     );
   } catch (err) {
-    const description = `Could not download Tricium spellchecker: ${err}`;
-    outputChannel.append(description);
-    metrics.send({
-      category: 'error',
-      group: 'spellchecker',
-      description: description,
-    });
+    outputChannel.append(`Could not download Tricium spellchecker: ${err}`);
     return;
   }
 

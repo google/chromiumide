@@ -60,10 +60,17 @@ export class CipdRepository {
         }
       );
       if (result instanceof Error) {
+        // We send only selected data to avoid capturing too much
+        // (for example, home directory name).
+        const data = [`pkg: ${packageName}`, `ver: ${version}`];
+        if (result instanceof commonUtil.AbnormalExitError) {
+          data.push(`status: ${result.exitStatus}`);
+        }
+        const details = data.join(', ');
         metrics.send({
           category: 'error',
           group: 'misc',
-          description: `call to cipd failed: ${result}`,
+          description: `call to 'cipd install' failed, details: ${details}`,
         });
         throw result;
       }

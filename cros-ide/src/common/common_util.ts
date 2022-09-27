@@ -164,7 +164,7 @@ export interface ExecOptions {
  * and `exec` option was to return an error.
  */
 export class AbnormalExitError extends Error {
-  constructor(cmd: string, args: string[], exitStatus: number | null) {
+  constructor(cmd: string, args: string[], readonly exitStatus: number | null) {
     super(
       `"${shutil.escapeArray([
         cmd,
