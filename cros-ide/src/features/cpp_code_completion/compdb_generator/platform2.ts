@@ -4,21 +4,22 @@
 
 import * as fs from 'fs';
 import * as vscode from 'vscode';
-import * as commonUtil from '../../common/common_util';
-import {getOrSelectTargetBoard, NoBoardError} from '../../ide_util';
-import {ChrootService} from '../../services/chroot';
-import * as metrics from '../../features/metrics/metrics';
-import {CompdbGenerator, ErrorDetails} from './compdb_generator';
+import * as commonUtil from '../../../common/common_util';
+import {getOrSelectTargetBoard, NoBoardError} from '../../../ide_util';
+import {ChrootService} from '../../../services/chroot';
+import * as metrics from '../../metrics/metrics';
 import {
   CompdbError,
   CompdbErrorKind,
   CompdbService,
   CompdbServiceImpl,
   destination,
-} from './compdb_service';
-import {Atom, Packages} from './packages';
+} from '../compdb_service';
+import {Atom, Packages} from '../packages';
+import {throwForNoChroot} from './common';
+import {CompdbGenerator, ErrorDetails} from '.';
 
-export class Platform2CompdbGenerator implements CompdbGenerator {
+export class Platform2 implements CompdbGenerator {
   readonly name = 'platform2';
 
   private readonly subscriptions: vscode.Disposable[] = [];
@@ -96,7 +97,7 @@ export class Platform2CompdbGenerator implements CompdbGenerator {
   ): Promise<void> {
     const chroot = this.chrootService.chroot();
     if (!chroot) {
-      this.throwForNoChroot(document.fileName);
+      throwForNoChroot(document.fileName);
     }
     const board = await getOrSelectTargetBoard(chroot);
     if (board instanceof NoBoardError) {
@@ -164,42 +165,5 @@ export class Platform2CompdbGenerator implements CompdbGenerator {
 
   dispose() {
     vscode.Disposable.from(...this.subscriptions).dispose();
-  }
-
-  private throwForNoChroot(fileName: string): never {
-    // Send metrics before showing the message, because they don't seem
-    // to be sent if the user does not act on the message.
-    metrics.send({
-      category: 'background',
-      group: 'misc',
-      action: 'cpp xrefs generation without chroot',
-    });
-
-    // platform2 user may prefer subdirectories
-    const gitFolder = commonUtil.findGitDir(fileName);
-
-    const openOtherFolder = gitFolder ? 'Open Other' : 'Open Folder';
-
-    const buttons = [];
-    if (gitFolder) {
-      buttons.push({
-        label: `Open ${gitFolder}`,
-        action: () => {
-          void vscode.commands.executeCommand('vscode.openFolder');
-        },
-      });
-    }
-    buttons.push({
-      label: openOtherFolder,
-      action: () => {
-        void vscode.commands.executeCommand('vscode.openFolder');
-      },
-    });
-
-    throw new ErrorDetails(
-      'no chroot',
-      'Generating C++ xrefs requires opening a folder with CrOS sources.',
-      ...buttons
-    );
   }
 }

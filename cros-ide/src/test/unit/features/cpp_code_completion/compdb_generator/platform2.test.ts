@@ -5,14 +5,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as commonUtil from '../../../../common/common_util';
-import * as cros from '../../../../common/cros';
-import {Platform2CompdbGenerator} from '../../../../features/cpp_code_completion/platform2_compdb_generator';
-import * as servicesChroot from '../../../../services/chroot';
-import * as config from '../../../../services/config';
-import {SpiedFakeCompdbService} from '../../../integration/features/cpp_code_completion/spied_fake_compdb_service';
-import * as testing from '../../../testing';
-import * as fakes from '../../../testing/fakes';
+import * as commonUtil from '../../../../../common/common_util';
+import * as cros from '../../../../../common/cros';
+import {Platform2} from '../../../../../features/cpp_code_completion/compdb_generator/platform2';
+import * as servicesChroot from '../../../../../services/chroot';
+import * as config from '../../../../../services/config';
+import {SpiedFakeCompdbService} from '../../../../integration/features/cpp_code_completion/spied_fake_compdb_service';
+import * as testing from '../../../../testing';
+import * as fakes from '../../../../testing/fakes';
 
 describe('platform2 compdb generator', () => {
   beforeEach(async () => {
@@ -35,7 +35,7 @@ inherit cros-workon platform user
 
     const spiedFakeCompdbService = new SpiedFakeCompdbService(source);
     // CompilationDatabase registers event handlers in the constructor.
-    const compdbGenerator = new Platform2CompdbGenerator(
+    const compdbGenerator = new Platform2(
       new servicesChroot.ChrootService(
         new cros.WrapFs(chroot),
         new cros.WrapFs(source)

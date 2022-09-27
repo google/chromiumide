@@ -7,9 +7,8 @@ import * as metrics from '../metrics/metrics';
 import * as bgTaskStatus from '../../ui/bg_task_status';
 import * as servicesChroot from '../../services/chroot';
 import * as commonUtil from '../../common/common_util';
-import {CompdbGenerator, ErrorDetails} from './compdb_generator';
+import * as compdbGenerator from './compdb_generator';
 import {CLANGD_EXTENSION, SHOW_LOG_COMMAND} from './constants';
-import {Platform2CompdbGenerator} from './platform2_compdb_generator';
 
 export function activate(
   context: vscode.ExtensionContext,
@@ -18,7 +17,7 @@ export function activate(
 ) {
   context.subscriptions.push(
     new CppCodeCompletion(
-      [output => new Platform2CompdbGenerator(chrootService, output)],
+      [output => new compdbGenerator.Platform2(chrootService, output)],
       statusManager
     )
   );
@@ -26,7 +25,9 @@ export function activate(
 
 const STATUS_BAR_TASK_NAME = 'C++ xrefs generation';
 
-type GeneratorFactory = (output: vscode.OutputChannel) => CompdbGenerator;
+type GeneratorFactory = (
+  output: vscode.OutputChannel
+) => compdbGenerator.CompdbGenerator;
 
 export class CppCodeCompletion implements vscode.Disposable {
   readonly output = vscode.window.createOutputChannel('CrOS IDE: C++ Support');
@@ -51,7 +52,7 @@ export class CppCodeCompletion implements vscode.Disposable {
     }),
   ];
 
-  private readonly generators: CompdbGenerator[] = [];
+  private readonly generators: compdbGenerator.CompdbGenerator[] = [];
 
   private readonly jobManager = new commonUtil.JobManager<void>();
   // Store errors to avoid showing the same error many times.
@@ -123,7 +124,7 @@ export class CppCodeCompletion implements vscode.Disposable {
   }
 
   private async generate(
-    generator: CompdbGenerator,
+    generator: compdbGenerator.CompdbGenerator,
     document: vscode.TextDocument
   ) {
     // Below, we create a compilation database.
@@ -149,16 +150,17 @@ export class CppCodeCompletion implements vscode.Disposable {
       } catch (e) {
         canceller.dispose();
 
-        const rawError = e as ErrorDetails;
+        const rawError = e as compdbGenerator.ErrorDetails;
         const errorKind = `${generator.name}: ${rawError.kind}`;
         if (this.ignoredErrors.has(errorKind)) {
           return;
         }
-        const error: ErrorDetails = new ErrorDetails(
-          errorKind,
-          rawError.message,
-          ...rawError.buttons
-        );
+        const error: compdbGenerator.ErrorDetails =
+          new compdbGenerator.ErrorDetails(
+            errorKind,
+            rawError.message,
+            ...rawError.buttons
+          );
         metrics.send({
           category: 'error',
           group: 'cppxrefs',
@@ -179,7 +181,7 @@ export class CppCodeCompletion implements vscode.Disposable {
     });
   }
 
-  showErrorMessage(error: ErrorDetails) {
+  showErrorMessage(error: compdbGenerator.ErrorDetails) {
     const SHOW_LOG = 'Show Log';
     const IGNORE = 'Ignore';
 
