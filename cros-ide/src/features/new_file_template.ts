@@ -22,7 +22,7 @@ export class NewFileTemplate implements vscode.Disposable {
 
   private async handle(uri: vscode.Uri) {
     const document = await vscode.workspace.openTextDocument(uri);
-    const text = textToInsert(document.languageId);
+    const text = textToInsert(document);
     if (!text) {
       return;
     }
@@ -67,11 +67,15 @@ const SLASH_COMMENT_LANGUAGES = new Set([
 
 const HASH_COMMENT_LANGUAGES = new Set(['gn', 'python', 'shellscript']);
 
-function textToInsert(languageId: string): string | undefined {
-  if (SLASH_COMMENT_LANGUAGES.has(languageId)) {
+function textToInsert(document: vscode.TextDocument): string | undefined {
+  if (document.lineCount > 3) {
+    // The license header may already exist.
+    return undefined;
+  }
+  if (SLASH_COMMENT_LANGUAGES.has(document.languageId)) {
     return fillTemplate(TEMPLATE_SLASH_COMMENT);
   }
-  if (HASH_COMMENT_LANGUAGES.has(languageId)) {
+  if (HASH_COMMENT_LANGUAGES.has(document.languageId)) {
     return fillTemplate(TEMPLATE_HASH_COMMENT);
   }
 }
