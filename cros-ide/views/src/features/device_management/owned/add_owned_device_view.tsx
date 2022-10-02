@@ -499,7 +499,7 @@ function ConnectionTestStep(props: any) {
     });
     vscodeApi.postMessage({
       command: 'testDeviceConnection',
-      data: props.connectionConfig,
+      config: props.connectionConfig,
     });
   }, []); // [] causes this to be run only once, after the first render
 

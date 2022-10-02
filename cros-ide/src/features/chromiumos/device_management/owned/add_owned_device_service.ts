@@ -34,7 +34,9 @@ export class AddOwnedDeviceService {
    * @return string device info if connection is successful.
    * @throws Error if unable to connect, or unable to update the SSH config file.
    */
-  public async testConnection(config: DutConnectionConfig): Promise<string> {
+  public async configureAndTestConnection(
+    config: DutConnectionConfig
+  ): Promise<string> {
     if (config.addToSshConfig) {
       this.addHostToSshConfig(config);
     }
