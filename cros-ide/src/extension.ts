@@ -113,6 +113,9 @@ async function postMetricsActivate(
     crosFormat.activate(context);
   }
 
+  const gitDocumentProvider = new gitDocument.GitDocumentProvider();
+  gitDocumentProvider.activate();
+
   if (config.underDevelopment.gerrit.get()) {
     const gitDocumentProvider = new gitDocument.GitDocumentProvider();
     gitDocumentProvider.activate();
@@ -124,7 +127,8 @@ async function postMetricsActivate(
       context,
       statusManager,
       chrootService,
-      cipdRepository
+      cipdRepository,
+      gitDocumentProvider
     );
   }
 

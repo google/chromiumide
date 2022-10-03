@@ -15,7 +15,27 @@ export class GitDocumentProvider implements vscode.TextDocumentContentProvider {
     vscode.workspace.registerTextDocumentContentProvider(GIT_MSG_SCHEME, this);
   }
 
-  async getCommitMessage(fsPath: string, sha: string): Promise<string> {
+  /**
+   * Get description of a commit.
+   *
+   * Intended for both proving text document content and use as a library function.
+   */
+  async getCommitMessage(
+    dir: string,
+    ref: string
+  ): ReturnType<typeof commonUtil.exec> {
+    return commonUtil.exec('git', ['log', '--format=%B', '-n', '1', ref], {
+      cwd: dir,
+    });
+  }
+
+  private async getCommitMessageCached(
+    fsPath: string,
+    sha: string
+  ): Promise<string> {
+    // TODO(ttylenda): Only cache hex SHA, don't cache HEAD, etc.
+    // We can cache the commit message based on retrieved SHA
+    // (requires changing the format to, for example, %H%n%B).
     let message = this.cache.get(sha);
 
     if (message) {
@@ -23,13 +43,7 @@ export class GitDocumentProvider implements vscode.TextDocumentContentProvider {
     }
 
     const dir = path.dirname(fsPath);
-    const result = await commonUtil.exec(
-      'git',
-      ['log', '--format=%B', '-n', '1', sha],
-      {
-        cwd: dir,
-      }
-    );
+    const result = await this.getCommitMessage(dir, sha);
 
     message =
       result instanceof Error ? `Error occured: ${result}` : result.stdout;
@@ -39,6 +53,6 @@ export class GitDocumentProvider implements vscode.TextDocumentContentProvider {
   }
 
   async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
-    return this.getCommitMessage(uri.path, uri.query);
+    return this.getCommitMessageCached(uri.path, uri.query);
   }
 }

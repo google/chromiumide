@@ -5,9 +5,9 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as cipd from '../../../common/cipd';
-import * as commonUtil from '../../../common/common_util';
 import * as chroot from '../../../services/chroot';
 import * as config from '../../../services/config';
+import * as gitDocument from '../../../services/git_document';
 import * as bgTaskStatus from '../../../ui/bg_task_status';
 import * as metrics from '../../metrics/metrics';
 import * as tricium from '../tricium';
@@ -35,7 +35,8 @@ export async function activate(
   context: vscode.ExtensionContext,
   statusManager: bgTaskStatus.StatusManager,
   chrootService: chroot.ChrootService,
-  cipdRepository: cipd.CipdRepository
+  cipdRepository: cipd.CipdRepository,
+  gitDocumentProvider: gitDocument.GitDocumentProvider
 ) {
   const outputChannel = vscode.window.createOutputChannel('CrOS IDE: Tricium');
   context.subscriptions.push(
@@ -58,7 +59,8 @@ export async function activate(
     context,
     new executor.Executor(triciumSpellchecker, outputChannel),
     statusManager,
-    chrootService
+    chrootService,
+    gitDocumentProvider
   );
   spellchecker.subscribeToDocumentChanges(context);
 
@@ -92,7 +94,8 @@ class Spellchecker {
     context: vscode.ExtensionContext,
     private readonly executor: executor.Executor,
     private readonly statusManager: bgTaskStatus.StatusManager,
-    private readonly chrootService: chroot.ChrootService
+    private readonly chrootService: chroot.ChrootService,
+    private readonly gitDocumentProvider: gitDocument.GitDocumentProvider
   ) {
     this.diagnosticCollection =
       vscode.languages.createDiagnosticCollection('spellchecker');
@@ -137,15 +140,7 @@ class Spellchecker {
     }
 
     const dir = path.dirname(doc.uri.fsPath);
-    // TODO(b:217287367): Share logic with git_document.ts instead of just
-    // running the same command (requires improvement to avoid caching 'HEAD').
-    const result = await commonUtil.exec(
-      'git',
-      ['log', '--format=%B', '-n', '1', 'HEAD'],
-      {
-        cwd: dir,
-      }
-    );
+    const result = await this.gitDocumentProvider.getCommitMessage(dir, 'HEAD');
 
     // TODO(b:217287367): Handle errors instead of ignoring them.
     if (result instanceof Error) {
