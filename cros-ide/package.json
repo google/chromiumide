@@ -90,8 +90,7 @@
       {
         "command": "cros-ide.deviceManagement.openSystemLogViewer",
         "category": "CrOS",
-        "title": "Connect to System Log Viewer",
-        "icon": "$(remote-explorer)"
+        "title": "Open System Log Viewer"
       },
       {
         "command": "cros-ide.deviceManagement.addDevice",
@@ -296,19 +295,14 @@
           "group": "inline@3"
         },
         {
-          "command": "cros-ide.deviceManagement.openSystemLogViewer",
-          "when": "view == devices && viewItem =~ /^device-/ && config.cros-ide.underDevelopment.systemLogViewer",
-          "group": "inline@4"
-        },
-        {
-          "command": "cros-ide.deviceManagement.openSystemLogViewer",
-          "when": "view == devices && viewItem =~ /^device-/ && config.cros-ide.underDevelopment.systemLogViewer",
-          "group": "1_connect@4"
-        },
-        {
           "command": "cros-ide.deviceManagement.flashPrebuiltImage",
           "when": "view == devices && viewItem =~ /^device-/",
           "group": "2_operation@1"
+        },
+        {
+          "command": "cros-ide.deviceManagement.openSystemLogViewer",
+          "when": "view == devices && viewItem =~ /^device-/ && config.cros-ide.underDevelopment.systemLogViewer",
+          "group": "2_operation@2"
         },
         {
           "command": "cros-ide.deviceManagement.copyHostname",
