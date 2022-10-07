@@ -501,11 +501,6 @@
           "description": "Enable Platform EC support (under development)",
           "default": false
         },
-        "cros-ide.underDevelopment.newFileTemplate": {
-          "type": "boolean",
-          "description": "Enable template insertion for a new file",
-          "default": true
-        },
         "cros-ide.deviceManagement.devices": {
           "type": "array",
           "scope": "machine-overridable",

@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as config from '../../services/config';
 import {NewFileTemplate} from './new_file_template';
 
 /**
@@ -12,16 +11,14 @@ import {NewFileTemplate} from './new_file_template';
  * This class should be instantiated only when the workspace contains chromiumos source code.
  */
 export class Chromiumos implements vscode.Disposable {
-  private readonly subscriptions: vscode.Disposable[] = [];
+  private readonly subscriptions: vscode.Disposable[] = [
+    new NewFileTemplate(this.root),
+  ];
 
   /**
    * @param root Absolute path to the chormiumos root directory.
    */
-  constructor(private readonly root: string) {
-    if (config.underDevelopment.newFileTemplate.get()) {
-      this.subscriptions.push(new NewFileTemplate(this.root));
-    }
-  }
+  constructor(private readonly root: string) {}
 
   dispose() {
     vscode.Disposable.from(...this.subscriptions.reverse()).dispose();
