@@ -66,37 +66,28 @@ class Gerrit {
     private readonly outputChannel: vscode.OutputChannel
   ) {}
 
+  // TODO(b:216048068): Do not retrieve data unnecessarily if we only
+  // need to reposition comments on source changes.
   async showComments(activeDocument: vscode.TextDocument) {
-    const latestCommit: commonUtil.ExecResult | Error = await commonUtil.exec(
-      'git',
-      ['show', '-s'],
-      {cwd: path.dirname(activeDocument.fileName)}
-    );
-    if (latestCommit instanceof Error) {
-      this.showErrorMessage(
-        `Failed to detect a commit for ${activeDocument.fileName}`
-      );
+    const fileName = activeDocument.fileName;
+    const changeIds = await git.readChangeIds(path.dirname(fileName));
+    if (changeIds instanceof Error) {
+      this.showErrorMessage(`Failed to detect a commits for ${fileName}`);
       return;
     }
-    const changeIdRegex = /Change-Id: (I[0-9a-z]*)/;
-    const changeIdArray = changeIdRegex.exec(latestCommit.stdout);
-    if (!changeIdArray) {
+    if (changeIds.length === 0) {
       return;
     }
-    // TODO(teramon): Support multiple commits
-    const changeId = changeIdArray[1];
-    const commentsUrl =
-      'https://chromium-review.googlesource.com/changes/' +
-      changeId +
-      '/comments';
 
+    // TODO(teramon): Support multiple commits
+    const commentsUrl = `https://chromium-review.googlesource.com/changes/${changeIds[0]}/comments`;
     try {
       const commentsContent = await httpsGet(commentsUrl);
       const commentsJson = commentsContent.substring(')]}\n'.length);
       const originalChangeComments = JSON.parse(
         commentsJson
       ) as api.ChangeComments;
-      const gitDir = commonUtil.findGitDir(activeDocument.fileName);
+      const gitDir = commonUtil.findGitDir(fileName);
       if (!gitDir) {
         this.showErrorMessage('Git directory not found');
         return;

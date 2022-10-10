@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as commonUtil from '../../common/common_util';
+
 export type Hunks = {
   [filePath: string]: Hunk[];
 };
@@ -51,3 +53,31 @@ export function getHunk(gitDiffContent: string): Hunks {
   }
   return hunksAllFiles;
 }
+
+/**
+ * Extracts change-ids from commit messages between cros/main to HEAD.
+ *
+ * The ids are ordered from new to old. If the HEAD is already merged,
+ * the result will be an empty array.
+ */
+export async function readChangeIds(dir: string): Promise<string[] | Error> {
+  const branchLog = await commonUtil.exec('git', ['log', 'cros/main..HEAD'], {
+    cwd: dir,
+  });
+  if (branchLog instanceof Error) {
+    return branchLog;
+  }
+  return parseChangeIds(branchLog.stdout);
+}
+
+function parseChangeIds(log: string): string[] {
+  const foundIds = [];
+  const changeIdRegex = /^\s*Change-Id: (I[0-9a-z]*)/gm;
+  let match: RegExpExecArray | null;
+  while ((match = changeIdRegex.exec(log)) !== null) {
+    foundIds.push(match[1]);
+  }
+  return foundIds;
+}
+
+export const TEST_ONLY = {parseChangeIds};

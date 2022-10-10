@@ -7,7 +7,7 @@ import {TEST_ONLY} from '../../../../features/gerrit/gerrit';
 
 const {partitionThreads} = TEST_ONLY;
 
-describe('Gerrit', () => {
+describe('partitionThreads', () => {
   type CommentInfoLike = Pick<
     api.CommentInfo,
     'id' | 'updated' | 'in_reply_to'
