@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.2.0 (October 2022)
+
+- **Announced global dogfooding**
+
 ## 0.1.1 (October 4, 2022)
 
 - Run Tast tests
