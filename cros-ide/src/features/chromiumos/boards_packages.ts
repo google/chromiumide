@@ -3,20 +3,20 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as cros from '../common/cros';
-import * as ideUtil from '../ide_util';
-import {ChrootService} from '../services/chroot';
-import * as config from '../services/config';
-import * as metrics from './metrics/metrics';
+import * as cros from '../../common/cros';
+import * as ideUtil from '../../ide_util';
+import * as services from '../../services';
+import * as config from '../../services/config';
+import * as metrics from '../metrics/metrics';
 
 export async function activate(
-  context: vscode.ExtensionContext,
-  chrootService: ChrootService
+  subscriptions: vscode.Disposable[],
+  chrootService: services.chromiumos.ChrootService
 ) {
   const boardPackageProvider = new BoardPackageProvider(chrootService);
   const boardsPackages = new BoardsPackages(chrootService);
 
-  context.subscriptions.push(
+  subscriptions.push(
     vscode.commands.registerCommand('cros-ide.crosWorkonStart', board =>
       boardsPackages.crosWorkonStart(board)
     ),
@@ -51,22 +51,18 @@ export async function activate(
 const VIRTUAL_BOARDS_HOST = 'host';
 
 class BoardsPackages {
-  constructor(private readonly chrootService: ChrootService) {}
+  constructor(
+    private readonly chrootService: services.chromiumos.ChrootService
+  ) {}
 
   // TODO: Write a unit test for watching packages.
   async createPackageWatches() {
-    const chroot = this.chrootService.chroot();
-    if (!chroot) {
-      return;
-    }
+    const chroot = this.chrootService.chroot;
 
     const boards = await cros.getSetupBoardsAlphabetic(chroot);
     const crosWorkonDir = '.config/cros_workon/';
 
-    const source = this.chrootService.source();
-    if (!source) {
-      return;
-    }
+    const source = this.chrootService.source;
 
     // Watching for non-existent directory throws errors,
     // which happens when we run tests outside chroot.
@@ -153,11 +149,7 @@ class BoardsPackages {
       return;
     }
     const relFileName = res.stdout.trim().substring('/mnt/host/source/'.length);
-    const srcRoot = this.chrootService.source();
-    if (!srcRoot) {
-      void vscode.window.showErrorMessage('Cannot find source directory');
-      return;
-    }
+    const srcRoot = this.chrootService.source;
     const fileName = srcRoot.realpath(relFileName);
     const document = await vscode.workspace.openTextDocument(fileName);
     await vscode.window.showTextDocument(document);
@@ -175,7 +167,9 @@ class BoardPackageProvider implements vscode.TreeDataProvider<ChrootItem> {
   >();
   readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
 
-  constructor(private readonly chrootService: ChrootService) {}
+  constructor(
+    private readonly chrootService: services.chromiumos.ChrootService
+  ) {}
 
   async getChildren(element?: ChrootItem): Promise<ChrootItem[]> {
     // Welcome messages are shown when there are no elements, so return an empty result
@@ -185,7 +179,7 @@ class BoardPackageProvider implements vscode.TreeDataProvider<ChrootItem> {
     }
 
     if (element === undefined) {
-      const chroot = this.chrootService.chroot();
+      const chroot = this.chrootService.chroot;
       if (chroot === undefined) {
         return [];
       }
@@ -213,7 +207,7 @@ class BoardPackageProvider implements vscode.TreeDataProvider<ChrootItem> {
    * @returns Packages that are worked on.
    */
   async getWorkedOnPackages(
-    chrootService: ChrootService,
+    chrootService: services.chromiumos.ChrootService,
     board: string
   ): Promise<string[]> {
     const res = await chrootService.exec(

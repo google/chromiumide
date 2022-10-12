@@ -149,7 +149,8 @@
         "command": "cros-ide.refreshBoardsPackages",
         "category": "CrOS",
         "title": "Refresh Boards and Packages",
-        "icon": "$(refresh)"
+        "icon": "$(refresh)",
+        "enablement": "cros-ide.chrootPath"
       },
       {
         "command": "cros-ide.codeSearchOpenCurrentFile",

@@ -11,7 +11,6 @@ import * as vscode from 'vscode';
 import * as cipd from './common/cipd';
 import * as commonUtil from './common/common_util';
 import * as features from './features';
-import * as boardsPackages from './features/boards_packages';
 import * as chromiumBuild from './features/chromium_build';
 import * as codesearch from './features/codesearch';
 import * as coverage from './features/coverage';
@@ -93,7 +92,6 @@ async function postMetricsActivate(
 
   crosLint.activate(context, statusManager, linterLogger);
   gn.activate(context, statusManager, linterLogger);
-  await boardsPackages.activate(context, chrootService);
   shortLinkProvider.activate(context);
   codesearch.activate(context);
   suggestExtension.activate(context);

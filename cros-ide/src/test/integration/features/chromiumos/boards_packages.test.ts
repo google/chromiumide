@@ -3,11 +3,12 @@
 // found in the LICENSE file.
 
 import 'jasmine';
-import * as config from '../../../services/config';
-import {Source} from '../../../common/common_util';
-import {WrapFs} from '../../../common/cros';
-import {TEST_ONLY} from '../../../features/boards_packages';
-import {ChrootService} from '../../../services/chroot';
+import * as commonUtil from '../../../../common/common_util';
+import {Source} from '../../../../common/common_util';
+import {WrapFs} from '../../../../common/cros';
+import {TEST_ONLY} from '../../../../features/chromiumos/boards_packages';
+import * as services from '../../../../services';
+import * as config from '../../../../services/config';
 import {
   buildFakeChroot,
   cleanState,
@@ -15,10 +16,12 @@ import {
   installFakeExec,
   putFiles,
   tempDir,
-} from '../../testing';
-import * as fakes from '../../testing/fakes';
-import * as commonUtil from '../../../common/common_util';
-import {installVscodeDouble, installFakeConfigs} from '../../testing/doubles';
+} from '../../../testing';
+import {
+  installFakeConfigs,
+  installVscodeDouble,
+} from '../../../testing/doubles';
+import * as fakes from '../../../testing/fakes';
 
 const {BoardItem, PackageItem, BoardPackageProvider, BoardsPackages} =
   TEST_ONLY;
@@ -52,10 +55,9 @@ describe('Boards and Packages view', () => {
         };
       })
     );
-    const chrootService = new ChrootService(
-      new WrapFs(state.chroot),
-      new WrapFs(state.source)
-    );
+    const chrootService = services.chromiumos.ChrootService.maybeCreate(
+      state.source
+    )!;
 
     const board = new BoardItem('eve');
     await new BoardsPackages(chrootService).crosWorkonStart(board);
@@ -73,10 +75,9 @@ describe('Boards and Packages view', () => {
         return new Error('cros_workon not found');
       })
     );
-    const chrootService = new ChrootService(
-      new WrapFs(state.chroot),
-      new WrapFs(state.source)
-    );
+    const chrootService = services.chromiumos.ChrootService.maybeCreate(
+      state.source
+    )!;
 
     const board = new BoardItem('eve');
     const pkg = new PackageItem(board, 'shill');
@@ -115,7 +116,7 @@ chromeos-base/shill`;
     );
 
     const bpProvider = new BoardPackageProvider(
-      new ChrootService(new WrapFs(state.chroot), new WrapFs(state.source))
+      services.chromiumos.ChrootService.maybeCreate(state.source)!
     );
 
     // List boards.
@@ -165,10 +166,12 @@ chromeos-base/shill`;
   it('opens ebuild file', async () => {
     await config.boardsAndPackages.showWelcomeMessage.update(false);
 
-    const chrootService = jasmine.createSpyObj<ChrootService>('chrootService', [
-      'exec',
-      'source',
-    ]);
+    const chrootService =
+      jasmine.createSpyObj<services.chromiumos.ChrootService>(
+        'chrootService',
+        ['exec'],
+        {source: new WrapFs('/path/to/chromeos' as Source)}
+      );
     chrootService.exec
       .withArgs(
         'equery-amd64-generic',
@@ -183,9 +186,6 @@ chromeos-base/shill`;
           stderr: '',
         })
       );
-    chrootService.source.and.returnValue(
-      new WrapFs('/path/to/chromeos' as Source)
-    );
 
     const board = new BoardItem('amd64-generic');
     const pkg = new PackageItem(board, 'chromeos-base/shill');

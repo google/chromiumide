@@ -5,8 +5,9 @@
 import * as vscode from 'vscode';
 import * as services from '../../services';
 import * as bgTaskStatus from '../../ui/bg_task_status';
-import {NewFileTemplate} from './new_file_template';
+import * as boardsPackages from './boards_packages';
 import * as cppCodeCompletion from './cpp_code_completion';
+import {NewFileTemplate} from './new_file_template';
 
 /**
  * The root class of all the ChromiumOS features.
@@ -34,6 +35,7 @@ export class Chromiumos implements vscode.Disposable {
         statusManager,
         chrootService
       );
+      void boardsPackages.activate(this.subscriptions, chrootService);
     }
   }
 

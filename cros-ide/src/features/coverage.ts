@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import * as glob from 'glob';
 import {ChrootService} from '../services/chroot';
 import * as bgTaskStatus from '../ui/bg_task_status';
-import {Package} from './boards_packages';
+import {Package} from './chromiumos/boards_packages';
 
 // Highlight colors were copied from Code Search.
 const coveredDecoration = vscode.window.createTextEditorDecorationType({
