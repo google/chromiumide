@@ -25,6 +25,8 @@ export type CommentInfo = {
   updated: string;
   // TODO(b:216048068): message is optional in the API
   message: string;
+  // SHA of the Git commit that the comment applies to.
+  commit_id?: string;
 };
 
 /**

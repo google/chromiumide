@@ -16,9 +16,30 @@ export type Hunk = {
 };
 
 /**
+ * Extracts diff hunks of changes made between the `originalCommitId`
+ * and the working tree.
+ */
+export async function readDiffHunks(
+  dir: string,
+  originalCommitId: string
+): Promise<Hunks | Error> {
+  const gitDiff = await commonUtil.exec(
+    'git',
+    ['diff', '-U0', originalCommitId],
+    {
+      cwd: dir,
+    }
+  );
+  if (gitDiff instanceof Error) {
+    return gitDiff;
+  }
+  return parseDiffHunks(gitDiff.stdout);
+}
+
+/**
  * Parses the output of `git diff -U0` and returns hunks.
  */
-export function getHunk(gitDiffContent: string): Hunks {
+function parseDiffHunks(gitDiffContent: string): Hunks {
   /**
    * gitDiffContent example:`
    * --- a/ide_tooling/cros-ide/src/features/gerrit.ts
@@ -80,4 +101,4 @@ function parseChangeIds(log: string): string[] {
   return foundIds;
 }
 
-export const TEST_ONLY = {parseChangeIds};
+export const TEST_ONLY = {parseChangeIds, parseDiffHunks};

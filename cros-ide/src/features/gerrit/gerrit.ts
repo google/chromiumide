@@ -93,7 +93,18 @@ class Gerrit {
         return;
       }
       const changeThreads = partitionThreads(originalChangeComments);
-      await shiftChangeComments(gitDir, changeThreads);
+
+      // We assume that: 1) all comments are on the same commit_id
+      // 2) and that it is available locally. Neither assumption is true.
+      // TODO(b:216048068): Support comments on multiple patchsets.
+      // TODO(b:216048068): Handle original commit not available locally.
+      const originalCommitId = Gerrit.getAnyCommitId(changeThreads);
+      if (!originalCommitId) {
+        this.showErrorMessage('Did not find any commit id.');
+        return;
+      }
+
+      await shiftChangeComments(gitDir, originalCommitId, changeThreads);
       updateCommentThreads(this.controller, changeThreads, gitDir);
     } catch (err) {
       this.showErrorMessage(`Failed to add Gerrit comments: ${err}`);
@@ -103,6 +114,18 @@ class Gerrit {
 
   private showErrorMessage(message: string) {
     this.outputChannel.appendLine(message);
+  }
+
+  // Temporary method to extract any commit id.
+  private static getAnyCommitId(
+    changeThreads: ChangeThreads
+  ): string | undefined {
+    for (const [, threads] of Object.entries(changeThreads)) {
+      for (const thread of threads) {
+        if (thread[0].commit_id) return thread[0].commit_id;
+      }
+    }
+    return undefined;
   }
 }
 
@@ -159,20 +182,25 @@ function partitionThreads(changeComments: api.ChangeComments): ChangeThreads {
   return changeThreads;
 }
 
+/**
+ * Updates line numbers in `changeThreads`, which are assumed to be made
+ * on the `originalCommitId`, so they can be placed in the right lines on the files
+ * in the working tree.
+ */
 async function shiftChangeComments(
   gitDir: string,
-  changeComments: ChangeThreads
+  originalCommitId: string,
+  changeThreads: ChangeThreads
 ): Promise<void> {
-  const gitDiff = await commonUtil.exec('git', ['diff', '-U0'], {cwd: gitDir});
-  if (gitDiff instanceof Error) {
+  const hunks = await git.readDiffHunks(gitDir, originalCommitId);
+  if (hunks instanceof Error) {
     void vscode.window.showErrorMessage(
       'Failed to get git diff to reposition Gerrit comments'
       // TODO(teramon): Avoid showing the error message more than once.
     );
     return;
   }
-  const hunks = git.getHunk(gitDiff.stdout);
-  updateChangeComments(hunks, changeComments);
+  updateChangeComments(hunks, changeThreads);
 }
 
 // TODO(teramon): Avoid using global value.

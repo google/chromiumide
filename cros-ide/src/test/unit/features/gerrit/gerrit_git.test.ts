@@ -3,7 +3,9 @@
 // found in the LICENSE file.
 
 import 'jasmine';
-import * as git from '../../../../features/gerrit/git';
+import {TEST_ONLY} from '../../../../features/gerrit/git';
+
+const {parseDiffHunks} = TEST_ONLY;
 
 const testDiffEmpty = '';
 
@@ -39,11 +41,11 @@ index 511bb797b..e475e16d4 100644
 
 describe('Gerrit support', () => {
   it('handles empty diffs', () => {
-    const hunkRangesEmpty = git.getHunk(testDiffEmpty);
+    const hunkRangesEmpty = parseDiffHunks(testDiffEmpty);
     expect(hunkRangesEmpty).toEqual({});
   });
   it('extracts ranges of each hunk', () => {
-    const hunkRanges = git.getHunk(testDiff);
+    const hunkRanges = parseDiffHunks(testDiff);
     expect(hunkRanges).toEqual({
       'ide_tooling/cros-ide/src/features/gerrit.ts': [
         {
