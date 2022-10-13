@@ -4,12 +4,12 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as cipd from '../../../common/cipd';
-import * as chroot from '../../../services/chroot';
-import * as config from '../../../services/config';
-import * as gitDocument from '../../../services/git_document';
-import * as bgTaskStatus from '../../../ui/bg_task_status';
-import * as metrics from '../../metrics/metrics';
+import * as cipd from '../../../../common/cipd';
+import * as chroot from '../../../../services/chroot';
+import * as config from '../../../../services/config';
+import * as gitDocument from '../../../../services/git_document';
+import * as bgTaskStatus from '../../../../ui/bg_task_status';
+import * as metrics from '../../../metrics/metrics';
 import * as tricium from '../tricium';
 import * as executor from './executor';
 

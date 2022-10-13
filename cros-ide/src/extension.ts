@@ -26,7 +26,7 @@ import * as platformEc from './features/platform_ec';
 import * as shortLinkProvider from './features/short_link_provider';
 import * as suggestExtension from './features/suggest_extension';
 import * as targetBoard from './features/target_board';
-import * as spellchecker from './features/tricium/spellchecker';
+import * as spellchecker from './features/chromiumos/tricium/spellchecker';
 import * as upstart from './features/upstart';
 import * as ideUtil from './ide_util';
 import * as logs from './logs';
