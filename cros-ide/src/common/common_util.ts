@@ -213,6 +213,22 @@ export function exec(
   return execPtr(name, args, options);
 }
 
+/**
+ * Same as exec except in case of error this function throws it instead of
+ * returning it.
+ */
+export async function execOrThrow(
+  name: string,
+  args: string[],
+  options: ExecOptions = {}
+): Promise<ExecResult> {
+  const result = await exec(name, args, options);
+  if (result instanceof Error) {
+    throw result;
+  }
+  return result;
+}
+
 let execPtr = realExec;
 
 /**
