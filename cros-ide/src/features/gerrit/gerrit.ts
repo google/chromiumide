@@ -360,7 +360,11 @@ function createCommentThread(
     dataRange,
     thread.map(c => toVscodeComment(c))
   );
-  vscodeThread.label = 'Gerrit';
+  // TODO(b:216048068): We should indicate resolved/unresolved with UI style.
+  const unresolved = thread[thread.length - 1].unresolved;
+  // Unresolved can be undefined according the the API documentation,
+  // but Gerrit always sent it on the changes the we inspected.
+  vscodeThread.label = unresolved ? 'Unresolved' : 'Resolved';
   vscodeThread.canReply = false;
   return vscodeThread;
 }
