@@ -14,21 +14,6 @@ export class GitDocumentProvider implements vscode.TextDocumentContentProvider {
   activate() {
     vscode.workspace.registerTextDocumentContentProvider(GIT_MSG_SCHEME, this);
   }
-
-  /**
-   * Get description of a commit.
-   *
-   * Intended for both proving text document content and use as a library function.
-   */
-  async getCommitMessage(
-    dir: string,
-    ref: string
-  ): ReturnType<typeof commonUtil.exec> {
-    return commonUtil.exec('git', ['log', '--format=%B', '-n', '1', ref], {
-      cwd: dir,
-    });
-  }
-
   private async getCommitMessageCached(
     fsPath: string,
     sha: string
@@ -43,7 +28,7 @@ export class GitDocumentProvider implements vscode.TextDocumentContentProvider {
     }
 
     const dir = path.dirname(fsPath);
-    const result = await this.getCommitMessage(dir, sha);
+    const result = await getCommitMessage(dir, sha);
 
     message =
       result instanceof Error ? `Error occured: ${result}` : result.stdout;
@@ -55,4 +40,18 @@ export class GitDocumentProvider implements vscode.TextDocumentContentProvider {
   async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
     return this.getCommitMessageCached(uri.path, uri.query);
   }
+}
+
+/**
+ * Get description of a commit.
+ *
+ * Intended for both proving text document content and use as a library function.
+ */
+export async function getCommitMessage(
+  dir: string,
+  ref: string
+): ReturnType<typeof commonUtil.exec> {
+  return commonUtil.exec('git', ['log', '--format=%B', '-n', '1', ref], {
+    cwd: dir,
+  });
 }

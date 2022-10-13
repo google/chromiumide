@@ -7,9 +7,11 @@ import * as cipd from '../../common/cipd';
 import * as services from '../../services';
 import * as metrics from '../metrics/metrics';
 import * as bgTaskStatus from '../../ui/bg_task_status';
+import * as config from '../../services/config';
 import * as boardsPackages from './boards_packages';
 import * as cppCodeCompletion from './cpp_code_completion';
 import * as deviceManagement from './device_management';
+import * as tricium from './tricium';
 import {NewFileTemplate} from './new_file_template';
 
 /**
@@ -91,6 +93,16 @@ export class Chromiumos implements vscode.Disposable {
         chrootService,
         this.cipdRepository
       );
+
+      if (config.underDevelopment.triciumSpellchecker.get()) {
+        this.featureName = 'spellchecker';
+        await tricium.activateSpellchecker(
+          ephemeralContext,
+          this.statusManager,
+          this.root,
+          this.cipdRepository
+        );
+      }
     }
   }
 }
