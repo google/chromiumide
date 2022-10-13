@@ -75,6 +75,8 @@ export class Chromiumos implements vscode.Disposable {
     const chrootService = services.chromiumos.ChrootService.maybeCreate(
       this.root
     );
+    const gitDirsWatcher = new services.GitDirsWatcher(this.root);
+
     if (chrootService) {
       this.featureName = 'cppCodeCompletion';
       cppCodeCompletion.activate(
@@ -100,7 +102,8 @@ export class Chromiumos implements vscode.Disposable {
           ephemeralContext,
           this.statusManager,
           this.root,
-          this.cipdRepository
+          this.cipdRepository,
+          gitDirsWatcher
         );
       }
     }

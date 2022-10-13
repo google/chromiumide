@@ -5,6 +5,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as cipd from '../../../../common/cipd';
+import * as services from '../../../../services';
 import * as config from '../../../../services/config';
 import * as gitDocument from '../../../../services/git_document';
 import * as bgTaskStatus from '../../../../ui/bg_task_status';
@@ -34,7 +35,8 @@ export async function activate(
   context: vscode.ExtensionContext,
   statusManager: bgTaskStatus.StatusManager,
   chromiumosRoot: string,
-  cipdRepository: cipd.CipdRepository
+  cipdRepository: cipd.CipdRepository,
+  gitDirsWatcher: services.GitDirsWatcher
 ) {
   const outputChannel = vscode.window.createOutputChannel('CrOS IDE: Tricium');
   context.subscriptions.push(
@@ -57,7 +59,8 @@ export async function activate(
     context,
     new executor.Executor(triciumSpellchecker, outputChannel),
     statusManager,
-    chromiumosRoot
+    chromiumosRoot,
+    gitDirsWatcher
   );
   spellchecker.subscribeToDocumentChanges(context);
 
@@ -91,7 +94,8 @@ class Spellchecker {
     context: vscode.ExtensionContext,
     private readonly executor: executor.Executor,
     private readonly statusManager: bgTaskStatus.StatusManager,
-    private readonly chromiumosRoot: string
+    private readonly chromiumosRoot: string,
+    private readonly gitDirsWatcher: services.GitDirsWatcher
   ) {
     this.diagnosticCollection =
       vscode.languages.createDiagnosticCollection('spellchecker');
@@ -106,13 +110,6 @@ class Spellchecker {
     context.subscriptions.push(
       vscode.workspace.onDidOpenTextDocument(doc => {
         void this.refreshFileDiagnostics(doc);
-        // The code below triggers spellchecker on the commit message for manually testing
-        // the feature during development.
-        //
-        // TODO(b:217287367): Check commit message when .git/HEAD changes.
-        if (config.underDevelopment.triciumSpellcheckerForCommitMessage.get()) {
-          void this.refreshCommitMessageDiagnostics(doc);
-        }
       })
     );
 
@@ -125,18 +122,36 @@ class Spellchecker {
     context.subscriptions.push(
       vscode.workspace.onDidCloseTextDocument(doc => this.delete(doc.uri))
     );
+
+    // The code below triggers spellchecker on the commit message.
+    if (config.underDevelopment.triciumSpellcheckerForCommitMessage.get()) {
+      this.gitDirsWatcher.visibleGitDirs.forEach(
+        gitDir => void this.refreshCommitMessageDiagnostics(gitDir)
+      );
+      context.subscriptions.push(
+        this.gitDirsWatcher.onDidChangeHead(e => {
+          if (!e.head) {
+            const uri = this.commitMessageUri(e.gitDir);
+            this.delete(uri);
+            return;
+          }
+          void this.refreshCommitMessageDiagnostics(e.gitDir);
+        })
+      );
+    }
+  }
+
+  private commitMessageUri(dir: string) {
+    return vscode.Uri.from({
+      scheme: 'gitmsg',
+      path: path.join(dir, 'COMMIT MESSAGE'),
+      query: 'HEAD',
+    });
   }
 
   /** Execute Tricium binary and refresh diagnostics for the commit message. */
-  private async refreshCommitMessageDiagnostics(
-    doc: vscode.TextDocument
-  ): Promise<void> {
-    if (doc.uri.scheme !== 'file') {
-      return;
-    }
-
-    const dir = path.dirname(doc.uri.fsPath);
-    const result = await gitDocument.getCommitMessage(dir, 'HEAD');
+  private async refreshCommitMessageDiagnostics(gitDir: string): Promise<void> {
+    const result = await gitDocument.getCommitMessage(gitDir, 'HEAD');
 
     // TODO(b:217287367): Handle errors instead of ignoring them.
     if (result instanceof Error) {
@@ -144,11 +159,7 @@ class Spellchecker {
     }
     const commitMessage = result.stdout;
 
-    const gitUri = vscode.Uri.from({
-      scheme: 'gitmsg',
-      path: path.join(dir, 'COMMIT MESSAGE'),
-      query: 'HEAD',
-    });
+    const gitUri = this.commitMessageUri(gitDir);
 
     const results = await this.executor.checkCommitMessage(commitMessage);
     return this.refreshDiagnostics(gitUri, results);
@@ -237,7 +248,7 @@ class Spellchecker {
     }
     return new vscode.Range(
       comment.startLine - 1,
-      comment.startChar,
+      comment.startChar ?? 0,
       comment.endLine - 1,
       comment.endChar
     );

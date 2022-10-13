@@ -20,8 +20,12 @@ export type Comment = {
   startLine?: number;
   /** 1-based, inclusive. */
   endLine: number;
-  /** 0-based, inclusive. */
-  startChar: number;
+  /**
+   * 0-based, inclusive.
+   *
+   * Can be empty when the value is 0.
+   */
+  startChar?: number;
   /** 0-based, exclusive. */
   endChar: number;
   suggestions: Suggestion[];
