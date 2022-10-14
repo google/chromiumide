@@ -7,16 +7,16 @@
  */
 
 import * as vscode from 'vscode';
-import * as ideUtil from '../ide_util';
-import {ChrootService} from '../services/chroot';
-import * as config from '../services/config';
-import * as metrics from './metrics/metrics';
+import * as ideUtil from '../../ide_util';
+import * as services from '../../services';
+import * as config from '../../services/config';
+import * as metrics from '../metrics/metrics';
 
 const BOARD_CONFIG = 'cros-ide.board';
 
 export function activate(
   context: vscode.ExtensionContext,
-  chrootService: ChrootService
+  chrootService: services.chromiumos.ChrootService
 ) {
   const boardStatusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left
@@ -36,13 +36,12 @@ export function activate(
 
   context.subscriptions.push(
     vscode.commands.registerCommand('cros-ide.selectBoard', async () => {
-      const chroot = chrootService.chroot();
-      if (chroot === undefined) {
-        return;
-      }
-      const board = await ideUtil.selectAndUpdateTargetBoard(chroot, {
-        suggestMostRecent: false,
-      });
+      const board = await ideUtil.selectAndUpdateTargetBoard(
+        chrootService.chroot,
+        {
+          suggestMostRecent: false,
+        }
+      );
       if (board instanceof ideUtil.NoBoardError) {
         await vscode.window.showErrorMessage(
           `Selecting board: ${board.message}`

@@ -23,7 +23,6 @@ import * as metrics from './features/metrics/metrics';
 import * as metricsConfig from './features/metrics/metrics_config';
 import * as shortLinkProvider from './features/short_link_provider';
 import * as suggestExtension from './features/suggest_extension';
-import * as targetBoard from './features/target_board';
 import * as upstart from './features/upstart';
 import * as ideUtil from './ide_util';
 import * as logs from './logs';
@@ -93,7 +92,6 @@ async function postMetricsActivate(
   shortLinkProvider.activate(context);
   codesearch.activate(context);
   suggestExtension.activate(context);
-  targetBoard.activate(context, chrootService);
   feedback.activate(context);
   upstart.activate(context);
   hints.activate(context);
