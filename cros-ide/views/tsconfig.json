@@ -10,7 +10,7 @@
     "sourceMap": true,
     "rootDirs": ["src", "../src"],
     "strict": true,
-    "jsx": "react-jsx",
+    "jsx": "react-jsx"
   },
   "include": [
     "src"

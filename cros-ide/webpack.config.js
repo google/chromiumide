@@ -60,13 +60,13 @@ const extensionConfig = {
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+        test: /\.ts$/,
         exclude: /node_modules/,
-        use: [
-          {
-            loader: 'ts-loader',
-          },
-        ],
+        loader: 'esbuild-loader',
+        options: {
+          loader: 'ts',
+          target: 'es2020',
+        },
       },
     ],
   },
@@ -109,15 +109,12 @@ const viewsConfig = {
       {
         test: /\.tsx?$/,
         exclude: /node_modules/,
-        use: [
-          {
-            loader: 'ts-loader',
-            options: {
-              // Use tsconfig.json in the subdirectory.
-              configFile: 'views/tsconfig.json',
-            },
-          },
-        ],
+        loader: 'esbuild-loader',
+        options: {
+          loader: 'tsx',
+          target: 'es2020',
+          tsconfigRaw: require('./views/tsconfig.json'),
+        },
       },
     ],
   },
