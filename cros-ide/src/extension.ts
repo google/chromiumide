@@ -105,8 +105,6 @@ async function postMetricsActivate(
   gitDocumentProvider.activate();
 
   if (config.underDevelopment.gerrit.get()) {
-    const gitDocumentProvider = new gitDocument.GitDocumentProvider();
-    gitDocumentProvider.activate();
     gerrit.activate(context, statusManager, gitDocumentProvider);
   }
 
