@@ -6,7 +6,6 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as cipd from '../../../../common/cipd';
 import * as services from '../../../../services';
-import * as config from '../../../../services/config';
 import * as gitDocument from '../../../../services/git_document';
 import * as bgTaskStatus from '../../../../ui/bg_task_status';
 import * as metrics from '../../../metrics/metrics';
@@ -131,21 +130,19 @@ class Spellchecker {
     );
 
     // The code below triggers spellchecker on the commit message.
-    if (config.underDevelopment.triciumSpellcheckerForCommitMessage.get()) {
-      this.gitDirsWatcher.visibleGitDirs.forEach(
-        gitDir => void this.refreshCommitMessageDiagnostics(gitDir)
-      );
-      context.subscriptions.push(
-        this.gitDirsWatcher.onDidChangeHead(e => {
-          if (!e.head) {
-            const uri = this.commitMessageUri(e.gitDir);
-            this.delete(uri);
-            return;
-          }
-          void this.refreshCommitMessageDiagnostics(e.gitDir);
-        })
-      );
-    }
+    this.gitDirsWatcher.visibleGitDirs.forEach(
+      gitDir => void this.refreshCommitMessageDiagnostics(gitDir)
+    );
+    context.subscriptions.push(
+      this.gitDirsWatcher.onDidChangeHead(e => {
+        if (!e.head) {
+          const uri = this.commitMessageUri(e.gitDir);
+          this.delete(uri);
+          return;
+        }
+        void this.refreshCommitMessageDiagnostics(e.gitDir);
+      })
+    );
   }
 
   private commitMessageUri(dir: string) {

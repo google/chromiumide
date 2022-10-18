@@ -464,6 +464,11 @@
           "description": "Build system.",
           "default": "Makefile"
         },
+        "cros-ide.spellchecker": {
+          "type": "boolean",
+          "description": "Enable Tricium spellchecker. Requires a reload to take effect.",
+          "default": true
+        },
         "cros-ide.underDevelopment.chromiumBuild": {
           "type": "boolean",
           "description": "Enable build + deploy for chromium code (incomplete)",
@@ -507,16 +512,6 @@
         "cros-ide.underDevelopment.testCoverage": {
           "type": "boolean",
           "description": "Enable Test Coverage (incomplete)",
-          "default": false
-        },
-        "cros-ide.underDevelopment.triciumSpellchecker": {
-          "type": "boolean",
-          "description": "Enable Tricium Spellchecker (b/217287367).",
-          "default": true
-        },
-        "cros-ide.underDevelopment.triciumSpellcheckerForCommitMessage": {
-          "type": "boolean",
-          "description": "Spell check commit message (under development)",
           "default": false
         },
         "cros-ide.deviceManagement.devices": {

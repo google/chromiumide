@@ -75,7 +75,7 @@ export class Chromiumos implements vscode.Disposable {
     // Spellchecker is a corner case. It requires access to CrOS source
     // directory, which is detected by the presence .repo subdirectory, but
     // doesn't need chroot subdirectory to exist.
-    if (config.underDevelopment.triciumSpellchecker.get()) {
+    if (config.spellchecker.get()) {
       this.featureName = 'spellchecker';
       const textEditorsWatcher = new services.TextEditorsWatcher();
       await tricium.activateSpellchecker(

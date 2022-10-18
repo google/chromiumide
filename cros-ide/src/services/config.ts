@@ -77,12 +77,6 @@ export const underDevelopment = {
   runTastTests: new ConfigValue<boolean>('underDevelopment.runTastTests'),
   systemLogViewer: new ConfigValue<boolean>('underDevelopment.systemLogViewer'),
   testCoverage: new ConfigValue<boolean>('underDevelopment.testCoverage'),
-  triciumSpellchecker: new ConfigValue<boolean>(
-    'underDevelopment.triciumSpellchecker'
-  ),
-  triciumSpellcheckerForCommitMessage: new ConfigValue<boolean>(
-    'underDevelopment.triciumSpellcheckerForCommitMessage'
-  ),
 };
 
 export const deviceManagement = {
@@ -112,6 +106,8 @@ export const chrome = {
   ashBuildDir: new ConfigValue<string>('chrome.ashBuildDir'),
   dutName: new ConfigValue<string>('chrome.dutName'),
 };
+
+export const spellchecker = new ConfigValue<boolean>('spellchecker');
 
 export const TEST_ONLY = {
   CROS_IDE_PREFIX,
