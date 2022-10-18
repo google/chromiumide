@@ -2,5 +2,5 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-export {GitDirsWatcher, GitHeadChangeEvent} from './watcher';
-export {VisibleGitDirsChangeEvent} from './visible';
+export {GitDirsWatcher, type GitHeadChangeEvent} from './watcher';
+export {type VisibleGitDirsChangeEvent} from './visible';
