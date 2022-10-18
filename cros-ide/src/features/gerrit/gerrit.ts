@@ -98,6 +98,7 @@ class Gerrit {
     try {
       if (!opts?.noFetch) {
         this.partitionedThreads = await this.fetchComments(fileName);
+        this.clearCommentThreads();
       }
       if (!this.partitionedThreads) {
         return;
@@ -108,8 +109,6 @@ class Gerrit {
         this.showErrorMessage('Git directory not found');
         return;
       }
-
-      this.clearCommentThreads();
 
       for (const [originalCommitId, changeThreads] of this.partitionedThreads) {
         for (const [, threads] of Object.entries(changeThreads)) {
@@ -188,9 +187,10 @@ class Gerrit {
         let uri;
         if (filepath !== '/COMMIT_MSG') {
           uri = vscode.Uri.file(path.join(gitDir, filepath));
-          this.commentThreads.push(
-            createCommentThread(controller, thread, uri)
-          );
+          const vscodeThread = thread.display(controller, uri);
+          if (vscodeThread) {
+            this.commentThreads.push(vscodeThread);
+          }
         } else {
           uri = vscode.Uri.from({
             scheme: gitDocument.GIT_MSG_SCHEME,
@@ -203,9 +203,10 @@ class Gerrit {
           } else if (thread.line !== undefined) {
             shiftThread(thread, -1 * (thread.line - 1));
           }
-          this.commentThreads.push(
-            createCommentThread(controller, thread, uri)
-          );
+          const vscodeThread = thread.display(controller, uri);
+          if (vscodeThread) {
+            this.commentThreads.push(vscodeThread);
+          }
         }
       });
     }
@@ -359,7 +360,6 @@ function shiftThread(thread: Thread, delta: number) {
   }
 }
 
-// TODO(b:216048068): connect Thread and vscode.CommentThread
 export class Thread {
   /** Copy of comments[0].line to be used during repositioning. */
   line?: number;
@@ -371,6 +371,8 @@ export class Thread {
     end_line: number;
     end_character: number;
   };
+
+  vscodeThread?: vscode.CommentThread;
 
   constructor(readonly comments: api.CommentInfo[]) {}
 
@@ -397,6 +399,19 @@ export class Thread {
 
   lastComment(): api.CommentInfo {
     return this.comments[this.comments.length - 1];
+  }
+
+  /** Shows the thread in the UI and returns vscode.CommentThread, if it was created. */
+  display(
+    controller: vscode.CommentController,
+    dataUri: vscode.Uri
+  ): vscode.CommentThread | undefined {
+    if (this.vscodeThread) {
+      this.vscodeThread.range = getVscodeRange(this);
+      return undefined;
+    }
+    this.vscodeThread = createCommentThread(controller, this, dataUri);
+    return this.vscodeThread;
   }
 }
 
@@ -450,29 +465,33 @@ function toVscodeComment(c: api.CommentInfo): vscode.Comment {
   };
 }
 
-function createCommentThread(
-  controller: vscode.CommentController,
-  thread: Thread,
-  dataUri: vscode.Uri
-): vscode.CommentThread {
-  let dataRange;
+function getVscodeRange(thread: Thread): vscode.Range {
   if (thread.range !== undefined) {
-    dataRange = new vscode.Range(
+    return new vscode.Range(
       thread.range.start_line - 1,
       thread.range.start_character,
       thread.range.end_line - 1,
       thread.range.end_character
     );
-  } else if (thread.line !== undefined) {
-    // comments for a line
-    dataRange = new vscode.Range(thread.line - 1, 0, thread.line - 1, 0);
-  } else {
-    // comments for the entire file
-    dataRange = new vscode.Range(0, 0, 0, 0);
   }
+
+  // comments for a line
+  if (thread.line !== undefined) {
+    return new vscode.Range(thread.line - 1, 0, thread.line - 1, 0);
+  }
+
+  // comments for the entire file
+  return new vscode.Range(0, 0, 0, 0);
+}
+
+function createCommentThread(
+  controller: vscode.CommentController,
+  thread: Thread,
+  dataUri: vscode.Uri
+): vscode.CommentThread {
   const vscodeThread = controller.createCommentThread(
     dataUri,
-    dataRange,
+    getVscodeRange(thread),
     thread.comments.map(c => toVscodeComment(c))
   );
   // TODO(b:216048068): We should indicate resolved/unresolved with UI style.
