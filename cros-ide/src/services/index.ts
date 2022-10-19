@@ -4,4 +4,4 @@
 
 export * as chromiumos from './chromiumos';
 
-export {ProductWatcher, GitDirsWatcher} from './watchers';
+export {GitDirsWatcher, ProductWatcher, TextEditorsWatcher} from './watchers';
