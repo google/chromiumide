@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as process from 'process';
@@ -50,7 +51,37 @@ export class CipdRepository {
       PATH: expandedPath.join(':'),
     };
 
+    const errorDetails = (error: Error) => {
+      // We send only selected data to avoid capturing too much
+      // (for example, home directory name).
+      const data = [`pkg: ${packageName}`, `ver: ${version}`];
+      if (error instanceof commonUtil.AbnormalExitError) {
+        data.push(`status: ${error.exitStatus}`);
+      }
+      return data.join(', ');
+    };
+
     await this.cipdMutex.runExclusive(async () => {
+      if (!fs.existsSync(path.join(this.installDir, '.cipd'))) {
+        const result = await commonUtil.exec(
+          'cipd',
+          ['init', this.installDir, '-force'],
+          {
+            logger: output,
+            env,
+          }
+        );
+        if (result instanceof Error) {
+          const details = errorDetails(result);
+          metrics.send({
+            category: 'error',
+            group: 'misc',
+            description: `call to 'cipd init' failed, details: ${details}`,
+          });
+          throw result;
+        }
+      }
+
       const result = await commonUtil.exec(
         'cipd',
         ['install', '-root', this.installDir, packageName, version],
@@ -60,13 +91,7 @@ export class CipdRepository {
         }
       );
       if (result instanceof Error) {
-        // We send only selected data to avoid capturing too much
-        // (for example, home directory name).
-        const data = [`pkg: ${packageName}`, `ver: ${version}`];
-        if (result instanceof commonUtil.AbnormalExitError) {
-          data.push(`status: ${result.exitStatus}`);
-        }
-        const details = data.join(', ');
+        const details = errorDetails(result);
         metrics.send({
           category: 'error',
           group: 'misc',

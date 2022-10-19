@@ -22,6 +22,10 @@ export function installFakeCipd(
     Object.assign(cipdRepository, new cipd.CipdRepository(tempDir.path));
     fakeExec.on(
       'cipd',
+      testing.exactMatch(['init', tempDir.path, '-force'], async () => 'ok')
+    );
+    fakeExec.on(
+      'cipd',
       testing.exactMatch(
         [
           'install',
