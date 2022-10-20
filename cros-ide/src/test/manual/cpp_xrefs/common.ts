@@ -34,6 +34,8 @@ export function packagesInstance(): services.chromiumos.Packages {
   if (packagesCache) {
     return packagesCache;
   }
-  packagesCache = new services.chromiumos.Packages(chrootServiceInstance());
+  packagesCache = services.chromiumos.Packages.getOrCreate(
+    chrootServiceInstance()
+  );
   return packagesCache;
 }

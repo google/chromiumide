@@ -34,7 +34,7 @@ export class Platform2 implements CompdbGenerator {
       chrootService.crosFs
     )
   ) {
-    this.packages = new Packages(this.chrootService);
+    this.packages = Packages.getOrCreate(this.chrootService);
   }
 
   /**

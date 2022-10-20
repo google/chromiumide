@@ -14,7 +14,7 @@ describe('Packages', () => {
   it('returns package information', async () => {
     await testing.buildFakeChroot(tempDir.path);
 
-    const packages = new Packages(
+    const packages = Packages.getOrCreate(
       services.chromiumos.ChrootService.maybeCreate(tempDir.path, false)!
     );
     // A file should exists in the filepath to get its absolute path.

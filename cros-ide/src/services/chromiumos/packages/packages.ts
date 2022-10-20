@@ -9,7 +9,6 @@ import * as services from '../..';
 import {generate} from './mapping';
 import {SourceDir, PackageInfo} from './types';
 
-// TODO(oka): Make this a singleton if this is used from multiple places.
 export class Packages {
   private mapping = new Map<SourceDir, PackageInfo>();
   private generated = false;
@@ -18,9 +17,25 @@ export class Packages {
    * If autoDetect is true, instead of using a hard-coded mapping, we lazily generate
    * the mapping from the current repository when it's needed.
    */
-  constructor(
+  private constructor(
     private readonly chrootService: services.chromiumos.ChrootService
   ) {}
+
+  private static instances = new Map<string, Packages>();
+  /**
+   * Creates an instance of this class. If this function has been called with the same
+   * parameter, it returns the cached instance.
+   */
+  static getOrCreate(chrootService: services.chromiumos.ChrootService) {
+    const key = chrootService.source.root;
+    const cached = Packages.instances.get(key);
+    if (cached) {
+      return cached;
+    }
+    const instance = new Packages(chrootService);
+    Packages.instances.set(key, instance);
+    return instance;
+  }
 
   private async ensureGenerated() {
     if (this.generated) {
