@@ -41,7 +41,11 @@ export class GtestWorkspace implements vscode.Disposable {
       })
     );
 
-    vscode.window.visibleTextEditors.map(e => this.update(e.document));
+    // setImmediate is needed to make sure RunProfile receives
+    // TestControllerSingleton's onDidCreate event.
+    setImmediate(() =>
+      vscode.window.visibleTextEditors.map(e => this.update(e.document))
+    );
   }
 
   private update(document: vscode.TextDocument, remove?: boolean) {
