@@ -168,6 +168,7 @@ async function getAvailableTests(
       const res = await context.chrootService.exec('tast', ['list', target], {
         sudoReason: 'to get list of available tests.',
         logger: context.output,
+        cancellationToken: token,
       });
       if (token.isCancellationRequested) {
         return undefined;
