@@ -104,7 +104,7 @@ async function postMetricsActivate(
   const gitDocumentProvider = new gitDocument.GitDocumentProvider();
   gitDocumentProvider.activate();
 
-  if (config.underDevelopment.gerrit.get()) {
+  if (config.gerrit.enabled.get()) {
     const gitDirsWatcher = new services.GitDirsWatcher('/');
     gerrit.activate(
       context,

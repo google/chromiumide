@@ -217,7 +217,7 @@
         "category": "CrOS",
         "title": "Collapse All Comments",
         "icon": "$(collapse-all)",
-        "enablement": "config.cros-ide.underDevelopment.gerrit"
+        "enablement": "config.cros-ide.gerrit.enabled"
       }
     ],
     "viewsContainers": {
@@ -442,6 +442,11 @@
           "description": "Disable the new logic to automatically detect a Portage package from the filepath, and use hardcoded mapping instead",
           "default": false
         },
+        "cros-ide.gerrit.enabled": {
+          "type": "boolean",
+          "markdownDescription": "Enable Gerrit comments.",
+          "default": false
+        },
         "cros-ide.platformEC.board": {
           "type": "string",
           "description": "EC target, for example, bloonchipper."
@@ -487,11 +492,6 @@
         "cros-ide.underDevelopment.deviceManagement": {
           "type": "boolean",
           "description": "Enable experimental Device Management features.",
-          "default": false
-        },
-        "cros-ide.underDevelopment.gerrit": {
-          "type": "boolean",
-          "description": "Enable Gerrit support (incomplete)",
           "default": false
         },
         "cros-ide.underDevelopment.platform2GtestDebugging": {

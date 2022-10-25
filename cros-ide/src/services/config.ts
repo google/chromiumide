@@ -63,6 +63,10 @@ export const cppCodeCompletion = {
   ),
 };
 
+export const gerrit = {
+  enabled: new ConfigValue<boolean>('gerrit.enabled'),
+};
+
 export const underDevelopment = {
   chromiumBuild: new ConfigValue<boolean>('underDevelopment.chromiumBuild'),
   crosFormat: new ConfigValue<boolean>('underDevelopment.crosFormat'),
