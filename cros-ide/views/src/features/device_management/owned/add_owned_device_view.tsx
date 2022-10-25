@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as net from 'net';
+import {isIP} from 'is-ip';
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import BusinessIcon from '@mui/icons-material/Business';
@@ -279,8 +279,7 @@ function NetworkTypeStep(props: any) {
 }
 
 function IpAddressStep(props: any) {
-  const isIpAddressValid =
-    props.ipAddress !== null && net.isIP(props.ipAddress);
+  const isIpAddressValid = props.ipAddress !== null && isIP(props.ipAddress);
   const isFormValid = isIpAddressValid;
   const handleIpAddressChange = (
     event: React.ChangeEvent<HTMLInputElement>
