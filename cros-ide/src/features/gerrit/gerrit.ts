@@ -9,6 +9,7 @@ import * as commonUtil from '../../common/common_util';
 import * as services from '../../services';
 import * as gitDocument from '../../services/git_document';
 import * as bgTaskStatus from '../../ui/bg_task_status';
+import * as metrics from '../metrics/metrics';
 import * as api from './api';
 import * as git from './git';
 import * as helpers from './helpers';
@@ -48,11 +49,25 @@ export function activate(
 
   context.subscriptions.push(controller);
 
+  const focusCommentsPanel = 'cros-ide.gerrit.focusCommentsPanel';
+  context.subscriptions.push(
+    vscode.commands.registerCommand(focusCommentsPanel, () => {
+      void vscode.commands.executeCommand(
+        'workbench.action.focusCommentsPanel'
+      );
+      metrics.send({
+        category: 'interactive',
+        group: 'gerrit',
+        action: 'focus comments panel',
+      });
+    })
+  );
+  context.subscriptions;
   const statusBar = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left,
     10 // puts this item left of clangd
   );
-  statusBar.command = 'workbench.action.focusCommentsPanel';
+  statusBar.command = focusCommentsPanel;
 
   const gerrit = new Gerrit(controller, outputChannel, statusBar);
 
@@ -64,6 +79,11 @@ export function activate(
       'cros-ide.gerrit.collapseAllComments',
       () => {
         gerrit.collapseAllComments();
+        metrics.send({
+          category: 'interactive',
+          group: 'gerrit',
+          action: 'collapse all comments',
+        });
       }
     ),
     gitDirsWatcher.onDidChangeHead(async event => {
@@ -96,7 +116,8 @@ class Gerrit {
    */
   async showComments(fileName: string, opts?: {noFetch: boolean}) {
     try {
-      if (!opts?.noFetch) {
+      const doFetch = !opts?.noFetch;
+      if (doFetch) {
         this.partitionedThreads = await this.fetchComments(fileName);
         this.clearCommentThreads();
       }
@@ -122,6 +143,9 @@ class Gerrit {
         this.displayCommentThreads(this.controller, changeThreads, gitDir);
       }
       this.updateStatusBar();
+      if (doFetch) {
+        this.sendMetrics();
+      }
     } catch (err) {
       this.showErrorMessage(`Failed to add Gerrit comments: ${err}`);
       return;
@@ -145,6 +169,15 @@ class Gerrit {
     } else {
       this.statusBar.hide();
     }
+  }
+
+  sendMetrics() {
+    metrics.send({
+      category: 'background',
+      group: 'gerrit',
+      action: 'update comments',
+      value: this.commentThreads.length,
+    });
   }
 
   /**

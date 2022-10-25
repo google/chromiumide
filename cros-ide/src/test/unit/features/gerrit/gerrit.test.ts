@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import * as api from '../../../../features/gerrit/api';
 import {TEST_ONLY} from '../../../../features/gerrit/gerrit';
 import * as https from '../../../../features/gerrit/https';
+import * as metrics from '../../../../features/metrics/metrics';
 import * as testing from '../../../testing';
 
 const {formatGerritTimestamp, Gerrit, partitionThreads} = TEST_ONLY;
@@ -239,6 +240,8 @@ describe('Gerrit', () => {
       )
       .and.returnValue(Promise.resolve(SIMPLE_COMMENT_GERRIT_JSON(commitId)));
 
+    spyOn(metrics, 'send');
+
     await expectAsync(gerrit.showComments(fileName)).toBeResolved();
 
     expect(commentController.createCommentThread).toHaveBeenCalledTimes(1);
@@ -251,6 +254,12 @@ describe('Gerrit', () => {
 
     expect(statusBarShown).toBeTrue();
     expect(statusBar.text).toEqual('$(comment) 1');
+    expect(metrics.send).toHaveBeenCalledOnceWith({
+      category: 'background',
+      group: 'gerrit',
+      action: 'update comments',
+      value: 1,
+    });
   });
 
   // Tests, that when a Gerrit change contains multiple patchsets,

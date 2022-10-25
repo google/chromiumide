@@ -85,6 +85,7 @@ type FeatureGroup =
   | 'codesearch'
   | 'cppxrefs'
   | 'device'
+  | 'gerrit'
   | 'lint'
   | 'package'
   | 'spellchecker'
