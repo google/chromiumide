@@ -266,6 +266,140 @@ describe('Gerrit', () => {
     });
   });
 
+  it('handles special comment types (line, file, commit msg, patchset)', async () => {
+    // Based on crrev.com/c/3980425
+    // Contains four comments: on a line, on a file, on the commit message, and patchset level.
+    const SPECIAL_COMMENT_TYPES = (commitId: string) => {
+      return {
+        '/COMMIT_MSG': [
+          {
+            ...COMMENT_INFO,
+            id: '11f22565_49cc073f',
+            line: 7,
+            message: 'Commit message comment',
+            commit_id: commitId,
+          },
+        ],
+        '/PATCHSET_LEVEL': [
+          {
+            ...COMMENT_INFO,
+            id: '413f2364_e012168b',
+            updated: '2022-10-27 08:26:37.000000000',
+            message: 'Patchset level comment.',
+            commit_id: commitId,
+          },
+        ],
+        'cryptohome/crypto.h': [
+          {
+            ...COMMENT_INFO,
+            id: 'dac128a9_60677732',
+            message: 'File comment.',
+            commit_id: commitId,
+          },
+          {
+            ...COMMENT_INFO,
+            id: 'e5b66a14_6d8b4554',
+            line: 11,
+            message: 'Line comment.',
+            commit_id: commitId,
+          },
+        ],
+      };
+    };
+
+    const root = tempDir.path;
+    const abs = (relative: string) => path.join(root, relative);
+
+    // Create a repo with two commits:
+    //   1) The first simulates cros/main.
+    //   2) The second is the commit on which Gerrit review is taking place.
+    const git = new testing.Git(root);
+    await git.init();
+    await git.commit('First');
+    await git.checkout('cros/main', {createBranch: true});
+    await git.checkout('main');
+    await testing.putFiles(git.root, {
+      'cryptohome/crypto.h': 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n',
+    });
+    await git.addAll();
+    const commitId = await git.commit(
+      'Under review\nChange-Id: Iba73f448e0da2a814f7303d1456049bb3554676e'
+    );
+
+    const commentController = jasmine.createSpyObj<vscode.CommentController>(
+      'commentController',
+      ['createCommentThread']
+    );
+
+    commentController.createCommentThread.and.returnValue(
+      {} as vscode.CommentThread
+    );
+
+    const statusBar = vscode.window.createStatusBarItem();
+    let statusBarShown = false;
+    statusBar.show = () => {
+      statusBarShown = true;
+    };
+
+    const gerrit = new Gerrit(
+      commentController,
+      vscode.window.createOutputChannel('gerrit'),
+      statusBar
+    );
+
+    spyOn(https, 'get')
+      .withArgs(
+        'https://chromium-review.googlesource.com/changes/Iba73f448e0da2a814f7303d1456049bb3554676e/comments'
+      )
+      .and.returnValue(
+        Promise.resolve(apiString(SPECIAL_COMMENT_TYPES(commitId)))
+      );
+
+    spyOn(metrics, 'send');
+
+    await expectAsync(
+      gerrit.showComments(abs('cryptohome/crypto.h'))
+    ).toBeResolved();
+
+    expect(commentController.createCommentThread).toHaveBeenCalledTimes(4);
+
+    // Order of calls is irrelevant, but since our algorithm is deterministic,
+    // we can rely on it for simplicity.
+    const callData = commentController.createCommentThread.calls.all();
+
+    // TODO(b:216048068): check more than just fsPath on special Uris
+
+    expect(callData[0].args[0].fsPath).toEqual(abs('COMMIT MESSAGE'));
+    // Gerrit returns line 7, but our virtual documents don't have some headers,
+    // so we shift the message by 6 lines and convert it to 0-based.
+    expect(callData[0].args[1].start.line).toEqual(0);
+    expect(callData[0].args[2][0].body).toEqual('Commit message comment');
+
+    expect(callData[1].args[0].fsPath).toEqual(abs('PATCHSET_LEVEL'));
+    // Patchset level comments should always be shown on the first line.
+    expect(callData[1].args[1].start.line).toEqual(0);
+    expect(callData[1].args[2][0].body).toEqual('Patchset level comment.');
+
+    expect(callData[2].args[0].fsPath).toEqual(abs('cryptohome/crypto.h'));
+    // File comments should always be shown on the first line.
+    expect(callData[2].args[1].start.line).toEqual(0);
+    expect(callData[2].args[2][0].body).toEqual('File comment.');
+
+    expect(callData[3].args[0].fsPath).toEqual(abs('cryptohome/crypto.h'));
+    // No shift, but we convert 1-based to 0-based.
+    expect(callData[3].args[1].start.line).toEqual(10);
+    expect(callData[3].args[2][0].body).toEqual('Line comment.');
+
+    expect(statusBarShown).toBeTrue();
+    expect(statusBar.text).toEqual('$(comment) 4');
+    expect(metrics.send).toHaveBeenCalledOnceWith({
+      category: 'background',
+      group: 'gerrit',
+      action: 'update comments',
+      value: 4,
+    });
+  });
+
   // Tests, that when a Gerrit change contains multiple patchsets,
   // comments from distinct patchsets are repositioned correctly.
   //
