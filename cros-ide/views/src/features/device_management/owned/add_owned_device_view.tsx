@@ -35,7 +35,6 @@ import {
 } from '@mui/material';
 import * as colors from '@mui/material/colors';
 import TabPanel from '@mui/lab/TabPanel';
-import {HotKeys} from 'react-hotkeys';
 import isValidHostname from 'is-valid-hostname';
 import {TabContext} from '@mui/lab';
 import * as model from '../../../../../src/features/chromiumos/device_management/owned/add_owned_device_model';
@@ -96,7 +95,9 @@ export function AddOwnedDeviceView(props: {
     });
 
   const handleBack = () => {
-    setActiveStep(activeStep - 1);
+    if (activeStep >= 0) {
+      setActiveStep(activeStep - 1);
+    }
   };
   const handleNext = () => {
     if (nextStepEnabled) {
@@ -107,7 +108,9 @@ export function AddOwnedDeviceView(props: {
         });
         return;
       }
-      setActiveStep(activeStep + 1);
+      if (activeStep < steps.length - 1) {
+        setActiveStep(activeStep + 1);
+      }
     }
   };
   const handleConnectionConfigChange = (
@@ -122,6 +125,22 @@ export function AddOwnedDeviceView(props: {
     setConnectionConfig: handleConnectionConfigChange,
     setNextStepEnabled: setNextStepEnabled,
     setBackEnabled: setBackEnabled,
+  };
+  const handleKeydown = (e: any) => {
+    console.log('keydown e.key = ' + e.key);
+    if (
+      nextStepEnabled &&
+      (e.key === 'Enter' ||
+        (e.getModifierState('Alt') && e.key === 'ArrowRight'))
+    ) {
+      handleNext();
+    } else if (
+      backEnabled &&
+      e.getModifierState('Alt') &&
+      e.key === 'ArrowLeft'
+    ) {
+      handleBack();
+    }
   };
 
   const networkTypeStep: Step = {
@@ -169,7 +188,7 @@ export function AddOwnedDeviceView(props: {
   const steps = stepsByNetworkType[connectionConfig.networkType];
 
   return (
-    <form id="stepperForm" onSubmit={handleNext}>
+    <div tabIndex={-1} onKeyDown={handleKeydown}>
       <Container maxWidth="md">
         <Stack spacing={2}>
           <Stepper activeStep={activeStep}>
@@ -200,7 +219,7 @@ export function AddOwnedDeviceView(props: {
           </Box>
         </Stack>
       </Container>
-    </form>
+    </div>
   );
 }
 
@@ -212,25 +231,15 @@ function NetworkTypeStep(props: AddOwnedDeviceStepProps) {
   const handleNetworkType = (nt: model.DutNetworkType) => {
     props.setConnectionConfig({...props.connectionConfig, networkType: nt});
   };
+  const handleKeydown = (e: any) => {
+    if (e.key === 'o') {
+      handleNetworkType(model.DutNetworkType.OFFICE);
+    } else if (e.key === 'h') {
+      handleNetworkType(model.DutNetworkType.HOME);
+    }
+  };
   return (
-    <HotKeys
-      keyMap={{
-        office: 'o',
-        home: 'h',
-        p2p: 'p',
-      }}
-      handlers={{
-        office: () => {
-          handleNetworkType(model.DutNetworkType.OFFICE);
-        },
-        home: () => {
-          handleNetworkType(model.DutNetworkType.HOME);
-        },
-        p2p: () => {
-          handleNetworkType(model.DutNetworkType.P2P);
-        },
-      }}
-    >
+    <div tabIndex={-1} onKeyDown={handleKeydown} ref={elem => elem?.focus()}>
       <p>Where is your DUT (device under test)?</p>
       <ToggleButtonGroup
         exclusive
@@ -257,7 +266,7 @@ function NetworkTypeStep(props: AddOwnedDeviceStepProps) {
           Home
         </ToggleButton>
       </ToggleButtonGroup>
-    </HotKeys>
+    </div>
   );
 }
 
@@ -504,27 +513,25 @@ function ConnectionTestStep(props: AddOwnedDeviceStepProps) {
   // Once the connection succeeds, the ssh config change sticks and we shouldn't revisit steps.
   props.setBackEnabled(!info);
 
-  if (info) {
-    return (
-      <Stack style={centerStyle}>
-        <CheckIcon sx={{color: colors.green[500]}} />
-        <h2>Success!</h2>
-        {/* TODO(joelbecker): Show device info */}
-      </Stack>
-    );
-  } else if (error) {
-    return (
-      <Stack style={centerStyle}>
-        <SentimentDissatisfiedIcon sx={{color: colors.red[500]}} />
-        <h2>Unable to connect.</h2>
-      </Stack>
-    );
-  } else {
-    return (
-      <Stack style={centerStyle}>
-        <CircularProgress />
-        <h2>Connecting to Device...</h2>
-      </Stack>
-    );
-  }
+  return (
+    <div tabIndex={-1} ref={elem => elem?.focus()}>
+      {info ? (
+        <Stack style={centerStyle}>
+          <CheckIcon sx={{color: colors.green[500]}} />
+          <h2>Success!</h2>
+          {/* TODO(joelbecker): Show device info */}
+        </Stack>
+      ) : error ? (
+        <Stack style={centerStyle}>
+          <SentimentDissatisfiedIcon sx={{color: colors.red[500]}} />
+          <h2>Unable to connect.</h2>
+        </Stack>
+      ) : (
+        <Stack style={centerStyle}>
+          <CircularProgress />
+          <h2>Connecting to Device...</h2>
+        </Stack>
+      )}
+    </div>
+  );
 }
