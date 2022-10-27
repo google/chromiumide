@@ -6,6 +6,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import {Atom} from '../../../../services/chromiumos';
 import * as services from '../../../../services';
+import * as commonUtil from '../../../../common/common_util';
 import {MNT_HOST_SOURCE} from '../constants';
 import {Board, HOST} from './board';
 import {CompdbError, CompdbErrorKind} from './error';
@@ -15,27 +16,50 @@ export class Ebuild {
   constructor(
     private readonly board: Board,
     private readonly atom: Atom,
-    private readonly output: vscode.OutputChannel,
+    private readonly output: Pick<
+      vscode.OutputChannel,
+      'append' | 'appendLine'
+    >,
     private readonly crosFs: services.chromiumos.CrosFs,
-    private readonly useFlags: string[]
+    private readonly useFlags: string[],
+    private readonly cancellation?: vscode.CancellationToken
   ) {}
+
+  static globalMutexMap: Map<string, commonUtil.Mutex<string | undefined>> =
+    new Map();
+
+  private mutex() {
+    const key = `${this.board}:${this.atom}:${this.crosFs.source.root}`;
+    const existing = Ebuild.globalMutexMap.get(key);
+    if (existing) {
+      return existing;
+    }
+    const mutex = new commonUtil.Mutex<string | undefined>();
+    Ebuild.globalMutexMap.set(key, mutex);
+    return mutex;
+  }
 
   /**
    * Generates compilation database.
    *
+   * We run concurrent operations exclusively if the board, atom, and chroot path
+   * for the operations are exactly the same.
+   *
    * @throws CompdbError on failure.
    */
   async generate(): Promise<string | undefined> {
-    await this.removeCache();
-    try {
-      await this.runCompgen();
-    } catch (e: unknown) {
-      throw new CompdbError({
-        kind: CompdbErrorKind.RunEbuild,
-        reason: e as Error,
-      });
-    }
-    return await this.artifactPath();
+    return await this.mutex().runExclusive(async () => {
+      await this.removeCache();
+      try {
+        await this.runCompgen();
+      } catch (e: unknown) {
+        throw new CompdbError({
+          kind: CompdbErrorKind.RunEbuild,
+          reason: e as Error,
+        });
+      }
+      return await this.artifactPath();
+    });
   }
 
   /**
@@ -120,6 +144,7 @@ export class Ebuild {
       {
         logger: this.output,
         logStdout: true,
+        cancellationToken: this.cancellation,
         sudoReason: 'to generate C++ cross references',
       }
     );
