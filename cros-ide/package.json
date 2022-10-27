@@ -496,8 +496,8 @@
         },
         "cros-ide.underDevelopment.platform2GtestDebugging": {
           "type": "boolean",
-          "description": "Enable platform2 gtest debugging support (under development)",
-          "default": false
+          "description": "Enable platform2 gtest debugging support",
+          "default": true
         },
         "cros-ide.underDevelopment.platformEC": {
           "type": "boolean",
