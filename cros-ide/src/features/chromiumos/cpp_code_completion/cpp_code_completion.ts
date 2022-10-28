@@ -192,7 +192,7 @@ export class CppCodeCompletion implements vscode.Disposable {
     for (const {label} of error.buttons) {
       buttons.push(label);
     }
-    buttons.concat(SHOW_LOG, IGNORE);
+    buttons.push(SHOW_LOG, IGNORE);
 
     // `await` cannot be used, because it blocks forever if the
     // message is dismissed due to timeout.

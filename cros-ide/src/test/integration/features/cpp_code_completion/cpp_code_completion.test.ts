@@ -197,6 +197,13 @@ describe('C++ code completion on failure', () => {
 
     expect(actionTriggeredCount).toEqual(1);
 
+    expect(vscodeSpy.window.showErrorMessage.calls.argsFor(0)).toEqual([
+      'error!',
+      buttonLabel,
+      'Show Log',
+      'Ignore',
+    ]);
+
     await fireEvent();
 
     expect(actionTriggeredCount).toEqual(2);
