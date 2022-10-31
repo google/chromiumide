@@ -213,8 +213,13 @@ class Gerrit {
     const partitionedThreads: [string, ChangeThreads][] = [];
 
     for (const gitLogInfo of gitLogInfos) {
-      const commentsUrl = `https://chromium-review.googlesource.com/changes/${gitLogInfo.gerritChangeId}/comments`;
+      const gerritChangeId = gitLogInfo.gerritChangeId;
+      const commentsUrl = `https://chromium-review.googlesource.com/changes/${gerritChangeId}/comments`;
       const commentsContent = await https.getOrThrow(commentsUrl);
+      if (!commentsContent) {
+        this.outputChannel.appendLine(`Not found on Gerrit: ${gerritChangeId}`);
+        continue;
+      }
       const commentsJson = commentsContent.substring(')]}\n'.length);
       const changeComments = JSON.parse(commentsJson) as api.ChangeComments;
       const combinedChangeThreads = partitionThreads(

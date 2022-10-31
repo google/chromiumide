@@ -6,14 +6,20 @@ import * as https from 'https';
 
 /**
  * Fetches raw data from Gerrit API over https.
+ *
+ * Returns the response if it is successful or undefined on 404 error.
+ * Everything else throws an error.
  */
 export async function getOrThrow(
   url: string,
   optionsForTesting: https.RequestOptions = {}
-): Promise<string> {
+): Promise<string | undefined> {
   return new Promise((resolve, reject) => {
     https
       .get(url, optionsForTesting, res => {
+        if (res.statusCode === 404) {
+          resolve(undefined);
+        }
         if (res.statusCode !== 200) {
           reject(new Error(`status code: ${res.statusCode}`));
         }

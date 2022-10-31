@@ -58,7 +58,7 @@ describe('http request', () => {
     ).toBeRejectedWith(new Error('status code: 403'));
   });
 
-  it('throws on 404 (not found)', async () => {
+  it('returns undefined on 404 (not found)', async () => {
     const port = await netUtil.findUnusedPort();
     server = https
       .createServer(serverOptions, (_req, resp) => {
@@ -69,7 +69,7 @@ describe('http request', () => {
 
     await expectAsync(
       gerritHttps.getOrThrow(`https://localhost:${port}/`, requestOptions)
-    ).toBeRejectedWith(new Error('status code: 404'));
+    ).toBeResolvedTo(undefined);
   });
 
   it('throws on error', async () => {

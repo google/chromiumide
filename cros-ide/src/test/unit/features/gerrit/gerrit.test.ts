@@ -642,4 +642,74 @@ describe('Gerrit', () => {
       value: 2,
     });
   });
+
+  it('does not throw errors when the change is not in Gerrit', async () => {
+    const root = tempDir.path;
+    const abs = (relative: string) => path.join(root, relative);
+
+    const git = new testing.Git(root);
+    await git.init();
+    await git.commit('First');
+    await git.checkout('cros/main', {createBranch: true});
+    await git.checkout('main');
+    await git.commit(
+      'Second\nChange-Id: Iaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    );
+
+    const commentController = jasmine.createSpyObj<vscode.CommentController>(
+      'commentController',
+      ['createCommentThread']
+    );
+
+    // Without it we get an error setting fields on an undefined object,
+    // which causes flakiness.
+    commentController.createCommentThread.and.returnValue(
+      {} as vscode.CommentThread
+    );
+
+    const statusBar = vscode.window.createStatusBarItem();
+    spyOn(statusBar, 'hide');
+    spyOn(statusBar, 'show');
+
+    const statusManager = jasmine.createSpyObj<bgTaskStatus.StatusManager>(
+      'statusManager',
+      ['setStatus']
+    );
+
+    const gerrit = new Gerrit(
+      commentController,
+      vscode.window.createOutputChannel('gerrit'),
+      statusBar,
+      statusManager
+    );
+
+    spyOn(https, 'getOrThrow')
+      .withArgs(
+        'https://chromium-review.googlesource.com/changes/Iaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/comments'
+      )
+      .and.returnValue(Promise.resolve(undefined));
+
+    spyOn(metrics, 'send');
+
+    await expectAsync(
+      gerrit.showComments(abs('cryptohome/cryptohome.cc'))
+    ).toBeResolved();
+
+    expect(commentController.createCommentThread).not.toHaveBeenCalled();
+
+    expect(statusBar.show).not.toHaveBeenCalled();
+    expect(statusBar.hide).toHaveBeenCalled();
+
+    expect(metrics.send).toHaveBeenCalledOnceWith({
+      category: 'background',
+      group: 'gerrit',
+      action: 'update comments',
+      value: 0,
+    });
+
+    expect(statusManager.setStatus).toHaveBeenCalledOnceWith(
+      'Gerrit',
+      bgTaskStatus.TaskStatus.OK
+    );
+  });
 });
