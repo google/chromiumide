@@ -119,6 +119,17 @@ async function postMetricsActivate(
     );
   }
 
+  // We want to know if some users flip enablement bit.
+  // If the feature is disabled it could mean that it's annoying.
+  if (!config.gerrit.enabled.hasDefaultValue()) {
+    metrics.send({
+      category: 'background',
+      group: 'misc',
+      action: 'gerrit enablement',
+      label: String(config.gerrit.enabled.get()),
+    });
+  }
+
   if (config.underDevelopment.chromiumBuild.get()) {
     chromiumBuild.activate(context, statusManager);
   }

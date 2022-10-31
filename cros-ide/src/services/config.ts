@@ -35,6 +35,24 @@ class ConfigValue<T> {
     return value;
   }
 
+  /**
+   * Returns true if the setting has the same value as the default in package.json.
+   */
+  hasDefaultValue(): boolean {
+    const value = this.get();
+
+    const values = vscode.workspace
+      .getConfiguration(this.prefix)
+      .inspect<T>(this.section);
+    if (values === undefined) {
+      throw new Error(
+        `Internal error: ${this.prefix}.${this.section} not found (via inspect).`
+      );
+    }
+
+    return value === values.defaultValue;
+  }
+
   async update(value: T | undefined): Promise<void> {
     await vscode.workspace
       .getConfiguration(this.prefix)
