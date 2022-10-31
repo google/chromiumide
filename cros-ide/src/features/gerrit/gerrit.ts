@@ -173,12 +173,6 @@ class Gerrit {
       }
 
       for (const [originalCommitId, changeThreads] of this.partitionedThreads) {
-        for (const [, threads] of Object.entries(changeThreads)) {
-          for (const thread of threads) {
-            thread.initializeLocation();
-          }
-        }
-
         // TODO(b:216048068): Handle original commit not available locally.
         await this.shiftChangeComments(gitDir, originalCommitId, changeThreads);
         this.displayCommentThreads(this.controller, changeThreads, gitDir);
@@ -344,10 +338,10 @@ class Gerrit {
             'gerrit commit msg'
           );
           // Compensate the difference between commit message on Gerrit and Terminal
-          if (thread.line !== undefined && thread.line > 6) {
-            shiftThread(thread, -6);
-          } else if (thread.line !== undefined) {
-            shiftThread(thread, -1 * (thread.line - 1));
+          if (thread.originalLine !== undefined && thread.originalLine > 6) {
+            thread.shift -= 6;
+          } else if (thread.originalLine !== undefined) {
+            thread.shift -= thread.originalLine - 1;
           }
         } else if (filepath === '/PATCHSET_LEVEL') {
           uri = virtualDocument.patchSetUri(
@@ -432,11 +426,11 @@ export function updateChangeComments(
   for (const [filePath, threads] of Object.entries(changeComments)) {
     const hunks = hunksAllFiles[filePath] || [];
     for (const thread of threads) {
-      let cumulativeShift = 0;
+      thread.shift = 0;
       for (const hunk of hunks) {
         if (threadFollowsHunk(thread, hunk)) {
           // comment outside the hunk
-          cumulativeShift += hunk.sizeDelta;
+          thread.shift += hunk.sizeDelta;
         } else if (
           // comment within the hunk
           threadWithinRange(thread, hunk.originalStart, hunk.originalEnd)
@@ -444,16 +438,15 @@ export function updateChangeComments(
           // Ensure the comment within the hunk still resides in the
           // hunk. If the hunk removes all the lines, the comment will
           // be moved to the line preceding the hunk.
-          if (hunk.sizeDelta < 0 && thread.line !== undefined) {
+          if (hunk.sizeDelta < 0 && thread.originalLine !== undefined) {
             const protrusion =
-              thread.line - (hunk.originalStart + hunk.currentSize) + 1;
+              thread.originalLine - (hunk.originalStart + hunk.currentSize) + 1;
             if (protrusion > 0) {
-              cumulativeShift += -1 * protrusion;
+              thread.shift -= protrusion;
             }
           }
         }
       }
-      shiftThread(thread, cumulativeShift);
     }
   }
 }
@@ -463,19 +456,19 @@ export function updateChangeComments(
  * by the size change introduced by the hunk.
  */
 function threadFollowsHunk(thread: Thread, hunk: git.Hunk) {
-  if (!thread.line) {
+  if (!thread.originalLine) {
     return false;
   }
 
   // Case 1: hunks that insert lines.
   // The original side is `N,0` and the hunk inserts lines between N and N+1.
   if (hunk.originalSize === 0) {
-    return thread.line > hunk.originalStart;
+    return thread.originalLine > hunk.originalStart;
   }
 
   // Case 2: Modifications and deletions.
   // The original side is `N,size` and the hunk modifies 'size' lines starting from N.
-  return thread.line >= hunk.originalStart + hunk.originalSize;
+  return thread.originalLine >= hunk.originalStart + hunk.originalSize;
 }
 
 /**
@@ -488,38 +481,19 @@ function threadWithinRange(
   maximum: number
 ): boolean {
   return (
-    thread.line !== undefined && thread.line >= minimum && thread.line < maximum
+    thread.originalLine !== undefined &&
+    thread.originalLine >= minimum &&
+    thread.originalLine < maximum
   );
 }
 
-function shiftThread(thread: Thread, delta: number) {
-  if (
-    // Comments for characters
-    thread.range !== undefined &&
-    thread.line !== undefined
-  ) {
-    thread.range.start_line += delta;
-    thread.range.end_line += delta;
-    thread.line += delta;
-  } else if (
-    // Comments for lines
-    thread.line !== undefined
-  ) {
-    thread.line += delta;
-  }
-}
-
 export class Thread {
-  /** Copy of comments[0].line to be used during repositioning. */
-  line?: number;
-
-  /** Copy of comments[0].range to be used during repositioning. */
-  range?: {
-    start_line: number;
-    start_character: number;
-    end_line: number;
-    end_character: number;
-  };
+  /**
+   * Update required to reposition the thread from the original location
+   * to the corresponding line in the working tree. Only lines are shifted,
+   * columns are ignored.
+   */
+  shift = 0;
 
   vscodeThread?: vscode.CommentThread;
 
@@ -528,20 +502,30 @@ export class Thread {
     readonly gitLogInfo: git.GitLogInfo
   ) {}
 
-  /** Copy location from first comment into the thread. */
-  // TODO(b:216048068): try to remove this method from the public api of this class.
-  initializeLocation() {
-    this.line = this.comments[0].line;
-    if (this.comments[0].range) {
-      this.range = {
-        start_line: this.comments[0].range.start_line,
-        start_character: this.comments[0].range.start_character,
-        end_line: this.comments[0].range.end_line,
-        end_character: this.comments[0].range.end_character,
-      };
-    } else {
-      this.range = undefined;
+  get originalLine() {
+    return this.comments[0].line;
+  }
+
+  /** Shifted line. */
+  get line() {
+    if (!this.originalLine) {
+      return undefined;
     }
+    return this.originalLine + this.shift;
+  }
+
+  /** Shifted range. */
+  get range() {
+    const r = this.comments[0].range!;
+    if (!r) {
+      return undefined;
+    }
+    return {
+      start_line: r.start_line + this.shift,
+      start_character: r.start_character,
+      end_line: r.end_line + this.shift,
+      end_character: r.end_character,
+    };
   }
 
   commitId(): string {
@@ -621,18 +605,21 @@ function toVscodeComment(c: api.CommentInfo): vscode.Comment {
 }
 
 function getVscodeRange(thread: Thread): vscode.Range {
-  if (thread.range !== undefined) {
+  const range = thread.range;
+  if (range !== undefined) {
+    // VSCode is 0-base, whereas Gerrit has 1-based lines and 0-based columns.
     return new vscode.Range(
-      thread.range.start_line - 1,
-      thread.range.start_character,
-      thread.range.end_line - 1,
-      thread.range.end_character
+      range.start_line - 1,
+      range.start_character,
+      range.end_line - 1,
+      range.end_character
     );
   }
 
   // comments for a line
-  if (thread.line !== undefined) {
-    return new vscode.Range(thread.line - 1, 0, thread.line - 1, 0);
+  const line = thread.line;
+  if (line !== undefined) {
+    return new vscode.Range(line - 1, 0, line - 1, 0);
   }
 
   // comments for the entire file

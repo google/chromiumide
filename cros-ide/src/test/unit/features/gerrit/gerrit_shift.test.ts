@@ -39,9 +39,8 @@ function thread(
     gitSha: 'aa',
     gerritChangeId: 'Ibb',
   });
-  t.initializeLocation();
   if (opts?.shifted) {
-    t.line = opts.shifted;
+    t.shift = opts.shifted - data.line!;
   }
   return t;
 }
