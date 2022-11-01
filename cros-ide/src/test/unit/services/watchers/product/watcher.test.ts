@@ -158,3 +158,64 @@ describe('Chromiumos product watcher', () => {
     ]);
   });
 });
+
+const DOT_GCLIENT = `solutions = [
+  {
+    "name": "src",
+    "url": "https://chromium.googlesource.com/chromium/src.git",
+    "managed": False,
+    "custom_deps": {},
+    "custom_vars": {},
+  },
+]
+target_os = ['chromeos']
+`;
+
+async function buildFakeChromium(root: string) {
+  await testing.putFiles(root, {
+    '.gclient': DOT_GCLIENT,
+  });
+}
+
+describe('Chromium product watcher', () => {
+  const tempDir = testing.tempDir();
+
+  const {vscodeEmitters} = testing.installVscodeDouble();
+
+  const subscriptions: vscode.Disposable[] = [];
+  let watcher: ProductWatcher;
+  beforeEach(() => {
+    watcher = new ProductWatcher('chromium');
+    subscriptions.push(watcher);
+  });
+  afterEach(() => {
+    vscode.Disposable.from(...subscriptions.reverse()).dispose();
+    subscriptions.splice(0);
+  });
+
+  it('fires event on Chromium', async () => {
+    const chromium = path.join(tempDir.path, 'chromium');
+
+    await buildFakeChromium(chromium);
+
+    const events = new testing.EventReader(watcher.onDidChangeRoot);
+    subscriptions.push(events);
+
+    const irrelevantFolder = path.join(tempDir.path, 'foo/bar');
+    const chromiumFolder = path.join(chromium, 'src');
+
+    vscodeEmitters.workspace.onDidChangeWorkspaceFolders.fire({
+      added: [workspaceFolder(irrelevantFolder)],
+      removed: [],
+    });
+    vscodeEmitters.workspace.onDidChangeWorkspaceFolders.fire({
+      added: [
+        workspaceFolder(irrelevantFolder),
+        workspaceFolder(chromiumFolder),
+      ],
+      removed: [],
+    });
+
+    expect(await events.read()).toEqual(chromium);
+  });
+});

@@ -4,8 +4,9 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as metrics from '../../../features/metrics/metrics';
 import * as commonUtil from '../../../common/common_util';
+import * as metrics from '../../../features/metrics/metrics';
+import * as chromium from './chromium';
 import * as chromiumos from './chromiumos';
 
 /**
@@ -18,10 +19,10 @@ import * as chromiumos from './chromiumos';
 export class ProductWatcher implements vscode.Disposable {
   private root: string | undefined = undefined;
   /**
-   * Maps chromiumos root directory to the number of workspace folders under
+   * Maps product root directory to the number of workspace folders under
    * the root. If the number reaches zero, the entry should be removed.
    * It's used to trigger events in an appropriate timing. For example when the
-   * map becomes empty, we fires an event to tell there is no chromiumos root
+   * map becomes empty, we fire an event to tell there is no product root
    * to use.
    */
   private readonly rootCount = new Map<string, number>();
@@ -31,8 +32,8 @@ export class ProductWatcher implements vscode.Disposable {
     string | undefined
   >();
   /**
-   * Fired with the absolute path to the chromiumos root to use or undefined
-   * if there is no chromiumos root to use.
+   * Fired with the absolute path to the product root to use or undefined
+   * if there is no product root to use.
    */
   readonly onDidChangeRoot = this.onDidChangeRootEmitter.event;
 
@@ -40,8 +41,7 @@ export class ProductWatcher implements vscode.Disposable {
     this.onDidChangeRootEmitter,
   ];
 
-  // TODO(oka): Support more products.
-  constructor(readonly product: 'chromiumos') {
+  constructor(readonly product: 'chromium' | 'chromiumos') {
     this.subscriptions.push(
       vscode.workspace.onDidChangeWorkspaceFolders(async e => {
         if (e.added.length > 0) {
@@ -81,8 +81,12 @@ export class ProductWatcher implements vscode.Disposable {
 
   private async productRoot(uri: vscode.Uri): Promise<string | undefined> {
     switch (this.product) {
+      case 'chromium':
+        return await chromium.root(uri.fsPath);
       case 'chromiumos':
         return await chromiumos.root(uri.fsPath);
+      default:
+        ((_: never) => {})(this.product);
     }
   }
 
@@ -117,7 +121,7 @@ export class ProductWatcher implements vscode.Disposable {
         } repositories, but found: [${[this.root, root].join(
           ', '
         )}]. Selecting ${this.root}. ` +
-          'Open at most one ChromiumOS sources per workspace to fix this problem.'
+          `Open at most one ${this.product} sources per workspace to fix this problem.`
       );
       metrics.send({
         category: 'background',
