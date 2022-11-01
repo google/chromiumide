@@ -93,6 +93,16 @@ export function activate(
     vscode.commands.registerCommand(
       'cros-ide.gerrit.collapseAllComments',
       () => {
+        // See https://github.com/microsoft/vscode/issues/158316 to learn more.
+        //
+        // TODO(b:255468946): Clean-up this method when the upstream API stabilizes.
+        //   1. Use updated CommentThread JS API if it is updated.
+        //   2. Do not change the collapsibleState.
+        //   3. Collapse all comments, not just those in the active text editor.
+        void vscode.commands.executeCommand(
+          // Collapses all comments in the active text editor.
+          'workbench.action.collapseAllComments'
+        );
         gerrit.collapseAllComments();
         metrics.send({
           category: 'interactive',
