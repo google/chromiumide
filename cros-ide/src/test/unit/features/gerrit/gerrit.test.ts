@@ -196,26 +196,15 @@ const TWO_PATCHSETS_CHANGE_COMMENTS = (
 describe('Gerrit', () => {
   const tempDir = testing.tempDir();
 
-  it('displays a comment', async () => {
-    const root = tempDir.path;
-    const abs = (relative: string) => path.join(root, relative);
+  function abs(relative: string) {
+    return path.join(tempDir.path, relative);
+  }
 
-    // Create a repo with two commits:
-    //   1) The first simulates cros/main.
-    //   2) The second is the commit on which Gerrit review is taking place.
-    const git = new testing.Git(root);
-    await git.init();
-    await git.commit('First');
-    await git.checkout('cros/main', {createBranch: true});
-    await git.checkout('main');
-    await testing.putFiles(git.root, {
-      'cryptohome/cryptohome.cc': 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n',
-    });
-    await git.addAll();
-    const commitId = await git.commit(
-      'Second\nChange-Id: I23f50ecfe44ee28972aa640e1fa82ceabcc706a8'
-    );
+  beforeEach(() => {
+    spyOn(metrics, 'send');
+  });
 
+  const state = testing.cleanState(() => {
     // We verify that the comments were shown by verifying interactions
     // with commentController.
     const commentController = jasmine.createSpyObj<vscode.CommentController>(
@@ -229,25 +218,45 @@ describe('Gerrit', () => {
       {} as vscode.CommentThread
     );
 
-    const statusBar = vscode.window.createStatusBarItem();
-    let statusBarShown = false;
-    statusBar.show = () => {
-      statusBarShown = true;
-    };
+    const statusBarItem = vscode.window.createStatusBarItem();
+    spyOn(statusBarItem, 'hide');
+    spyOn(statusBarItem, 'show');
 
     const statusManager = jasmine.createSpyObj<bgTaskStatus.StatusManager>(
       'statusManager',
       ['setStatus']
     );
 
-    const gerrit = new Gerrit(
+    return {
       commentController,
-      vscode.window.createOutputChannel('gerrit'),
-      statusBar,
-      statusManager
+      statusBarItem,
+      statusManager,
+    };
+  });
+
+  it('displays a comment', async () => {
+    // Create a repo with two commits:
+    //   1) The first simulates cros/main.
+    //   2) The second is the commit on which Gerrit review is taking place.
+    const git = new testing.Git(tempDir.path);
+    await git.init();
+    await git.commit('First');
+    await git.checkout('cros/main', {createBranch: true});
+    await git.checkout('main');
+    await testing.putFiles(git.root, {
+      'cryptohome/cryptohome.cc': 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n',
+    });
+    await git.addAll();
+    const commitId = await git.commit(
+      'Second\nChange-Id: I23f50ecfe44ee28972aa640e1fa82ceabcc706a8'
     );
 
-    const fileName = abs('cryptohome/cryptohome.cc');
+    const gerrit = new Gerrit(
+      state.commentController,
+      vscode.window.createOutputChannel('gerrit'),
+      state.statusBarItem,
+      state.statusManager
+    );
 
     spyOn(https, 'getOrThrow')
       .withArgs(
@@ -257,20 +266,23 @@ describe('Gerrit', () => {
         Promise.resolve(apiString(SIMPLE_CHANGE_COMMENTS(commitId)))
       );
 
-    spyOn(metrics, 'send');
+    await expectAsync(
+      gerrit.showComments(abs('cryptohome/cryptohome.cc'))
+    ).toBeResolved();
 
-    await expectAsync(gerrit.showComments(fileName)).toBeResolved();
-
-    expect(commentController.createCommentThread).toHaveBeenCalledTimes(1);
-    const callData = commentController.createCommentThread.calls.first();
+    expect(state.commentController.createCommentThread).toHaveBeenCalledTimes(
+      1
+    );
+    const callData = state.commentController.createCommentThread.calls.first();
     expect(callData.args[0].fsPath).toEqual(abs('cryptohome/cryptohome.cc'));
     expect(callData.args[1].start.line).toEqual(2);
     expect(callData.args[2][0].body).toEqual(
       'Unresolved comment on the added line.'
     );
 
-    expect(statusBarShown).toBeTrue();
-    expect(statusBar.text).toEqual('$(comment) 1');
+    expect(state.statusBarItem.show).toHaveBeenCalled();
+    expect(state.statusBarItem.hide).not.toHaveBeenCalled();
+    expect(state.statusBarItem.text).toEqual('$(comment) 1');
     expect(metrics.send).toHaveBeenCalledOnceWith({
       category: 'background',
       group: 'gerrit',
@@ -278,7 +290,7 @@ describe('Gerrit', () => {
       value: 1,
     });
 
-    expect(statusManager.setStatus).toHaveBeenCalledOnceWith(
+    expect(state.statusManager.setStatus).toHaveBeenCalledOnceWith(
       'Gerrit',
       bgTaskStatus.TaskStatus.OK
     );
@@ -325,13 +337,10 @@ describe('Gerrit', () => {
       };
     };
 
-    const root = tempDir.path;
-    const abs = (relative: string) => path.join(root, relative);
-
     // Create a repo with two commits:
     //   1) The first simulates cros/main.
     //   2) The second is the commit on which Gerrit review is taking place.
-    const git = new testing.Git(root);
+    const git = new testing.Git(tempDir.path);
     await git.init();
     await git.commit('First');
     await git.checkout('cros/main', {createBranch: true});
@@ -348,25 +357,10 @@ describe('Gerrit', () => {
       {amend: true}
     );
 
-    const commentController = jasmine.createSpyObj<vscode.CommentController>(
-      'commentController',
-      ['createCommentThread']
-    );
-
-    commentController.createCommentThread.and.returnValue(
-      {} as vscode.CommentThread
-    );
-
-    const statusBar = vscode.window.createStatusBarItem();
-    let statusBarShown = false;
-    statusBar.show = () => {
-      statusBarShown = true;
-    };
-
     const gerrit = new Gerrit(
-      commentController,
+      state.commentController,
       vscode.window.createOutputChannel('gerrit'),
-      statusBar,
+      state.statusBarItem,
       new bgTaskStatus.TEST_ONLY.StatusManagerImpl()
     );
 
@@ -378,17 +372,17 @@ describe('Gerrit', () => {
         Promise.resolve(apiString(SPECIAL_COMMENT_TYPES(reviewCommitId)))
       );
 
-    spyOn(metrics, 'send');
-
     await expectAsync(
       gerrit.showComments(abs('cryptohome/crypto.h'))
     ).toBeResolved();
 
-    expect(commentController.createCommentThread).toHaveBeenCalledTimes(4);
+    expect(state.commentController.createCommentThread).toHaveBeenCalledTimes(
+      4
+    );
 
     // Order of calls is irrelevant, but since our algorithm is deterministic,
     // we can rely on it for simplicity.
-    const callData = commentController.createCommentThread.calls.all();
+    const callData = state.commentController.createCommentThread.calls.all();
 
     expect(callData[0].args[0]).toEqual(
       vscode.Uri.parse(
@@ -419,8 +413,9 @@ describe('Gerrit', () => {
     expect(callData[3].args[1].start.line).toEqual(10);
     expect(callData[3].args[2][0].body).toEqual('Line comment.');
 
-    expect(statusBarShown).toBeTrue();
-    expect(statusBar.text).toEqual('$(comment) 4');
+    expect(state.statusBarItem.show).toHaveBeenCalled();
+    expect(state.statusBarItem.hide).not.toHaveBeenCalled();
+    expect(state.statusBarItem.text).toEqual('$(comment) 4');
     expect(metrics.send).toHaveBeenCalledOnceWith({
       category: 'background',
       group: 'gerrit',
@@ -436,11 +431,8 @@ describe('Gerrit', () => {
   // the comments do not overlap with changes. This way changes to
   // the repositioning algorithm will not affect this test.
   it('repositions comments from two patch sets', async () => {
-    const root = tempDir.path;
-    const abs = (relative: string) => path.join(root, relative);
-
     // Create a file that we'll be changing.
-    const git = new testing.Git(root);
+    const git = new testing.Git(tempDir.path);
     await git.init();
     await testing.putFiles(git.root, {
       'cryptohome/cryptohome.cc':
@@ -477,24 +469,10 @@ describe('Gerrit', () => {
       all: true,
     });
 
-    const commentController = jasmine.createSpyObj<vscode.CommentController>(
-      'commentController',
-      ['createCommentThread']
-    );
-
-    // Without it we get an error setting fields on an undefined object.
-    commentController.createCommentThread.and.returnValue(
-      {} as vscode.CommentThread
-    );
-
-    const statusBar = vscode.window.createStatusBarItem();
-    spyOn(statusBar, 'hide');
-    spyOn(statusBar, 'show');
-
     const gerrit = new Gerrit(
-      commentController,
+      state.commentController,
       vscode.window.createOutputChannel('gerrit'),
-      statusBar,
+      state.statusBarItem,
       new bgTaskStatus.TEST_ONLY.StatusManagerImpl()
     );
 
@@ -512,10 +490,12 @@ describe('Gerrit', () => {
 
     await expectAsync(gerrit.showComments(fileName)).toBeResolved();
 
-    expect(commentController.createCommentThread).toHaveBeenCalledTimes(2);
+    expect(state.commentController.createCommentThread).toHaveBeenCalledTimes(
+      2
+    );
     // Order of calls is irrelevant, but since our algorithm is deterministic,
     // we can rely on it for simplicity.
-    const callData = commentController.createCommentThread.calls.all();
+    const callData = state.commentController.createCommentThread.calls.all();
 
     expect(callData[0].args[0].fsPath).toEqual(abs('cryptohome/cryptohome.cc'));
     // The original comment is on line 15. It is shifted by 2 lines (+2)
@@ -529,17 +509,15 @@ describe('Gerrit', () => {
     expect(callData[1].args[1].start.line).toEqual(17);
     expect(callData[1].args[2][0].body).toEqual('Comment on unistd');
 
-    expect(statusBar.show).toHaveBeenCalled();
-    expect(statusBar.hide).not.toHaveBeenCalled();
-    expect(statusBar.tooltip).toEqual(
+    expect(state.statusBarItem.show).toHaveBeenCalled();
+    expect(state.statusBarItem.hide).not.toHaveBeenCalled();
+    expect(state.statusBarItem.tooltip).toEqual(
       'Gerrit comments: 1 unresolved (2 total)'
     );
-    expect(statusBar.text).toEqual('$(comment) 1');
+    expect(state.statusBarItem.text).toEqual('$(comment) 1');
   });
 
   it('shows all comments in a chain', async () => {
-    const abs = (relative: string) => path.join(tempDir.path, relative);
-
     const git = new testing.Git(tempDir.path);
     await git.init();
     await testing.putFiles(git.root, {
@@ -599,27 +577,10 @@ describe('Gerrit', () => {
         Promise.resolve(apiString(SECOND_COMMIT_IN_CHAIN(commitId2)))
       );
 
-    spyOn(metrics, 'send');
-
-    const commentController = jasmine.createSpyObj<vscode.CommentController>(
-      'commentController',
-      ['createCommentThread']
-    );
-
-    commentController.createCommentThread.and.returnValue(
-      {} as vscode.CommentThread
-    );
-
-    const statusBar = vscode.window.createStatusBarItem();
-    let statusBarShown = false;
-    statusBar.show = () => {
-      statusBarShown = true;
-    };
-
     const gerrit = new Gerrit(
-      commentController,
+      state.commentController,
       vscode.window.createOutputChannel('gerrit'),
-      statusBar,
+      state.statusBarItem,
       new bgTaskStatus.TEST_ONLY.StatusManagerImpl()
     );
 
@@ -627,8 +588,10 @@ describe('Gerrit', () => {
       gerrit.showComments(abs('cryptohome/cryptohome.cc'))
     ).toBeResolved();
 
-    expect(commentController.createCommentThread).toHaveBeenCalledTimes(2);
-    const calls = commentController.createCommentThread.calls.all();
+    expect(state.commentController.createCommentThread).toHaveBeenCalledTimes(
+      2
+    );
+    const calls = state.commentController.createCommentThread.calls.all();
 
     expect(calls[0].args[0].fsPath).toMatch(/cryptohome\/cryptohome.cc/);
     // The comment in the second Gerrit change is on line 6,
@@ -647,8 +610,9 @@ describe('Gerrit', () => {
       'Unresolved comment on the added line.'
     );
 
-    expect(statusBarShown).toBeTrue();
-    expect(statusBar.text).toEqual('$(comment) 2');
+    expect(state.statusBarItem.show).toHaveBeenCalled();
+    expect(state.statusBarItem.hide).not.toHaveBeenCalled();
+    expect(state.statusBarItem.text).toEqual('$(comment) 2');
     expect(metrics.send).toHaveBeenCalledOnceWith({
       category: 'background',
       group: 'gerrit',
@@ -658,10 +622,7 @@ describe('Gerrit', () => {
   });
 
   it('does not throw errors when the change is not in Gerrit', async () => {
-    const root = tempDir.path;
-    const abs = (relative: string) => path.join(root, relative);
-
-    const git = new testing.Git(root);
+    const git = new testing.Git(tempDir.path);
     await git.init();
     await git.commit('First');
     await git.checkout('cros/main', {createBranch: true});
@@ -670,31 +631,11 @@ describe('Gerrit', () => {
       'Second\nChange-Id: Iaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
     );
 
-    const commentController = jasmine.createSpyObj<vscode.CommentController>(
-      'commentController',
-      ['createCommentThread']
-    );
-
-    // Without it we get an error setting fields on an undefined object,
-    // which causes flakiness.
-    commentController.createCommentThread.and.returnValue(
-      {} as vscode.CommentThread
-    );
-
-    const statusBar = vscode.window.createStatusBarItem();
-    spyOn(statusBar, 'hide');
-    spyOn(statusBar, 'show');
-
-    const statusManager = jasmine.createSpyObj<bgTaskStatus.StatusManager>(
-      'statusManager',
-      ['setStatus']
-    );
-
     const gerrit = new Gerrit(
-      commentController,
+      state.commentController,
       vscode.window.createOutputChannel('gerrit'),
-      statusBar,
-      statusManager
+      state.statusBarItem,
+      state.statusManager
     );
 
     spyOn(https, 'getOrThrow')
@@ -703,16 +644,14 @@ describe('Gerrit', () => {
       )
       .and.returnValue(Promise.resolve(undefined));
 
-    spyOn(metrics, 'send');
-
     await expectAsync(
       gerrit.showComments(abs('cryptohome/cryptohome.cc'))
     ).toBeResolved();
 
-    expect(commentController.createCommentThread).not.toHaveBeenCalled();
+    expect(state.commentController.createCommentThread).not.toHaveBeenCalled();
 
-    expect(statusBar.show).not.toHaveBeenCalled();
-    expect(statusBar.hide).toHaveBeenCalled();
+    expect(state.statusBarItem.show).not.toHaveBeenCalled();
+    expect(state.statusBarItem.hide).toHaveBeenCalled();
 
     expect(metrics.send).toHaveBeenCalledOnceWith({
       category: 'background',
@@ -721,7 +660,7 @@ describe('Gerrit', () => {
       value: 0,
     });
 
-    expect(statusManager.setStatus).toHaveBeenCalledOnceWith(
+    expect(state.statusManager.setStatus).toHaveBeenCalledOnceWith(
       'Gerrit',
       bgTaskStatus.TaskStatus.OK
     );
