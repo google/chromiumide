@@ -113,7 +113,7 @@ class StatusManagerImpl implements StatusManager {
 
   setStatus(taskName: TaskName, status: TaskStatus) {
     const data = this.tasks.get(taskName);
-    this.tasks.set(taskName, {...data, status});
+    this.setTask(taskName, {...data, status});
   }
 
   getTasks(): TaskName[] {
