@@ -7,9 +7,10 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../common/common_util';
 import * as metrics from '../features/metrics/metrics';
-import * as bgTaskStatus from '../ui/bg_task_status';
 import * as logs from '../logs';
+import * as services from '../services';
 import * as config from '../services/config';
+import * as bgTaskStatus from '../ui/bg_task_status';
 
 export function activate(
   context: vscode.ExtensionContext,
@@ -26,8 +27,9 @@ export function activate(
     );
   }
   // TODO(ttylenda): Add integration test to verify that we run linters on events.
+  const textEditorsWatcher = services.TextEditorsWatcher.singleton();
   context.subscriptions.push(
-    vscode.workspace.onDidOpenTextDocument(document => {
+    textEditorsWatcher.onDidActivate(document => {
       void updateDiagnosticsWrapper(document, collection, statusManager, log);
     })
   );
@@ -37,7 +39,7 @@ export function activate(
     })
   );
   context.subscriptions.push(
-    vscode.workspace.onDidCloseTextDocument(document => {
+    textEditorsWatcher.onDidClose(document => {
       collection.delete(document.uri);
     })
   );

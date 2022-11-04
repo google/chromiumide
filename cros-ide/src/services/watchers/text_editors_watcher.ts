@@ -40,9 +40,7 @@ export class TextEditorsWatcher implements vscode.Disposable {
     this.onDidCloseEmitter,
   ];
 
-  // If this class gets more usage we could convert it to a singleton
-  // for easier access.
-  constructor() {
+  private constructor() {
     const alreadyActivated = new Set<string>();
     if (vscode.window.activeTextEditor) {
       const doc = vscode.window.activeTextEditor.document;
@@ -69,6 +67,19 @@ export class TextEditorsWatcher implements vscode.Disposable {
         }
       })
     );
+  }
+
+  private static instance?: TextEditorsWatcher;
+
+  static singleton(): TextEditorsWatcher {
+    if (!TextEditorsWatcher.instance) {
+      TextEditorsWatcher.instance = new TextEditorsWatcher();
+    }
+    return TextEditorsWatcher.instance;
+  }
+
+  static createForTesting(): TextEditorsWatcher {
+    return new TextEditorsWatcher();
   }
 
   dispose() {

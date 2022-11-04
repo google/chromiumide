@@ -28,7 +28,7 @@ describe('open text editors watcher', () => {
     const editorInitial = textEditor(docInitial);
     vscode.window.activeTextEditor = editorInitial;
 
-    const watcher = new TextEditorsWatcher();
+    const watcher = TextEditorsWatcher.createForTesting();
     const activateReader = new testing.EventReader(watcher.onDidActivate);
     const closeReader = new testing.EventReader(watcher.onDidClose);
 
