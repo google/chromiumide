@@ -489,7 +489,7 @@ function ConnectionTestStep(props: AddOwnedDeviceStepProps) {
   const [error, setError] = useState('');
 
   // Connected device info
-  const [info, setInfo] = useState<string | null>(null);
+  const [success, setSuccess] = useState<boolean>(false);
 
   useEffect(() => {
     window.addEventListener('message', event => {
@@ -497,7 +497,7 @@ function ConnectionTestStep(props: AddOwnedDeviceStepProps) {
 
       switch (message.command) {
         case 'deviceConnected':
-          setInfo(message.info);
+          setSuccess(true);
           break;
         case 'unableToConnect':
           setError(JSON.stringify(message.error));
@@ -511,11 +511,11 @@ function ConnectionTestStep(props: AddOwnedDeviceStepProps) {
   }, []); // [] causes this to be run only once, after the first render
 
   // Once the connection succeeds, the ssh config change sticks and we shouldn't revisit steps.
-  props.setBackEnabled(!info);
+  props.setBackEnabled(!success);
 
   return (
     <div tabIndex={-1} ref={elem => elem?.focus()}>
-      {info ? (
+      {success ? (
         <Stack style={centerStyle}>
           <CheckIcon sx={{color: colors.green[500]}} />
           <h2>Success!</h2>

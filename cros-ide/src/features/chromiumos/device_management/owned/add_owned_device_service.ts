@@ -4,6 +4,7 @@
 
 import * as fs from 'fs';
 import {OutputChannel} from 'vscode';
+import * as dateFns from 'date-fns';
 import {OwnedDeviceRepository} from '../device_repository';
 import {buildSshArgs, SshConfigHostEntry} from '../ssh_util';
 import {DeviceClient} from './../device_client';
@@ -22,40 +23,47 @@ export class AddOwnedDeviceService {
     private readonly deviceRepository: OwnedDeviceRepository
   ) {}
 
+  /** Adds the given device to the device repository. */
+  async addDeviceToRepository(hostname: string): Promise<void> {
+    await this.deviceRepository.addDevice(hostname);
+  }
+
   /**
-   * Runs the connection test step, applying other optional operations such as updating the SSH
-   * config file. If the connection fails, an error is thrown, and changes are rolled back.
+   * Tries to connect to the device via the configured connection, throwing on failure.
    *
-   * TODO(joelbecker): Apply SSH config changes after connection succeeds, once we do not rely on it
-   * for connection.
-   *
-   * @return string device info if connection is successful.
-   * @throws Error if unable to connect, or unable to update the SSH config file.
+   * @throws Error if unable to connect.
    */
-  public async configureAndTestConnection(
-    config: DutConnectionConfig
-  ): Promise<void> {
-    if (config.addToSshConfig) {
-      this.addHostToSshConfig(config);
-    }
-    try {
-      await this.tryToConnect(config);
+  async tryToConnect(config: DutConnectionConfig): Promise<void> {
+    const client = new DeviceClient(
+      this.output,
+      buildSshArgs(
+        config.hostname,
+        config.forwardedPort ?? undefined,
+        this.sshConfigHostTemplate(config)
+      )
+    );
+    await client.readLsbRelease();
+  }
 
-      if (config.addToHostsFile) {
-        // TODO(joelbecker): this.addToHostsFile(config); // but with execSudo() or the like
-      }
+  /**
+   * Adds an ssh config entry for the given DUT connection configuration.
+   *
+   * @throws Error if unable to modify the config.
+   */
+  addHostToSshConfig(config: DutConnectionConfig): void {
+    this.modifySshConfig(sshConfig => {
+      sshConfig.prepend(this.sshConfigHostTemplate(config));
+    });
+  }
 
-      await this.deviceRepository.addDevice(config.hostname);
-    } catch (e) {
-      this.output.appendLine(JSON.stringify(e));
-      try {
-        this.removeHostFromSshConfig(config.hostname);
-      } catch (e2) {
-        this.output.appendLine(JSON.stringify(e2));
-        // TODO: log unable to rollback ssh config change
-      }
-      throw e;
-    }
+  private modifySshConfig(modifier: (config: typeof SSHConfig) => void): void {
+    const fileContents = fs.readFileSync(this.sshConfigPath).toString();
+    const sshConfig = SSHConfig.parse(fileContents);
+    modifier(sshConfig);
+    const timestamp = dateFns.format(new Date(), 'yyyy-MMM-dd--HH-mm-ss');
+    const backupPath = this.sshConfigPath + '.cros-ide-bak.' + timestamp;
+    fs.copyFileSync(this.sshConfigPath, backupPath);
+    fs.writeFileSync(this.sshConfigPath, sshConfig.toString());
   }
 
   // TODO(joelbecker): Get from user configuration.
@@ -97,38 +105,5 @@ export class AddOwnedDeviceService {
         StrictHostKeyChecking: 'no',
       };
     }
-  }
-
-  private async tryToConnect(config: DutConnectionConfig): Promise<void> {
-    const client = new DeviceClient(
-      this.output,
-      buildSshArgs(
-        config.hostname,
-        config.forwardedPort ?? undefined,
-        this.sshConfigHostTemplate(config)
-      )
-    );
-    await client.readLsbRelease();
-  }
-
-  private addHostToSshConfig(config: DutConnectionConfig): void {
-    this.modifySshConfig(sshConfig => {
-      sshConfig.prepend(this.sshConfigHostTemplate(config));
-    });
-  }
-
-  private removeHostFromSshConfig(hostname: string): void {
-    this.modifySshConfig((sshConfig: typeof SSHConfig) => {
-      sshConfig.remove({Host: hostname});
-    });
-  }
-
-  private modifySshConfig(modifier: (config: typeof SSHConfig) => void): void {
-    const fileContents = fs.readFileSync(this.sshConfigPath).toString();
-    const sshConfig = SSHConfig.parse(fileContents);
-    modifier(sshConfig);
-    // TODO(joelbecker): backup carefully. Manage sequence of .bak.1 .bak.2 etc.
-    fs.copyFileSync(this.sshConfigPath, this.sshConfigPath + '.bak');
-    fs.writeFileSync(this.sshConfigPath, sshConfig.toString());
   }
 }

@@ -36,21 +36,41 @@ export class AddOwnedDevicePanel extends ReactPanel<AddOwnedDeviceViewContext> {
   protected handleWebviewMessage(message: ViewMessage): void {
     switch (message.command) {
       case 'testDeviceConnection':
-        void this.configureAndTestConnection(message.config);
+        void this.tryConfigureAndTestConnection(message.config);
         break;
       case 'finish':
         void this.finish();
     }
   }
 
-  private async configureAndTestConnection(
+  /**
+   * Runs the connection test step, applying other optional operations such as updating the SSH
+   * config file. If the connection fails, an error is thrown, and changes are rolled back.
+   *
+   * TODO(joelbecker): Apply SSH config changes after connection succeeds, once we do not rely on it
+   * for connection.
+   *
+   * @return string device info if connection is successful.
+   * @throws Error if unable to connect, or unable to update the SSH config file.
+   */
+  async configureAndTestConnection(config: DutConnectionConfig): Promise<void> {
+    await this.service.tryToConnect(config);
+    if (config.addToSshConfig) {
+      this.service.addHostToSshConfig(config);
+    }
+    if (config.addToHostsFile) {
+      // TODO(joelbecker): this.addToHostsFile(config); // but with execSudo() or the like
+    }
+    await this.service.addDeviceToRepository(config.hostname);
+  }
+
+  private async tryConfigureAndTestConnection(
     config: DutConnectionConfig
   ): Promise<void> {
     try {
-      const info = await this.service.configureAndTestConnection(config);
+      await this.configureAndTestConnection(config);
       await this.panel.webview.postMessage({
         command: 'deviceConnected',
-        info: info,
       });
     } catch (error) {
       await this.panel.webview.postMessage({

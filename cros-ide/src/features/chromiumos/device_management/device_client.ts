@@ -89,7 +89,7 @@ export class DeviceClient {
    *
    * @throws Error if the command is not successfully run.
    */
-  public async runCommand(cmd: string): Promise<ExecResult> {
+  async runCommand(cmd: string): Promise<ExecResult> {
     const result = await commonUtil.exec('ssh', [...this.sshArgs, cmd], {
       logger: this.outputChannel,
     });
