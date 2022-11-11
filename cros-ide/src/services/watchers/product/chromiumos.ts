@@ -9,7 +9,7 @@ import * as path from 'path';
 // url = https://chromium.googlesource.com/chromiumos/manifest
 // url = https://chrome-internal.googlesource.com/chromeos/manifest-internal
 const CHROMIUMOS_REPO_CONFIG_RE =
-  /^\s*url\s*=\s*(https:\/\/chrome-internal\.googlesource\.com\/chromeos\/manifest-internal|https:\/\/chromium\.googlesource\.com\/chromiumos\/manifest)\s*$/m;
+  /^\s*url\s*=\s*(https:\/\/chrome-internal\.googlesource\.com\/chromeos\/manifest-internal|https:\/\/chromium\.googlesource\.com\/chromiumos\/manifest)(\.git)?\s*$/m;
 
 async function isChromiumosRoot(dir: string): Promise<boolean> {
   const repoConfig = path.join(dir, '.repo/manifests.git/config');

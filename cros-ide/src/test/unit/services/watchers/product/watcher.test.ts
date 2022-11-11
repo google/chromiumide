@@ -37,6 +37,19 @@ const INTERNAL_MANIFEST = `[core]
 \tplatform = auto
 `;
 
+const INTERNAL_MANIFEST_WITH_DOT_GIT = `[core]
+\trepositoryformatversion = 0
+\tfilemode = true
+[filter "lfs"]
+\tsmudge = git-lfs smudge --skip -- %f
+\tprocess = git-lfs filter-process --skip
+[remote "origin"]
+\turl = https://chrome-internal.googlesource.com/chromeos/manifest-internal.git
+\tfetch = +refs/heads/*:refs/remotes/origin/*
+[manifest]
+\tplatform = auto
+`;
+
 async function repoInit(root: string, manifestConfig: string) {
   await testing.putFiles(root, {
     '.repo/manifests.git/config': manifestConfig,
@@ -66,6 +79,10 @@ describe('Chromiumos product watcher', () => {
   for (const [name, manifest] of [
     ['fires event for Chromiumos', PUBLIC_MANIFEST],
     ['fires event for internal Chromeos', INTERNAL_MANIFEST],
+    [
+      'fires event for internal Chromeos with .git',
+      INTERNAL_MANIFEST_WITH_DOT_GIT,
+    ],
   ]) {
     it(name, async () => {
       await repoInit(tempDir.path, manifest);
