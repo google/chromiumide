@@ -24,7 +24,6 @@ import {
   AccordionSummary,
   AccordionDetails,
   Stack,
-  FormHelperText,
   InputLabel,
   Tabs,
   Tab,
@@ -199,7 +198,12 @@ export function AddOwnedDeviceView(props: {
             ))}
           </Stepper>
 
-          <Box sx={{height: STEP_CONTENT_HEIGHT}} style={centerStyle}>
+          <Box
+            sx={{
+              minHeight: STEP_CONTENT_HEIGHT,
+            }}
+            style={centerStyle}
+          >
             {steps[activeStep].content}
           </Box>
 
@@ -309,19 +313,38 @@ function IpAddressStep(props: AddOwnedDeviceStepProps) {
           onChange={handleIpAddressChange}
         />
       </FormControl>
-
-      <Accordion>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          How do I find the IP address?
-        </AccordionSummary>
-        <AccordionDetails>
-          <p>
-            From the device's terminal, enter <code>ip addr | more</code> and
-            find the IPv4 address for the connected network device (e.g. eth0).
-          </p>
-        </AccordionDetails>
-      </Accordion>
+      {InstructionsToFindDutIpAddress()}
     </Stack>
+  );
+}
+
+function InstructionsToFindDutIpAddress() {
+  return (
+    <Accordion>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <h3>How do I find my IP address?</h3>
+      </AccordionSummary>
+      <AccordionDetails>
+        <p>
+          <ol>
+            <li>
+              Open the device's terminal (
+              <code>[Ctrl] + [Alt] + [⟳ Refresh / F2]</code>)
+              <ul>
+                <li>
+                  If this does not work, verify that the device is in{' '}
+                  <a href="http://go/arc-setup-dev-mode-dut">developer mode</a>.
+                </li>
+              </ul>
+            </li>
+            <li>
+              Enter <code>ip addr | more</code> and find the IPv4 address for
+              the connected network device (e.g. eth0).
+            </li>
+          </ol>
+        </p>
+      </AccordionDetails>
+    </Accordion>
   );
 }
 
@@ -357,13 +380,13 @@ function PortForwardingStep(props: AddOwnedDeviceStepProps) {
   };
   return (
     <Stack spacing={2}>
+      <p>
+        Since your device is remote, before we can connect to it from your
+        workstation or cloudtop you will first need to forward a port to it.
+        Choose a port number that is available on your workstation/cloudtop, and
+        see instructions for your corp laptop OS below:
+      </p>
       <FormControl>
-        <FormHelperText id="port-helper-text">
-          Since your device is remote, before we can connect to it from your
-          workstation or cloudtop you will first need to forward a port to it.
-          Choose a port number that is available on your workstation/cloudtop
-          and see instructions for your corp laptop OS below:
-        </FormHelperText>
         <InputLabel htmlFor="port" required shrink>
           Port Number
         </InputLabel>
@@ -379,7 +402,7 @@ function PortForwardingStep(props: AddOwnedDeviceStepProps) {
         />
       </FormControl>
 
-      <Box sx={{height: '10em'}}>
+      <Box sx={{minHeight: '10em'}}>
         <TabContext value={tab}>
           <Tabs
             value={tab}
@@ -389,10 +412,27 @@ function PortForwardingStep(props: AddOwnedDeviceStepProps) {
             <Tab value="chrome" label="chromeOS" />
             <Tab value="mac" label="Mac OS" />
           </Tabs>
-          <TabPanel value="chrome">Chrome ins</TabPanel>
+          <TabPanel value="chrome">
+            <ol>
+              <li>Find the IP address of your DUT</li>
+              <li>
+                From your Chrome browser on your ChromeOS corp laptop, open the
+                Secure Shell extension's connection dialog
+              </li>
+              <li>
+                Add an SSH argument{' '}
+                <code>
+                  -R {props.connectionConfig.forwardedPort}:&lt;DUT IP
+                  address&gt;:22
+                </code>
+              </li>
+              <li>Connect ([Enter])</li>
+            </ol>
+          </TabPanel>
           <TabPanel value="mac">
             <p>From your Mac's Terminal:</p>
             <ol>
+              <li>Find the IP address of your DUT</li>
               <li>
                 Run <code>gcert</code> if you haven't yet today.
               </li>
@@ -404,13 +444,14 @@ function PortForwardingStep(props: AddOwnedDeviceStepProps) {
                   ssh {props.context?.username ?? '<username>'}
                   @&lt;workstation hostname&gt; -R{' '}
                   {props.connectionConfig.forwardedPort}
-                  {props.connectionConfig.ipAddress}:22
+                  &lt;DUT IP address&gt;:22
                 </code>
               </li>
             </ol>
           </TabPanel>
         </TabContext>
       </Box>
+      {InstructionsToFindDutIpAddress()}
     </Stack>
   );
 }
@@ -428,12 +469,11 @@ function HostNameStep(props: AddOwnedDeviceStepProps) {
   };
   return (
     <Stack spacing={2}>
+      <p>
+        Enter a new hostname for the device under test. This will be added to
+        your ssh config. {/* and (optionally) /etc/hosts files. */}
+      </p>
       <FormControl>
-        <FormHelperText id="hostname-helper-text">
-          Enter a new hostname for the device under test. This will be added to
-          your ssh config.
-          {/* and (optionally) /etc/hosts files. */}
-        </FormHelperText>
         <InputLabel htmlFor="hostname" required shrink>
           Hostname
         </InputLabel>
