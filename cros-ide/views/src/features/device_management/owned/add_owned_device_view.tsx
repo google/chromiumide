@@ -32,7 +32,6 @@ import {
   Container,
   Checkbox,
   FormControlLabel,
-  Link,
 } from '@mui/material';
 import * as colors from '@mui/material/colors';
 import TabPanel from '@mui/lab/TabPanel';
@@ -216,7 +215,7 @@ export function AddOwnedDeviceView(props: {
 
           <Box sx={{display: 'flex', flexDirection: 'row', pt: 2}}>
             <Button
-              color="inherit"
+              variant="outlined"
               disabled={activeStep === 0 || !backEnabled}
               onClick={handleBack}
               sx={{mr: 1}}
@@ -224,7 +223,11 @@ export function AddOwnedDeviceView(props: {
               Back
             </Button>
             <Box sx={{flex: '1 1 auto'}} />
-            <Button onClick={handleNext} disabled={!nextStepEnabled}>
+            <Button
+              variant="contained"
+              onClick={handleNext}
+              disabled={!nextStepEnabled}
+            >
               {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
             </Button>
           </Box>
@@ -249,6 +252,8 @@ function NetworkTypeStep(props: AddOwnedDeviceStepProps) {
       handleNetworkType(model.DutNetworkType.SHORTLEASH);
     } else if (e.key === 'h') {
       handleNetworkType(model.DutNetworkType.HOME);
+    } else if (e.key === 'a') {
+      handleAddExistingHosts();
     }
   };
   const handleAddExistingHosts = () => {
@@ -272,7 +277,7 @@ function NetworkTypeStep(props: AddOwnedDeviceStepProps) {
             title="Your DUT (device under test) is connected to the office lab network"
           >
             <BusinessIcon />
-            Lab
+            <u>L</u>ab
           </ToggleButton>
 
           <ToggleButton
@@ -280,7 +285,7 @@ function NetworkTypeStep(props: AddOwnedDeviceStepProps) {
             title="Your DUT (device under test) is connected to your workstation via Shortleash"
           >
             <CableIcon />
-            Shortleash
+            <u>S</u>hortleash
           </ToggleButton>
 
           <ToggleButton
@@ -288,10 +293,12 @@ function NetworkTypeStep(props: AddOwnedDeviceStepProps) {
             title="Your DUT (device under test) is connected to a remote network such as a home network"
           >
             <HomeIcon />
-            Home
+            <u>H</u>ome
           </ToggleButton>
         </ToggleButtonGroup>
-        <Link onClick={handleAddExistingHosts}>Add Existing Hostnames</Link>
+        <Button onClick={handleAddExistingHosts}>
+          <u>A</u>dd Existing Hostnames
+        </Button>
       </Stack>
     </div>
   );
@@ -353,6 +360,10 @@ function InstructionsToFindDutIpAddress() {
                   <a href="http://go/arc-setup-dev-mode-dut">developer mode</a>.
                 </li>
               </ul>
+            </li>
+            <li>
+              If prompted for login, enter username <code>root</code> and
+              password <code>test0000</code>
             </li>
             <li>
               Enter <code>ip addr | more</code> and find the IPv4 address for
