@@ -585,7 +585,7 @@
         "cros-ide.underDevelopment.tast": {
           "type": "boolean",
           "description": "Enable Tast Support",
-          "default": false
+          "default": true
         },
         "cros-ide.underDevelopment.testCoverage": {
           "type": "boolean",
