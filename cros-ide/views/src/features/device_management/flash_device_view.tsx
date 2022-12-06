@@ -3,9 +3,14 @@
 // found in the LICENSE file.
 
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
   Box,
   Button,
+  Checkbox,
   Container,
+  FormControlLabel,
   FormGroup,
   FormLabel,
   Grid,
@@ -14,13 +19,19 @@ import {
   Stack,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
+  Typography,
 } from '@mui/material';
 import * as React from 'react';
 import CheckIcon from '@mui/icons-material/Check';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 import * as colors from '@mui/material/colors';
 import * as model from '../../../../src/features/chromiumos/device_management/flash/flash_device_model';
 import * as ReactPanelHelper from '../../react/common/react_panel_helper';
+
+/** The first n FLASH_FLAGS that will be visible without expanding "More..." */
+const NUM_POPULAR_FLAGS = 4;
 
 const vscodeApi = acquireVsCodeApi();
 
@@ -32,7 +43,7 @@ ReactPanelHelper.receiveInitialData<model.FlashDeviceViewState>(vscodeApi).then(
 
 const containerStyle = {
   minHeight: '24em',
-  maxWidth: '70em',
+  maxWidth: '50em',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -252,40 +263,6 @@ function FlashConfirmationStep(props: {
     }
   };
 
-  const buildVersionInfo =
-    props.state.buildSelectionType ===
-    model.BuildSelectionType.LATEST_OF_CHANNEL ? (
-      <>
-        <Grid item xs={4}>
-          <b>Version:</b>
-        </Grid>
-        <Grid item xs={8}>
-          (Latest)
-        </Grid>
-      </>
-    ) : (
-      <>
-        <Grid item xs={4}>
-          <b>Chrome OS:</b>
-        </Grid>
-        <Grid item xs={8}>
-          {props.state.buildInfo?.chromeOsVersion}
-        </Grid>
-        <Grid item xs={4}>
-          <b>Chrome:</b>
-        </Grid>
-        <Grid item xs={8}>
-          {props.state.buildInfo?.chromeVersion}
-        </Grid>
-        <Grid item xs={4}>
-          <b>ARC:</b>
-        </Grid>
-        <Grid item xs={8}>
-          {props.state.buildInfo?.arcVersion}
-        </Grid>
-      </>
-    );
-
   return (
     <div
       tabIndex={-1}
@@ -294,23 +271,18 @@ function FlashConfirmationStep(props: {
       style={containerStyle}
     >
       <Stack spacing={2}>
-        <p>
-          Continuing will flash{' '}
-          <b>
-            "{props.state.hostname}" ({props.state.board})
-          </b>{' '}
-          with build:
-        </p>
+        <Typography>
+          <p>
+            Continuing will flash{' '}
+            <b>
+              "{props.state.hostname}" ({props.state.board})
+            </b>{' '}
+            with build:
+          </p>
+        </Typography>
+        <BuildVersionInfo state={props.state} setState={props.setState} />
 
-        <Grid container>
-          <Grid item xs={4}>
-            <b>Channel:</b>
-          </Grid>
-          <Grid item xs={8}>
-            {props.state.buildChannel}
-          </Grid>
-          {buildVersionInfo}
-        </Grid>
+        <FlashFlags state={props.state} setState={props.setState} />
 
         <Box sx={{display: 'flex', flexDirection: 'row', pt: 2}}>
           <Button onClick={handleBack} sx={{mr: 1}}>
@@ -323,6 +295,131 @@ function FlashConfirmationStep(props: {
         </Box>
       </Stack>
     </div>
+  );
+}
+
+function FlashFlags(props: {
+  state: model.FlashDeviceViewState;
+  setState: (newState: model.FlashDeviceViewState) => void;
+}) {
+  const handleFlagChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newFlags = event.target.checked
+      ? [...props.state.flashCliFlags, event.target.value]
+      : props.state.flashCliFlags.filter(f => f !== event.target.value);
+    props.setState({
+      ...props.state,
+      flashCliFlags: newFlags,
+    });
+  };
+  return (
+    <FormGroup>
+      {model.FLASH_FLAGS.slice(0, NUM_POPULAR_FLAGS).map(f =>
+        flashFlagCheckbox(f)
+      )}
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography>More Flags</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <FormGroup>
+            {model.FLASH_FLAGS.slice(NUM_POPULAR_FLAGS).map(f =>
+              flashFlagCheckbox(f)
+            )}
+          </FormGroup>
+        </AccordionDetails>
+      </Accordion>
+    </FormGroup>
+  );
+
+  function flashFlagCheckbox(f: model.FlashFlag): JSX.Element {
+    return (
+      <Tooltip title={`(${f.cliFlag}) ${f.help}`}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              onChange={handleFlagChange}
+              value={f.cliFlag}
+              checked={
+                props.state.flashCliFlags.find(f2 => f2 === f.cliFlag) !==
+                undefined
+              }
+            />
+          }
+          label={f.label}
+        />
+      </Tooltip>
+    );
+  }
+}
+
+function BuildVersionInfo(props: {
+  state: model.FlashDeviceViewState;
+  setState: (newState: model.FlashDeviceViewState) => void;
+}) {
+  const labelColWidth = 2;
+  const valueColWidth = 12 - labelColWidth;
+  const buildVersionInfo =
+    props.state.buildSelectionType ===
+    model.BuildSelectionType.LATEST_OF_CHANNEL ? (
+      <>
+        <Grid
+          item
+          xs={labelColWidth}
+          style={{display: 'flex', justifyContent: 'flex-end'}}
+        >
+          <Typography>
+            <b>Version:</b>
+          </Typography>
+        </Grid>
+        <Grid item xs={valueColWidth}>
+          <Typography>(Latest)</Typography>
+        </Grid>
+      </>
+    ) : (
+      <>
+        <Grid item xs={labelColWidth}>
+          <Typography>
+            <b>Chrome OS:</b>
+          </Typography>
+        </Grid>
+        <Grid item xs={valueColWidth}>
+          <Typography>{props.state.buildInfo?.chromeOsVersion}</Typography>
+        </Grid>
+        <Grid item xs={labelColWidth}>
+          <Typography>
+            <b>Chrome:</b>
+          </Typography>
+        </Grid>
+        <Grid item xs={valueColWidth}>
+          <Typography>{props.state.buildInfo?.chromeVersion}</Typography>
+        </Grid>
+        <Grid item xs={labelColWidth}>
+          <b>
+            <Typography>ARC:</Typography>
+          </b>
+        </Grid>
+        <Grid item xs={valueColWidth}>
+          <Typography>{props.state.buildInfo?.arcVersion}</Typography>
+        </Grid>
+      </>
+    );
+
+  return (
+    <Grid container spacing={1}>
+      <Grid
+        item
+        xs={labelColWidth}
+        style={{display: 'flex', justifyContent: 'flex-end'}}
+      >
+        <Typography>
+          <b>Channel:</b>
+        </Typography>
+      </Grid>
+      <Grid item xs={valueColWidth}>
+        <Typography>{props.state.buildChannel}</Typography>
+      </Grid>
+      {buildVersionInfo}
+    </Grid>
   );
 }
 
@@ -355,6 +452,7 @@ function FlashProgress(props: {
       <Stack style={containerStyle}>
         <h2>Error while Flashing</h2>
         <SentimentDissatisfiedIcon sx={{color: colors.red[500]}} />
+        <Typography>See device management output.</Typography>
       </Stack>
     );
   } else if (!props.state.flashingComplete) {

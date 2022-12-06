@@ -39,7 +39,13 @@ export class FlashDeviceService implements vscode.Disposable {
     const result = await chroot.execInChroot(
       this.chrootService.source.root,
       'cros',
-      ['flash', '--log-level=debug', `ssh://${config.hostname}`, xbuddyPath],
+      [
+        'flash',
+        '--log-level=debug',
+        ...config.flashCliFlags,
+        `ssh://${config.hostname}`,
+        xbuddyPath,
+      ],
       {
         sudoReason: 'to flash a device',
         logger: {
