@@ -7,6 +7,7 @@ import * as util from 'util';
 import * as vscode from 'vscode';
 import * as glob from 'glob';
 import * as services from '../../../services';
+import * as config from '../../../services/config';
 import * as bgTaskStatus from '../../../ui/bg_task_status';
 import {Package} from './../boards_packages';
 import {llvmToLineFormat} from './llvm_json_parser';
@@ -156,7 +157,7 @@ export class Coverage {
     const pkgPart = pkg.name.indexOf('/') === -1 ? `*/${pkg.name}` : pkg.name;
 
     const globPattern = this.chrootService.chroot.realpath(
-      `${coverageDir}/${pkgPart}*/*/${fileName}`
+      `/build/${this.getBoard()}/build/coverage_data/${pkgPart}*/*/${fileName}`
     );
 
     let matches: string[];
@@ -174,9 +175,9 @@ export class Coverage {
   private async readPkgCoverage(
     pkgName: string
   ): Promise<CoverageJson | undefined> {
-    // TODO(ttylenda): do not hardcode amd64-generic
-    const pkg = {name: pkgName, board: {name: 'amd64-generic'}};
+    const pkg = {name: pkgName, board: {name: this.getBoard()}};
     const coverageJson = await this.findCoverageFile(pkg, 'coverage.json');
+    this.output.appendLine('Reading coverage from: ' + coverageJson);
     if (!coverageJson) {
       return undefined;
     }
@@ -188,6 +189,10 @@ export class Coverage {
       console.log(e);
       return undefined;
     }
+  }
+
+  private getBoard(): string {
+    return config.board.get();
   }
 }
 
@@ -213,9 +218,6 @@ function parseFileName(documentFileName: string): {
   const pkg = relativePath.split('/')[0];
   return {pkg, relativePath};
 }
-
-// TODO(ttylenda): Decide if we need a specific board or can we use whatever is available in chroot.
-const coverageDir = '/build/amd64-generic/build/coverage_data/';
 
 /** Get LLVM data from a coverage JSON object. */
 function getLlvmCoverage(

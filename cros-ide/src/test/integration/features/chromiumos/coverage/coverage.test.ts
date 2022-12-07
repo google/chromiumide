@@ -5,6 +5,7 @@
 import * as assert from 'assert';
 import {Coverage} from '../../../../../features/chromiumos/coverage';
 import * as services from '../../../../../services';
+import * as config from '../../../../../services/config';
 import * as bgTaskStatus from '../../../../../ui/bg_task_status';
 import * as testing from '../../../../testing';
 
@@ -56,6 +57,8 @@ describe('Test coverage', () => {
   // TODO(ttylenda): coverage.json does not contain data for the file
 
   it('reads coverage data if it exists', async () => {
+    await config.board.update('amd64-generic');
+
     const {covered: cov, uncovered: uncov} =
       await state.coverage.readDocumentCoverage(
         '/mnt/host/source/src/platform2/chaps/slot_manager_impl.cc'
