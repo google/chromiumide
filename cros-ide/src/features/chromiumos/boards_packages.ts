@@ -45,6 +45,16 @@ export async function activate(
     )
   );
 
+  subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration(
+      (e: vscode.ConfigurationChangeEvent) => {
+        if (e.affectsConfiguration('cros-ide.board')) {
+          boardPackageProvider.refresh();
+        }
+      }
+    )
+  );
+
   await boardsPackages.createPackageWatches();
 }
 
@@ -183,13 +193,15 @@ class BoardPackageProvider implements vscode.TreeDataProvider<ChrootItem> {
       return [];
     }
 
+    const defaultBoard = config.board.get();
+
     if (element === undefined) {
       const chroot = this.chrootService.chroot;
       if (chroot === undefined) {
         return [];
       }
       return (await cros.getSetupBoardsAlphabetic(chroot))
-        .map(x => new BoardItem(x))
+        .map(boardName => new BoardItem(boardName, boardName === defaultBoard))
         .concat([new BoardItem(VIRTUAL_BOARDS_HOST)]);
     }
     if (element && element instanceof BoardItem) {
@@ -246,12 +258,15 @@ class ChrootItem extends vscode.TreeItem {}
 
 // TODO(ttylenda): extract classes for actual boards and host.
 class BoardItem extends ChrootItem implements Board {
-  constructor(readonly name: string) {
+  constructor(readonly name: string, readonly isDefault = false) {
     super(name, vscode.TreeItemCollapsibleState.Collapsed);
     this.iconPath =
       name === VIRTUAL_BOARDS_HOST
         ? new vscode.ThemeIcon('device-desktop')
         : new vscode.ThemeIcon('circuit-board');
+    if (isDefault) {
+      this.description = 'default';
+    }
   }
 
   contextValue = 'board';
