@@ -12,11 +12,14 @@ import {FakeTextDocument} from '../../../testing/fakes';
 const {CrosFormat} = TEST_ONLY;
 
 describe('Cros format', () => {
+  const crosUri = vscode.Uri.file('/ssd/chromiumos/src/some/file.md');
+
   const state = testing.cleanState(() => {
     const statusManager = jasmine.createSpyObj<StatusManager>('statusManager', [
       'setStatus',
     ]);
     const crosFormat = new CrosFormat(
+      '/ssd/chromiumos',
       statusManager,
       vscode.window.createOutputChannel('unused')
     );
@@ -30,7 +33,7 @@ describe('Cros format', () => {
     spyOn(commonUtil, 'exec').and.resolveTo(new Error());
 
     await state.crosFormat.provideDocumentFormattingEdits(
-      new FakeTextDocument()
+      new FakeTextDocument({uri: crosUri})
     );
 
     expect(state.statusManager.setStatus).toHaveBeenCalledOnceWith(
@@ -48,7 +51,7 @@ describe('Cros format', () => {
     spyOn(commonUtil, 'exec').and.resolveTo(execResult);
 
     await state.crosFormat.provideDocumentFormattingEdits(
-      new FakeTextDocument()
+      new FakeTextDocument({uri: crosUri})
     );
 
     expect(state.statusManager.setStatus).toHaveBeenCalledOnceWith(
@@ -66,7 +69,7 @@ describe('Cros format', () => {
     spyOn(commonUtil, 'exec').and.resolveTo(execResult);
 
     const edits = await state.crosFormat.provideDocumentFormattingEdits(
-      new FakeTextDocument()
+      new FakeTextDocument({uri: crosUri})
     );
 
     expect(edits).toBeUndefined();
@@ -85,13 +88,25 @@ describe('Cros format', () => {
     spyOn(commonUtil, 'exec').and.resolveTo(execResult);
 
     const edits = await state.crosFormat.provideDocumentFormattingEdits(
-      new FakeTextDocument()
+      new FakeTextDocument({uri: crosUri})
     );
 
+    expect(commonUtil.exec).toHaveBeenCalled();
     expect(edits).toBeDefined();
     expect(state.statusManager.setStatus).toHaveBeenCalledOnceWith(
       'Formatter',
       TaskStatus.OK
     );
+  });
+
+  it('does not format files outside CrOS chroot', async () => {
+    spyOn(commonUtil, 'exec');
+
+    const edits = await state.crosFormat.provideDocumentFormattingEdits(
+      new FakeTextDocument({uri: vscode.Uri.file('/not/a/cros/file.md')})
+    );
+
+    expect(commonUtil.exec).not.toHaveBeenCalled();
+    expect(edits).toBeUndefined();
   });
 });

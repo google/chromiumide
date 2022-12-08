@@ -113,7 +113,7 @@ export class Chromiumos implements vscode.Disposable {
       );
 
       if (config.underDevelopment.crosFormat.get()) {
-        crosFormat.activate(ephemeralContext, this.statusManager);
+        crosFormat.activate(ephemeralContext, this.root, this.statusManager);
       }
 
       if (config.underDevelopment.testCoverage.get()) {

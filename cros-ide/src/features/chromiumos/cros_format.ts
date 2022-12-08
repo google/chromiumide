@@ -12,6 +12,7 @@ const FORMATTER = 'Formatter';
 
 export function activate(
   context: vscode.ExtensionContext,
+  chromiumosRoot: string,
   statusManager: StatusManager
 ) {
   const outputChannel = vscode.window.createOutputChannel(
@@ -56,26 +57,34 @@ export function activate(
   context.subscriptions.push(
     vscode.languages.registerDocumentFormattingEditProvider(
       documentSelector,
-      new CrosFormat(statusManager, outputChannel)
+      new CrosFormat(chromiumosRoot, statusManager, outputChannel)
     )
   );
 }
 
 class CrosFormat implements vscode.DocumentFormattingEditProvider {
   constructor(
+    private readonly chromiumosRoot: string,
     private readonly statusManager: StatusManager,
     private readonly outputChannel: vscode.OutputChannel
   ) {}
 
   async provideDocumentFormattingEdits(document: vscode.TextDocument) {
-    this.outputChannel.appendLine(`Formatting ${document.uri.fsPath}...`);
+    const fsPath = document.uri.fsPath;
+    if (!fsPath.startsWith(this.chromiumosRoot)) {
+      this.outputChannel.appendLine(`Not formatting ${fsPath}.`);
+      return undefined;
+    }
+
+    this.outputChannel.appendLine(`Formatting ${fsPath}...`);
 
     const formatterOutput = await commonUtil.exec(
       'cros',
-      ['format', '--stdout', document.uri.fsPath],
+      ['format', '--stdout', fsPath],
       {
         logger: ideUtil.getUiLogger(),
         ignoreNonZeroExit: true,
+        cwd: this.chromiumosRoot,
       }
     );
 
