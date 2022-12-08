@@ -3,10 +3,10 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as commonUtil from '../common/common_util';
-import * as ideUtil from '../ide_util';
+import * as commonUtil from '../../common/common_util';
+import * as ideUtil from '../../ide_util';
 
-export function activate(_context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
   // File name patterns were copied from
   // https://source.chromium.org/chromium/chromium/src/+/main:third_party/chromite/cli/cros/cros_format.py
   // TODO(b:232466489): figure out a better way of sharing what's supported by `cros lint`
@@ -38,9 +38,11 @@ export function activate(_context: vscode.ExtensionContext) {
   const documentSelector = globs.map(g => {
     return {schema: 'file', pattern: '**/' + g};
   });
-  vscode.languages.registerDocumentFormattingEditProvider(
-    documentSelector,
-    new CrosFormat()
+  context.subscriptions.push(
+    vscode.languages.registerDocumentFormattingEditProvider(
+      documentSelector,
+      new CrosFormat()
+    )
   );
 }
 

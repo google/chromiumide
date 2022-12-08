@@ -13,7 +13,6 @@ import * as cipd from './common/cipd';
 import * as commonUtil from './common/common_util';
 import * as features from './features';
 import * as codesearch from './features/codesearch';
-import * as crosFormat from './features/cros_format';
 import * as crosLint from './features/cros_lint';
 import * as gerrit from './features/gerrit';
 import * as gn from './features/gn';
@@ -103,10 +102,6 @@ async function postMetricsActivate(
   upstart.activate(context);
   hints.activate(context);
   showHelp.activate(context);
-
-  if (config.underDevelopment.crosFormat.get()) {
-    crosFormat.activate(context);
-  }
 
   const gitDocumentProvider = new gitDocument.GitDocumentProvider();
   gitDocumentProvider.activate();

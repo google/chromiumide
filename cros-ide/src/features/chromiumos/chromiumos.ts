@@ -11,6 +11,7 @@ import * as metrics from '../metrics/metrics';
 import * as boardsPackages from './boards_packages';
 import {Coverage} from './coverage';
 import * as cppCodeCompletion from './cpp_code_completion';
+import * as crosFormat from './cros_format';
 import * as deviceManagement from './device_management';
 import {NewFileTemplate} from './new_file_template';
 import {Platform2Gtest} from './platform2_gtest';
@@ -110,6 +111,10 @@ export class Chromiumos implements vscode.Disposable {
         chrootService,
         this.cipdRepository
       );
+
+      if (config.underDevelopment.crosFormat.get()) {
+        crosFormat.activate(ephemeralContext);
+      }
 
       if (config.underDevelopment.testCoverage.get()) {
         this.featureName = 'testCoverage';
