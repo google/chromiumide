@@ -40,6 +40,14 @@ export function activate(context: vscode.ExtensionContext): void {
         'policy language and Common Intermediate Language. Would you like to install it?',
       availableForCodeServer: false,
     },
+    {
+      languageIds: ['starlark'],
+      extensionId: 'bazelbuild.vscode-bazel',
+      message:
+        'Bazel plugin provides syntax highlighting for Starlark files. ' +
+        'Would you like to install it?',
+      availableForCodeServer: true,
+    },
   ];
 
   const isCodeServer = ideUtil.isCodeServer();

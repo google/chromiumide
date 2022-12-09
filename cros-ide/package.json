@@ -57,6 +57,7 @@
     "onLanguage:python",
     "onLanguage:sepolicy",
     "onLanguage:shellscript",
+    "onLanguage:starlark",
     "onLanguage:typescript",
     "onLanguage:upstart"
   ],
@@ -674,6 +675,21 @@
         ],
         "extensions": [
           ".te"
+        ]
+      },
+      {
+        "id": "starlark",
+        "aliases": [
+          "Starlark"
+        ],
+        "extensions": [
+          ".bzl",
+          ".star"
+        ],
+        "filenames": [
+          "BUILD",
+          "BUILD.bazel",
+          "WORKSPACE"
         ]
       }
     ],
