@@ -55,6 +55,7 @@
     "onLanguage:gn",
     "onLanguage:go",
     "onLanguage:python",
+    "onLanguage:sepolicy",
     "onLanguage:shellscript",
     "onLanguage:typescript",
     "onLanguage:upstart"
@@ -664,6 +665,15 @@
         "filenames": [
           "Makefile.rules",
           "Makefile.toolchain"
+        ]
+      },
+      {
+        "id": "sepolicy",
+        "aliases": [
+          "SELinux policy"
+        ],
+        "extensions": [
+          ".te"
         ]
       }
     ],

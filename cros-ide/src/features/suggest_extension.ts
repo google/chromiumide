@@ -32,6 +32,14 @@ export function activate(context: vscode.ExtensionContext): void {
       availableForCodeServer: true,
       suggestOnlyInCodeServer: true,
     },
+    {
+      languageIds: ['sepolicy'],
+      extensionId: 'google.selinux-policy-languages',
+      message:
+        'SELinux Policy provides syntax highlighting for the SELinux kernel ' +
+        'policy language and Common Intermediate Language. Would you like to install it?',
+      availableForCodeServer: false,
+    },
   ];
 
   const isCodeServer = ideUtil.isCodeServer();
