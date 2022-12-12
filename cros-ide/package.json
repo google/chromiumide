@@ -691,6 +691,12 @@
           "BUILD.bazel",
           "WORKSPACE"
         ]
+      },
+      {
+        "id": "xml",
+        "filenamePatterns": [
+          "org.chromium.*.conf"
+        ]
       }
     ],
     "grammars": [
