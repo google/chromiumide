@@ -2,10 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Generalizes ChangeThreads type. We use `path` as a key name here
-// and in splitPathMap to keep things concrete.
-type PathMap<T> = {
-  [path: string]: T[];
+/** Map from the file path to T */
+export type PathMap<T> = {
+  [filePath: string]: T;
 };
 
 /**
@@ -25,27 +24,25 @@ type PathMap<T> = {
  *
  * See the unit tests for another example.
  */
-export function splitPathMap<T, Key>(
-  obj: PathMap<T>,
+export function splitPathArrayMap<T, Key>(
+  pathArrayMap: PathMap<T[]>,
   groupBy: (arg: T) => Key
-): [Key, PathMap<T>][] {
-  const m = new Map<Key, PathMap<T>>();
-  for (const [path, xs] of Object.entries(obj)) {
+): [Key, PathMap<T[]>][] {
+  const res = new Map<Key, PathMap<T[]>>();
+  for (const [filePath, xs] of Object.entries(pathArrayMap)) {
     for (const x of xs) {
       const key = groupBy(x);
-
-      let splitObj = m.get(key);
+      let splitObj = res.get(key);
       if (!splitObj) {
         splitObj = {};
-        m.set(key, splitObj);
+        res.set(key, splitObj);
       }
-
-      if (path in splitObj) {
-        splitObj[path].push(x);
+      if (filePath in splitObj) {
+        splitObj[filePath].push(x);
       } else {
-        splitObj[path] = [x];
+        splitObj[filePath] = [x];
       }
     }
   }
-  return [...m.entries()];
+  return [...res.entries()];
 }

@@ -540,7 +540,7 @@ function partitionThreads(
 function partitionByCommitId(
   changeThread: ChangeThreads
 ): [string, ChangeThreads][] {
-  return helpers.splitPathMap(changeThread, (thread: Thread) =>
+  return helpers.splitPathArrayMap(changeThread, (thread: Thread) =>
     thread.commitId()
   );
 }
