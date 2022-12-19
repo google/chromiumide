@@ -248,6 +248,34 @@
         "enablement": "config.cros-ide.gerrit.enabled"
       },
       {
+        "command": "cros-ide.gerrit.browseCommentThread",
+        "category": "CrOS",
+        "title": "Open in Gerrit",
+        "icon": "$(link)",
+        "enablement": "config.cros-ide.gerrit.enabled"
+      },
+      {
+        "command": "cros-ide.gerrit.browseCommentThreadAuthor",
+        "category": "CrOS",
+        "title": "Open Author's Dashboard in Gerrit",
+        "icon": "$(account)",
+        "enablement": "config.cros-ide.gerrit.enabled"
+      },
+      {
+        "command": "cros-ide.gerrit.browseComment",
+        "category": "CrOS",
+        "title": "Open in Gerrit",
+        "icon": "$(link)",
+        "enablement": "config.cros-ide.gerrit.enabled"
+      },
+      {
+        "command": "cros-ide.gerrit.browseCommentAuthor",
+        "category": "CrOS",
+        "title": "Open Author's Dashboard in Gerrit",
+        "icon": "$(account)",
+        "enablement": "config.cros-ide.gerrit.enabled"
+      },
+      {
         "command": "cros-ide.showHelpForBoardsPackages",
         "title": "Show Help",
         "icon": "$(question)"
@@ -301,7 +329,26 @@
     "menus": {
       "comments/commentThread/title": [
         {
-          "command": "cros-ide.gerrit.collapseAllCommentThreads"
+          "command": "cros-ide.gerrit.browseCommentThread",
+          "group": "inline@1"
+        },
+        {
+          "command": "cros-ide.gerrit.browseCommentThreadAuthor",
+          "group": "inline@2"
+        },
+        {
+          "command": "cros-ide.gerrit.collapseAllCommentThreads",
+          "group": "inline@3"
+        }
+      ],
+      "comments/comment/title": [
+        {
+          "command": "cros-ide.gerrit.browseComment",
+          "group": "inline@1"
+        },
+        {
+          "command": "cros-ide.gerrit.browseCommentAuthor",
+          "group": "inline@2"
         }
       ],
       "editor/context": [

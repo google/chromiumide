@@ -123,6 +123,44 @@ export function activate(
         });
       }
     ),
+    vscode.commands.registerCommand(
+      'cros-ide.gerrit.browseCommentThread',
+      async ({
+        gerritCommentThread: {
+          change: {repoId, changeNumber},
+          firstComment: {commentId},
+        },
+      }: VscodeCommentThread) =>
+        openExternal(repoId, `c/${changeNumber}/comment/${commentId}`)
+    ),
+    vscode.commands.registerCommand(
+      'cros-ide.gerrit.browseCommentThreadAuthor',
+      async ({
+        gerritCommentThread: {
+          change: {repoId},
+          firstComment: {authorId},
+        },
+      }: VscodeCommentThread) => openExternal(repoId, `dashboard/${authorId}`)
+    ),
+    vscode.commands.registerCommand(
+      'cros-ide.gerrit.browseComment',
+      async ({
+        gerritComment: {
+          change: {repoId, changeNumber},
+          commentId,
+        },
+      }: VscodeComment) =>
+        openExternal(repoId, `c/${changeNumber}/comment/${commentId}`)
+    ),
+    vscode.commands.registerCommand(
+      'cros-ide.gerrit.browseCommentAuthor',
+      async ({
+        gerritComment: {
+          change: {repoId},
+          authorId,
+        },
+      }: VscodeComment) => openExternal(repoId, `dashboard/${authorId}`)
+    ),
     gitDirsWatcher.onDidChangeHead(async event => {
       // 1. Check !event.head to avoid closing comments
       //    when the only visible file is closed or replaced.
@@ -134,6 +172,11 @@ export function activate(
       }
     })
   );
+}
+
+async function openExternal(repoId: git.RepoId, path: string): Promise<void> {
+  const url = `${git.gerritUrl(repoId)}/${path}`;
+  void vscode.env.openExternal(vscode.Uri.parse(url));
 }
 
 class Gerrit {
@@ -533,6 +576,9 @@ class Change {
   get changeId(): string {
     return this.changeInfo.change_id;
   }
+  get changeNumber(): number {
+    return this.changeInfo._number;
+  }
 }
 
 /**
@@ -598,6 +644,10 @@ export class Revision {
       }
       this.commentThreadsMap[filePath] = commentThreads;
     }
+  }
+
+  get revisionNumber(): number | 'edit' {
+    return this.revisionInfo._number;
   }
 }
 
@@ -778,13 +828,14 @@ export class CommentThread {
     ) as VscodeCommentThread;
     vscodeCommentThread.gerritCommentThread = this; // Remember the comment thread
     vscodeCommentThread.canReply = false;
+    const revisionNumber = this.revision.revisionNumber;
     // TODO(b:216048068): We should indicate resolved/unresolved with UI style.
     if (this.unresolved) {
-      vscodeCommentThread.label = 'Unresolved';
+      vscodeCommentThread.label = `Patchset ${revisionNumber} / Unresolved`;
       vscodeCommentThread.collapsibleState =
         vscode.CommentThreadCollapsibleState.Expanded;
     } else {
-      vscodeCommentThread.label = 'Resolved';
+      vscodeCommentThread.label = `Patchset ${revisionNumber} / Resolved`;
     }
     this.vscodeCommentThread = vscodeCommentThread;
   }
