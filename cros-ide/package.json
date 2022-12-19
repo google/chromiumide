@@ -229,9 +229,9 @@
         "enablement": "config.cros-ide.underDevelopment.gerrit"
       },
       {
-        "command": "cros-ide.gerrit.collapseAllComments",
+        "command": "cros-ide.gerrit.collapseAllCommentThreads",
         "category": "CrOS",
-        "title": "Collapse All Comments",
+        "title": "Collapse All Comment Threads",
         "icon": "$(collapse-all)",
         "enablement": "config.cros-ide.gerrit.enabled"
       },
@@ -289,7 +289,7 @@
     "menus": {
       "comments/commentThread/title": [
         {
-          "command": "cros-ide.gerrit.collapseAllComments"
+          "command": "cros-ide.gerrit.collapseAllCommentThreads"
         }
       ],
       "editor/context": [

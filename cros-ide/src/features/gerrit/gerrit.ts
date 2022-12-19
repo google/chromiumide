@@ -105,7 +105,7 @@ export function activate(
       void gerrit.showComments(document.fileName, {noFetch: true});
     }),
     vscode.commands.registerCommand(
-      'cros-ide.gerrit.collapseAllComments',
+      'cros-ide.gerrit.collapseAllCommentThreads',
       () => {
         // See https://github.com/microsoft/vscode/issues/158316 to learn more.
         //
@@ -117,11 +117,11 @@ export function activate(
           // Collapses all comments in the active text editor.
           'workbench.action.collapseAllComments'
         );
-        gerrit.collapseAllComments();
+        gerrit.collapseAllCommentThreads();
         metrics.send({
           category: 'interactive',
           group: 'gerrit',
-          action: 'collapse all comments',
+          action: 'collapse all comment threads',
         });
       }
     ),
@@ -267,7 +267,7 @@ class Gerrit {
     return repoId;
   }
 
-  collapseAllComments() {
+  collapseAllCommentThreads() {
     for (const thread of this.commentThreads) {
       thread.collapsibleState = vscode.CommentThreadCollapsibleState.Collapsed;
     }
