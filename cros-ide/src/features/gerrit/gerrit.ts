@@ -194,21 +194,8 @@ class Gerrit {
         this.partitionedThreads.map(commitThreads => commitThreads[0]),
         gitDir
       );
-      if (localCommitIds instanceof Error) {
-        this.showErrorMessage('Checking if SHA is available locally failed.');
-        return;
-      }
       if (localCommitIds.length !== this.partitionedThreads.length) {
         status = bgTaskStatus.TaskStatus.ERROR;
-        this.outputChannel.appendLine(
-          'Some commits are not available locally. This happens when ' +
-            'some patchsets were uploaded to Gerrit from a different chroot.'
-        );
-        metrics.send({
-          category: 'error',
-          group: 'gerrit',
-          description: 'commit not available locally',
-        });
       }
 
       for (const [commitId, commentThreadsMap] of this.partitionedThreads) {
@@ -388,14 +375,27 @@ class Gerrit {
   private async filterLocalCommitIds(
     allCommitIds: string[],
     gitDir: string
-  ): Promise<string[] | Error> {
+  ): Promise<string[]> {
     const local = [];
     for (const commitId of allCommitIds) {
       const exists = await git.shaExists(commitId, gitDir, this.outputChannel);
       if (exists instanceof Error) {
-        return exists;
+        this.showErrorMessage({
+          log: `Local availability check failed for the patchset ${commitId}.`,
+          metrics: 'Local commit availability check failed',
+        });
       } else if (exists) {
         local.push(commitId);
+      } else {
+        this.outputChannel.appendLine(
+          `The patchset ${commitId} was not available locally. This happens ` +
+            'when some patchsets were uploaded to Gerrit from a different chroot.'
+        );
+        metrics.send({
+          category: 'error',
+          group: 'gerrit',
+          description: 'commit not available locally',
+        });
       }
     }
     return local;
