@@ -73,8 +73,8 @@ describe('partitionCommentThreads', () => {
 
     expect(
       partitionCommentThreads(input, {
-        gitSha: 'aa',
-        gerritChangeId: 'Ibb',
+        localCommitId: 'aa',
+        changeId: 'Ibb',
       })
     ).toEqual(want);
   });

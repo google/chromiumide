@@ -19,8 +19,11 @@ export class Git {
     await fs.promises.mkdir(this.root, {recursive: true});
     await commonUtil.execOrThrow('git', ['init'], {cwd: this.root});
     const repoId = opts?.repoId ?? 'cros';
-    const remote = [repoId, git.repoIdToGerritUrl(repoId)];
-    await commonUtil.execOrThrow('git', ['remote', 'add', ...remote], {
+    const remoteUrl =
+      repoId === 'cros'
+        ? 'https://chromium.googlesource.com/foo'
+        : 'https://chrome-internal.googlesource.com/foo';
+    await commonUtil.execOrThrow('git', ['remote', 'add', repoId, remoteUrl], {
       cwd: this.root,
     });
   }

@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 import * as testing from '../../../testing';
-import {shaExists, TEST_ONLY} from '../../../../features/gerrit/git';
+import {commitExists, TEST_ONLY} from '../../../../features/gerrit/git';
 
-const {parseChangeIds} = TEST_ONLY;
+const {parseGitLog} = TEST_ONLY;
 
 const gitLog = `commit 8c3682b20db653d55e4bb1e56294d4c16b95a5f5 (gerrit-threads)
 Author: Tomasz Tylenda <ttylenda@chromium.org>
@@ -49,29 +49,29 @@ Date:   Fri Oct 7 11:46:51 2022 +0900
     Change-Id: Ic7594ee4825feb488c12aac31bb879c03932fb45
 `;
 
-describe('parseChangeIds', () => {
+describe('parseGitLog', () => {
   it('extracts commit ids from git log', () => {
-    expect(parseChangeIds(gitLog)).toEqual([
+    expect(parseGitLog(gitLog)).toEqual([
       {
-        gitSha: '8c3682b20db653d55e4bb1e56294d4c16b95a5f5',
-        gerritChangeId: 'I6f1ec79d7b221bb7c7343cc953db1b6f6369fbb4',
+        localCommitId: '8c3682b20db653d55e4bb1e56294d4c16b95a5f5',
+        changeId: 'I6f1ec79d7b221bb7c7343cc953db1b6f6369fbb4',
       },
       {
-        gitSha: 'c3b2ca4da09c2452eefad3f3bf98f0f675ba8ad3',
-        gerritChangeId: 'Ic7594ee4825feb488c12aac31bb879c03932fb45',
+        localCommitId: 'c3b2ca4da09c2452eefad3f3bf98f0f675ba8ad3',
+        changeId: 'Ic7594ee4825feb488c12aac31bb879c03932fb45',
       },
     ]);
   });
 
   it('handles empty input', () => {
-    expect(parseChangeIds('')).toEqual([]);
+    expect(parseGitLog('')).toEqual([]);
   });
 
   it('ignores change id inside a commit message', () => {
-    expect(parseChangeIds(gitLogWithSpuriousChangeId)).toEqual([
+    expect(parseGitLog(gitLogWithSpuriousChangeId)).toEqual([
       {
-        gitSha: 'c3b2ca4da09c2452eefad3f3bf98f0f675ba8ad3',
-        gerritChangeId: 'Ic7594ee4825feb488c12aac31bb879c03932fb45',
+        localCommitId: 'c3b2ca4da09c2452eefad3f3bf98f0f675ba8ad3',
+        changeId: 'Ic7594ee4825feb488c12aac31bb879c03932fb45',
       },
     ]);
   });
@@ -85,9 +85,9 @@ describe('Git helper', () => {
     await repo.init();
     const existingCommitId = await repo.commit('Hello');
 
-    expect(await shaExists(existingCommitId, repo.root)).toBeTrue();
+    expect(await commitExists(existingCommitId, repo.root)).toBeTrue();
     expect(
-      await shaExists('08f5019f534c2c5075c5de4425b7902d7517342e', repo.root)
+      await commitExists('08f5019f534c2c5075c5de4425b7902d7517342e', repo.root)
     ).toBeFalse();
   });
 });

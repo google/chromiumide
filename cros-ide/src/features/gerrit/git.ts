@@ -8,14 +8,46 @@ import * as commonUtil from '../../common/common_util';
 /** Kind of a Git remote repository */
 export type RepoId = 'cros' | 'cros-internal';
 
-/** Get Gerrit URL for RepoId */
-export function repoIdToGerritUrl(repoId: RepoId): string {
+/** Gets the Gerrit URL for RepoId. */
+export function gerritUrl(repoId: RepoId): string {
   return repoId === 'cros'
     ? 'https://chromium-review.googlesource.com'
     : 'https://chrome-internal-review.googlesource.com';
 }
 
-export type Hunks = {
+export class UnknownRepoError extends Error {
+  constructor(readonly repoId: string, readonly repoUrl: string) {
+    super();
+  }
+}
+
+/**
+ * Gets RepoId by git remote, or returns UnknownRepoError, if the
+ * remote repo was found but unknown, or some Error for other errors.
+ */
+export async function getRepoId(
+  gitDir: string,
+  outputChannel: vscode.OutputChannel
+): Promise<RepoId | Error> {
+  const gitRemote = await commonUtil.exec('git', ['remote', '-v'], {
+    cwd: gitDir,
+    logStdout: true,
+    logger: outputChannel,
+  });
+  if (gitRemote instanceof Error) return gitRemote;
+  const [repoId, repoUrl] = gitRemote.stdout.split('\n')[0].split(/\s+/);
+  if (
+    (repoId === 'cros' &&
+      repoUrl.startsWith('https://chromium.googlesource.com/')) ||
+    (repoId === 'cros-internal' &&
+      repoUrl.startsWith('https://chrome-internal.googlesource.com/'))
+  ) {
+    return repoId;
+  }
+  return new UnknownRepoError(repoId, repoUrl);
+}
+
+export type HunksMap = {
   [filePath: string]: Hunk[];
 };
 
@@ -44,7 +76,7 @@ export class Hunk {
     originalSize: number;
     currentStart: number;
     currentSize: number;
-  }) {
+  }): Hunk {
     return new Hunk(
       data.originalStart,
       data.originalSize,
@@ -54,20 +86,18 @@ export class Hunk {
   }
 }
 
-/** Checks if a SHA is available locally. */
-export async function shaExists(
-  sha: string,
+/** Judges if the commit is available locally. */
+export async function commitExists(
+  commitId: string,
   dir: string,
   logger?: vscode.OutputChannel
 ): Promise<boolean | Error> {
-  const result = await commonUtil.exec('git', ['cat-file', '-e', sha], {
+  const result = await commonUtil.exec('git', ['cat-file', '-e', commitId], {
     cwd: dir,
     logger,
     ignoreNonZeroExit: true,
   });
-  if (result instanceof Error) {
-    return result;
-  }
+  if (result instanceof Error) return result;
   return result.exitStatus === 0;
 }
 
@@ -75,30 +105,28 @@ export async function shaExists(
  * Extracts diff hunks of changes made between the `originalCommitId`
  * and the working tree.
  */
-export async function readDiffHunks(
-  dir: string,
-  originalCommitId: string,
-  files: string[],
+export async function readDiffHunksMap(
+  gitDir: string,
+  commitId: string,
+  paths: string[],
   logger?: vscode.OutputChannel
-): Promise<Hunks | Error> {
+): Promise<HunksMap | Error> {
   const gitDiff = await commonUtil.exec(
     'git',
-    ['diff', '-U0', originalCommitId, '--', ...files],
+    ['diff', '-U0', commitId, '--', ...paths],
     {
-      cwd: dir,
+      cwd: gitDir,
       logger,
     }
   );
-  if (gitDiff instanceof Error) {
-    return gitDiff;
-  }
-  return parseDiffHunks(gitDiff.stdout);
+  if (gitDiff instanceof Error) return gitDiff;
+  return parseDiffHunksMap(gitDiff.stdout);
 }
 
 /**
  * Parses the output of `git diff -U0` and returns hunks.
  */
-function parseDiffHunks(gitDiffContent: string): Hunks {
+function parseDiffHunksMap(gitDiffContent: string): HunksMap {
   /**
    * gitDiffContent example:`
    * --- a/ide_tooling/cros-ide/src/features/gerrit.ts
@@ -113,13 +141,12 @@ function parseDiffHunks(gitDiffContent: string): Hunks {
   const gitDiffHunkRegex =
     /(?:(?:^--- a\/(.*)$)|(?:^@@ -([0-9]*)[,]?([0-9]*) \+([0-9]*)[,]?([0-9]*) @@))/gm;
   let regexArray: RegExpExecArray | null;
-  const hunksAllFiles: Hunks = {};
-  let hunksEachFile: Hunk[] = [];
+  const hunksMap: HunksMap = {};
   let hunkFilePath = '';
   while ((regexArray = gitDiffHunkRegex.exec(gitDiffContent)) !== null) {
     if (regexArray[1]) {
       hunkFilePath = regexArray[1];
-      hunksEachFile = [];
+      hunksMap[hunkFilePath] = [];
     } else {
       const hunk = Hunk.of({
         originalStart: Number(regexArray[2] || '1'),
@@ -127,53 +154,50 @@ function parseDiffHunks(gitDiffContent: string): Hunks {
         currentStart: Number(regexArray[4] || '1'),
         currentSize: Number(regexArray[5] || '1'),
       });
-      hunksEachFile.push(hunk);
-      hunksAllFiles[hunkFilePath] = hunksEachFile;
+      hunksMap[hunkFilePath].push(hunk);
     }
   }
-  return hunksAllFiles;
+  return hunksMap;
 }
 
-/** Data extracted from `git log`. */
 export type GitLogInfo = {
-  readonly gitSha: string;
-  readonly gerritChangeId: string;
+  readonly localCommitId: string;
+  readonly changeId: string;
 };
 
 /**
- * Extracts change-ids from commit messages in the range.
+ * Extracts change ids from Git log in the range
  *
  * The ids are ordered from new to old. If the HEAD is already merged,
  * the result will be an empty array.
  */
-export async function readChangeIds(
-  dir: string,
+export async function readGitLog(
+  gitDir: string,
   range: string,
-  logger?: vscode.OutputChannel
+  logger: vscode.OutputChannel
 ): Promise<GitLogInfo[] | Error> {
   const branchLog = await commonUtil.exec('git', ['log', range], {
-    cwd: dir,
+    cwd: gitDir,
     logger,
   });
-  if (branchLog instanceof Error) {
-    return branchLog;
-  }
-  return parseChangeIds(branchLog.stdout);
+  if (branchLog instanceof Error) return branchLog;
+  return parseGitLog(branchLog.stdout);
 }
 
-function parseChangeIds(log: string): GitLogInfo[] {
-  const result = [];
-  // Matches the entire commit message from the line with SHA to Gerrit's Change-Id.
+function parseGitLog(gitLog: string): GitLogInfo[] {
+  const result: GitLogInfo[] = [];
+  // Matches the entire commit message from the line
+  // with the commit id to Gerrit's change id.
   const messageRegex =
-    /^commit (?<sha>[0-9a-f]+)[\s\S]*?\n\s*?Change-Id: (?<gerrit>I[0-9a-z]+)/gm;
-  let match: RegExpExecArray | null;
-  while ((match = messageRegex.exec(log)) !== null) {
+    /^commit (?<commitId>[0-9a-f]+)[\s\S]*?\n\s*?Change-Id: (?<changeId>I[0-9a-z]+)/gm;
+  let match: RegExpMatchArray | null;
+  while ((match = messageRegex.exec(gitLog)) !== null) {
     result.push({
-      gitSha: match.groups!['sha'],
-      gerritChangeId: match.groups!['gerrit'],
+      localCommitId: match.groups!.commitId,
+      changeId: match.groups!.changeId,
     });
   }
   return result;
 }
 
-export const TEST_ONLY = {parseChangeIds, parseDiffHunks};
+export const TEST_ONLY = {parseDiffHunksMap, parseGitLog};

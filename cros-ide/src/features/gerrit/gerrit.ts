@@ -162,23 +162,15 @@ class Gerrit {
   }
 
   /**
-   * Fetches comments on changes in the Git repo which contains `path`
-   * (file or directory) and shows them with
+   * Fetches comments on changes in the Git repo which contains
+   * `filePath` (file or directory) and shows them with
    * proper repositioning based on the local diff. It caches the response
    * from Gerrit and uses it unless fetch is true.
    */
   async showComments(filePath: string, fetch = true) {
     try {
-      const gitDir = commonUtil.findGitDir(filePath);
-      if (!gitDir) {
-        // When settings are changed onDidSaveTextDocument is called with
-        // ~/.config/Code/User/settings.json, which is triggers repositioning.
-        this.outputChannel.appendLine(
-          'Git directory not found for ' + filePath
-        );
-        return;
-      }
-
+      const gitDir = await this.findGitDir(filePath);
+      if (!gitDir) return;
       if (fetch) {
         await this.fetchComments(gitDir);
         this.clearCommentThreads();
@@ -216,32 +208,44 @@ class Gerrit {
     }
   }
 
-  /** Execute git remote to get RepoId */
-  async getRepoId(gitDir: string): Promise<git.RepoId | undefined> {
-    const xres = await commonUtil.exec('git', ['remote'], {
-      cwd: gitDir,
-      logStdout: true,
-      logger: this.outputChannel,
-    });
-    if (xres instanceof Error) {
-      this.showErrorMessage({
-        log: `'git remote' failed: ${xres}`,
-        metrics: 'git remote failed',
-      });
+  /**
+   * Finds the Git directory for the file
+   * or returns undefined with logging when the directory is not found.
+   */
+  private async findGitDir(filePath: string): Promise<string | undefined> {
+    const gitDir = commonUtil.findGitDir(filePath);
+    if (!gitDir) {
+      this.outputChannel.appendLine('Git directory not found for ' + filePath);
       return;
     }
-    const repoId = xres.stdout.trimEnd();
-    if (repoId !== 'cros' && repoId !== 'cros-internal') {
+    return gitDir;
+  }
+
+  /**
+   * Executes git remote to get RepoId or returns undefined
+   * showing an error message if the id is not found.
+   */
+  private async getRepoId(gitDir: string): Promise<git.RepoId | undefined> {
+    const repoId = await git.getRepoId(gitDir, this.outputChannel);
+    if (repoId instanceof git.UnknownRepoError) {
       this.showErrorMessage({
-        log: `Unknown remote repo detected: ${repoId}`,
+        log:
+          'Unknown remote repo detected: ' +
+          `id ${repoId.repoId}, url ${repoId.repoUrl}`,
         metrics: 'unknown git remote result',
       });
       return;
     }
+    if (repoId instanceof Error) {
+      this.showErrorMessage({
+        log: `'git remote' failed: ${repoId.message}`,
+        metrics: 'git remote failed',
+      });
+      return;
+    }
+    const repoKind = repoId === 'cros' ? 'Public' : 'Internal';
     this.outputChannel.appendLine(
-      (repoId === 'cros' ? 'Public' : 'Internal') +
-        ' remote repo detected at ' +
-        gitDir
+      `${repoKind} Chrome remote repo detected at ${gitDir}`
     );
     return repoId;
   }
@@ -288,9 +292,9 @@ class Gerrit {
     const authCookie = await this.readAuthCookie();
     const repoId = await this.getRepoId(gitDir);
     if (repoId === undefined) return;
-    const gitLogInfos = await git.readChangeIds(
+    const gitLogInfos = await git.readGitLog(
       gitDir,
-      repoId + '/main..HEAD',
+      `${repoId}/main..HEAD`,
       this.outputChannel
     );
     if (gitLogInfos instanceof Error) {
@@ -307,11 +311,11 @@ class Gerrit {
     const partitionedThreads: [string, CommentThreadsMap][] = [];
 
     for (const gitLogInfo of gitLogInfos) {
-      const gerritChangeId = gitLogInfo.gerritChangeId;
-      const path = `changes/${gerritChangeId}/comments`;
+      const changeId = gitLogInfo.changeId;
+      const path = `changes/${changeId}/comments`;
       const commentsContent = await this.getOrThrow(repoId, path, authCookie);
       if (!commentsContent) {
-        this.outputChannel.appendLine(`Not found on Gerrit: ${gerritChangeId}`);
+        this.outputChannel.appendLine(`Not found on Gerrit: ${changeId}`);
         continue;
       }
       const changeComments = JSON.parse(commentsContent) as api.CommentInfosMap;
@@ -336,7 +340,7 @@ class Gerrit {
     path: string,
     authCookie?: string
   ): Promise<string | undefined> {
-    const url = git.repoIdToGerritUrl(repoId) + '/' + path;
+    const url = `${git.gerritUrl(repoId)}/${path}`;
     const options =
       authCookie !== undefined ? {headers: {cookie: authCookie}} : undefined;
     const str = await https.getOrThrow(url, options);
@@ -371,24 +375,41 @@ class Gerrit {
   ): Promise<string[]> {
     const local = [];
     for (const commitId of allCommitIds) {
-      const exists = await git.shaExists(commitId, gitDir, this.outputChannel);
-      if (exists instanceof Error) {
-        this.showErrorMessage({
-          log: `Local availability check failed for the patchset ${commitId}.`,
-          metrics: 'Local commit availability check failed',
-        });
-      } else if (exists) {
-        local.push(commitId);
-      } else {
-        this.showErrorMessage({
-          log:
-            `The patchset ${commitId} was not available locally. This happens ` +
-            'when some patchsets were uploaded to Gerrit from a different chroot.',
-          metrics: 'commit not available locally',
-        });
-      }
+      const commitExists = await this.checkCommitExists(commitId, gitDir);
+      if (commitExists) local.push(commitId);
     }
     return local;
+  }
+
+  /**
+   * Returns true if it check that the commit exists locally,
+   * or returns false otherwise showing an error message
+   */
+  private async checkCommitExists(
+    commitId: string,
+    gitDir: string
+  ): Promise<boolean> {
+    const commitExists = await git.commitExists(
+      commitId,
+      gitDir,
+      this.outputChannel
+    );
+    if (commitExists instanceof Error) {
+      this.showErrorMessage({
+        log: `Local availability check failed for the patchset ${commitId}.`,
+        metrics: 'Local commit availability check failed',
+      });
+      return false;
+    }
+    if (!commitExists) {
+      this.showErrorMessage({
+        log:
+          `The patchset ${commitId} was not available locally. This happens ` +
+          'when some patchsets were uploaded to Gerrit from a different chroot.',
+        metrics: 'commit not available locally',
+      });
+    }
+    return commitExists;
   }
 
   /**
@@ -407,19 +428,19 @@ class Gerrit {
     const filePaths = Object.getOwnPropertyNames(commentThreadsMap).filter(
       filePath => !api.MAGIC_PATHS.includes(filePath)
     );
-    const hunks = await git.readDiffHunks(
+    const hunksMap = await git.readDiffHunksMap(
       gitDir,
       commitId,
       filePaths,
       this.outputChannel
     );
-    if (hunks instanceof Error) {
+    if (hunksMap instanceof Error) {
       this.showErrorMessage(
         'Failed to get git diff to reposition Gerrit comments'
       );
       return;
     }
-    updateCommentThreadsMap(hunks, commentThreadsMap);
+    updateCommentThreadsMap(hunksMap, commentThreadsMap);
   }
 
   /**
@@ -459,7 +480,7 @@ class Gerrit {
         if (filepath === '/COMMIT_MSG') {
           uri = gitDocument.commitMessageUri(
             gitDir,
-            thread.gitLogInfo.gitSha,
+            thread.gitLogInfo.localCommitId,
             'gerrit commit msg'
           );
           // Compensate the difference between commit message on Gerrit and Terminal
@@ -469,10 +490,7 @@ class Gerrit {
             thread.shift -= thread.originalLine - 1;
           }
         } else if (filepath === '/PATCHSET_LEVEL') {
-          uri = virtualDocument.patchSetUri(
-            gitDir,
-            thread.gitLogInfo.gerritChangeId
-          );
+          uri = virtualDocument.patchSetUri(gitDir, thread.gitLogInfo.changeId);
         } else {
           uri = vscode.Uri.file(path.join(gitDir, filepath));
         }
@@ -545,7 +563,7 @@ function partitionByCommitId(
  * so only the first comment is updated. The updates are in-place.
  */
 export function updateCommentThreadsMap(
-  hunksAllFiles: git.Hunks,
+  hunksAllFiles: git.HunksMap,
   commentThreadsMap: CommentThreadsMap
 ) {
   for (const [filePath, threads] of Object.entries(commentThreadsMap)) {

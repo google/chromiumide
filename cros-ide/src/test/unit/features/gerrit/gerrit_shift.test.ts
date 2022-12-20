@@ -9,7 +9,7 @@ import * as gerrit from '../../../../features/gerrit/gerrit';
 import * as git from '../../../../features/gerrit/git';
 import * as testing from '../../../testing';
 
-const {parseDiffHunks} = git.TEST_ONLY;
+const {parseDiffHunksMap} = git.TEST_ONLY;
 
 function range(
   start_line: number,
@@ -36,8 +36,8 @@ function commentThread(
   opts?: {newLine?: number}
 ): gerrit.CommentThread {
   const t = new gerrit.CommentThread([data as api.CommentInfo], {
-    gitSha: 'aa',
-    gerritChangeId: 'Ibb',
+    localCommitId: 'aa',
+    changeId: 'Ibb',
   });
   if (opts?.newLine) {
     t.shift = opts.newLine - data.line!;
@@ -46,7 +46,7 @@ function commentThread(
 }
 
 describe('Comment shifting algorithm (hardcoded diff hunks)', () => {
-  const testHunks: git.Hunks = {
+  const hunksMap: git.HunksMap = {
     'foo.ts': [
       // First line added.
       new git.Hunk(0, 0, 1, 1),
@@ -94,7 +94,7 @@ describe('Comment shifting algorithm (hardcoded diff hunks)', () => {
       // TODO(teramon): Add other test cases
     } as unknown as gerrit.CommentThreadsMap;
 
-    gerrit.updateCommentThreadsMap(testHunks, commentThreadsMap);
+    gerrit.updateCommentThreadsMap(hunksMap, commentThreadsMap);
     expect(commentThreadsMap).toEqual(wantCommentThreadsMap);
   });
 });
@@ -105,7 +105,10 @@ describe('Comment shifting algorithm (generated diff hunks)', () => {
   // Returned hunks will be on a file named 'left.txt'.
   // (In the production code we diff two versions of the same file,
   // so there is no similar issue).
-  async function getDiffHunks(left: string, right: string): Promise<git.Hunks> {
+  async function readDiffHunksMap(
+    left: string,
+    right: string
+  ): Promise<git.HunksMap> {
     await testing.putFiles(tempDir.path, {
       'left.txt': left,
       'right.txt': right,
@@ -117,7 +120,7 @@ describe('Comment shifting algorithm (generated diff hunks)', () => {
         {cwd: tempDir.path, ignoreNonZeroExit: true}
       )
     ).stdout;
-    return parseDiffHunks(diff);
+    return parseDiffHunksMap(diff);
   }
 
   it('handles changes that add lines between comments', async () => {
@@ -135,7 +138,7 @@ describe('Comment shifting algorithm (generated diff hunks)', () => {
       4
       `;
 
-    const diffHunks: git.Hunks = await getDiffHunks(left, right);
+    const diffHunksMap: git.HunksMap = await readDiffHunksMap(left, right);
     const changeThreads: gerrit.CommentThreadsMap = {
       'left.txt': [
         commentThread({line: 1, message: 'one'}),
@@ -145,7 +148,7 @@ describe('Comment shifting algorithm (generated diff hunks)', () => {
       ],
     };
 
-    gerrit.updateCommentThreadsMap(diffHunks, changeThreads);
+    gerrit.updateCommentThreadsMap(diffHunksMap, changeThreads);
 
     expect(changeThreads['left.txt']).toEqual([
       commentThread({line: 1, message: 'one'}, {newLine: 1}),

@@ -5,7 +5,7 @@
 import 'jasmine';
 import {Hunk, TEST_ONLY} from '../../../../features/gerrit/git';
 
-const {parseDiffHunks} = TEST_ONLY;
+const {parseDiffHunksMap} = TEST_ONLY;
 
 const testDiffEmpty = '';
 
@@ -41,11 +41,11 @@ index 511bb797b..e475e16d4 100644
 
 describe('Gerrit support', () => {
   it('handles empty diffs', () => {
-    const hunkRangesEmpty = parseDiffHunks(testDiffEmpty);
+    const hunkRangesEmpty = parseDiffHunksMap(testDiffEmpty);
     expect(hunkRangesEmpty).toEqual({});
   });
   it('extracts ranges of each hunk', () => {
-    const hunkRanges = parseDiffHunks(testDiff);
+    const hunkRanges = parseDiffHunksMap(testDiff);
     expect(hunkRanges).toEqual({
       'ide_tooling/cros-ide/src/features/gerrit.ts': [
         Hunk.of({
