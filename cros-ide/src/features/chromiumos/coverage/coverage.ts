@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import * as glob from 'glob';
 import * as services from '../../../services';
 import * as config from '../../../services/config';
-import * as bgTaskStatus from '../../../ui/bg_task_status';
+import {StatusManager, TaskStatus} from '../../../ui/bg_task_status';
 import * as metrics from '../../metrics/metrics';
 import {Package} from './../boards_packages';
 import {llvmToLineFormat} from './llvm_json_parser';
@@ -33,7 +33,7 @@ export class Coverage {
 
   constructor(
     private readonly chrootService: services.chromiumos.ChrootService,
-    private readonly statusManager: bgTaskStatus.StatusManager
+    private readonly statusManager: StatusManager
   ) {
     this.output = vscode.window.createOutputChannel('CrOS IDE: Code Coverage');
   }
@@ -66,6 +66,11 @@ export class Coverage {
       )
     );
 
+    this.statusManager.setTask(COVERAGE_TASK_ID, {
+      status: TaskStatus.OK,
+      outputChannel: this.output,
+    });
+
     void this.updateDecorations(vscode.window.activeTextEditor);
 
     context.subscriptions.push(
@@ -86,10 +91,7 @@ export class Coverage {
   }
 
   private async generateCoverage(pkg: Package) {
-    this.statusManager.setTask(COVERAGE_TASK_ID, {
-      status: bgTaskStatus.TaskStatus.RUNNING,
-      outputChannel: this.output,
-    });
+    this.statusManager.setStatus(COVERAGE_TASK_ID, TaskStatus.RUNNING);
     const res = await this.chrootService.exec(
       'env',
       [
@@ -107,7 +109,7 @@ export class Coverage {
     const statusOk = !(res instanceof Error) && res.exitStatus === 0;
     this.statusManager.setStatus(
       COVERAGE_TASK_ID,
-      statusOk ? bgTaskStatus.TaskStatus.OK : bgTaskStatus.TaskStatus.ERROR
+      statusOk ? TaskStatus.OK : TaskStatus.ERROR
     );
   }
 
