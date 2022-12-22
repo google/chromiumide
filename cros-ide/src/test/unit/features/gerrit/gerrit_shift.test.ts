@@ -10,6 +10,7 @@ import * as git from '../../../../features/gerrit/git';
 import * as testing from '../../../testing';
 
 const {parseDiffHunks} = git.TEST_ONLY;
+const {shiftCommentThreadsByHunks} = gerrit.TEST_ONLY;
 
 function range(
   start_line: number,
@@ -40,7 +41,7 @@ function commentThread(
     changeId: 'Ibb',
   });
   if (opts?.newLine) {
-    t.shift = opts.newLine - data.line!;
+    t.overwriteShiftForTesting(opts.newLine - data.line!);
   }
   return t;
 }
@@ -94,7 +95,7 @@ describe('Comment shifting algorithm (hardcoded diff hunks)', () => {
       // TODO(teramon): Add other test cases
     } as unknown as gerrit.FilePathToCommentThreads;
 
-    gerrit.shiftCommentThreadsByHunks(hunksMap, commentThreadsMap);
+    shiftCommentThreadsByHunks(commentThreadsMap, hunksMap);
     expect(commentThreadsMap).toEqual(wantCommentThreadsMap);
   });
 });
@@ -148,7 +149,7 @@ describe('Comment shifting algorithm (generated diff hunks)', () => {
       ],
     };
 
-    gerrit.shiftCommentThreadsByHunks(diffHunksMap, commentThreadsMap);
+    shiftCommentThreadsByHunks(commentThreadsMap, diffHunksMap);
 
     expect(commentThreadsMap['left.txt']).toEqual([
       commentThread({line: 1, message: 'one'}, {newLine: 1}),
