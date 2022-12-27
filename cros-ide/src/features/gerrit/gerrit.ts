@@ -341,6 +341,19 @@ class Gerrit {
     const gitLogInfos = await this.readGitLog(gitDir, repoId);
     if (gitLogInfos.length === 0) return;
 
+    // Fetch the user's account info
+    const myAccountInfo = await api.fetchMyAccountInfoOrThrow(
+      repoId,
+      authCookie
+    );
+    if (!myAccountInfo) {
+      this.outputChannel.appendLine(
+        'Calling user info could not be fetched from Gerrit'
+      );
+      // Don't skip here, because we want to show public information
+      // even when authentication has failed
+    }
+
     const changes: Change[] = [];
     for (const {localCommitId, changeId} of gitLogInfos) {
       // Fetch a change
@@ -356,19 +369,41 @@ class Gerrit {
         continue;
       }
 
-      // Fetch comments
-      const commentInfosMap = await api.fetchCommentsOrThrow(
+      // Fetch public comments
+      const publicCommentInfosMap = await api.fetchPublicCommentsOrThrow(
         repoId,
         changeId,
         authCookie
       );
-      if (!commentInfosMap) {
+      if (!publicCommentInfosMap) {
         this.outputChannel.appendLine(
           `Comments for ${changeId} could not be fetched from Gerrit`
         );
         continue;
       }
 
+      // Fetch draft comments
+      let draftCommentInfosMap: api.FilePathToCommentInfos | undefined;
+      if (myAccountInfo) {
+        draftCommentInfosMap = await api.fetchDraftCommentsOrThrow(
+          repoId,
+          changeId,
+          myAccountInfo,
+          authCookie
+        );
+        if (!draftCommentInfosMap) {
+          this.outputChannel.appendLine(
+            `Drafts for ${changeId} could not be fetched from Gerrit`
+          );
+          // Don't skip here, because we want to show public information
+          // even when authentication has failedgit
+        }
+      }
+
+      const commentInfosMap = api.mergeCommentInfos(
+        publicCommentInfosMap,
+        draftCommentInfosMap
+      );
       const change = new Change(
         localCommitId,
         repoId,
@@ -500,9 +535,7 @@ class Gerrit {
    *
    * If `message` is a string, it is used both in the log and metrics.
    */
-  private showErrorMessage(
-    message: string | {log: string; metrics?: string}
-  ): void {
+  showErrorMessage(message: string | {log: string; metrics?: string}): void {
     const m: {log: string; metrics?: string} =
       typeof message === 'string' ? {log: message, metrics: message} : message;
 
@@ -536,17 +569,16 @@ class Change {
     readonly commentInfosMap: api.FilePathToCommentInfos
   ) {
     const revisions = changeInfo.revisions ?? {};
-    const splitFilePathToCommentInfos: Map<string, api.FilePathToCommentInfos> =
+    const splitCommentInfosMap: Map<string, api.FilePathToCommentInfos> =
       helpers.splitPathArrayMap(commentInfosMap, c => c.commit_id!);
     this.revisions = {};
     for (const [commitId, revisionInfo] of Object.entries(revisions)) {
-      const revisionFilePathToCommentInfos =
-        splitFilePathToCommentInfos.get(commitId) ?? {};
+      const rCommentInfosMap = splitCommentInfosMap.get(commitId) ?? {};
       this.revisions[commitId] = new Revision(
         this,
         commitId,
         revisionInfo,
-        revisionFilePathToCommentInfos
+        rCommentInfosMap
       );
     }
   }
@@ -888,8 +920,8 @@ class Comment {
   get change(): Change {
     return this.commentThread.change;
   }
-  get authorId(): number {
-    return this.commentInfo.author._account_id;
+  get authorId(): number | undefined {
+    return this.commentInfo.author?._account_id;
   }
   get commentId(): string {
     return this.commentInfo.id;
@@ -911,12 +943,11 @@ interface VscodeComment extends vscode.Comment {
 function toVscodeComment(comment: Comment): VscodeComment {
   const c = comment.commentInfo;
   return {
-    author: {
-      name: api.accountName(c.author),
-    },
-    label: formatGerritTimestamp(c.updated),
+    author: {name: api.accountName(c.author)},
+    label: (c.isPublic ? '' : 'Draft / ') + formatGerritTimestamp(c.updated),
     body: new vscode.MarkdownString(c.message),
     mode: vscode.CommentMode.Preview,
+    contextValue: c.isPublic ? '<public>' : '<draft>',
     gerritComment: comment,
   };
 }

@@ -39,12 +39,13 @@ export type RevisionInfo = {
 };
 
 /**
- * Response from Gerrit 'List Change Comments' API
+ * Response from Gerrit 'List Change Comments/Drafts' API
  *
  * https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#list-change-comments
+ * https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#list-change-drafts
  */
-export type FilePathToCommentInfos = {
-  readonly [filePath: string]: readonly CommentInfo[];
+export type FilePathToBaseCommentInfos = {
+  readonly [filePath: string]: readonly BaseCommentInfo[];
 };
 
 /**
@@ -59,14 +60,13 @@ export const MAGIC_PATHS = Object.freeze([
 ]);
 
 /**
- * Comment information in a response from Gerrit 'List Change Comments' API
+ * Comment information in a response from Gerrit 'List Change Comments/Drafts' API
  *
  * https://gerrit-review.googlesource.com/Documentation/rest-api-changes.html#comment-info
  */
-export type CommentInfo = {
+export type BaseCommentInfo = {
   readonly id: string;
-  // TODO(b:216048068): author is optional in the API
-  readonly author: AccountInfo;
+  readonly author?: AccountInfo;
   readonly range?: CommentRange;
   // Comments on entire lines have `line` but not `range`.
   readonly line?: number;
