@@ -76,15 +76,18 @@ export class Runner {
       }
 
       // Collect all the test cases.
-      const testNameToExecutable = await this.collectGtests(buildDir);
-      if (!testNameToExecutable) {
-        continue;
+      const gtestInfos = await this.collectGtests(buildDir);
+      const testNameToInfo = new Map<string, GTestInfo>();
+      for (const t of gtestInfos) {
+        for (const name of t.testNames) {
+          testNameToInfo.set(name, t);
+        }
       }
 
       // Run the tests with reporting the results.
       for (const test of tests) {
-        const executableInChroot = testNameToExecutable.get(test.testName);
-        if (!executableInChroot) {
+        const gtestInfo = testNameToInfo.get(test.testName);
+        if (!gtestInfo) {
           this.testRun.failed(
             test.item,
             new vscode.TestMessage(
@@ -100,9 +103,9 @@ export class Runner {
         let error: Error | undefined;
         try {
           if (this.request.profile?.kind === vscode.TestRunProfileKind.Run) {
-            await this.runTestOrThrow(executableInChroot, test);
+            await this.runTestOrThrow(gtestInfo.executable, test);
           } else {
-            await this.debugTestOrThrow(executableInChroot, test);
+            await this.debugTestOrThrow(gtestInfo, test);
           }
         } catch (e) {
           error = e as Error;
@@ -197,7 +200,7 @@ export class Runner {
 
   /**
    * Heuristically finds all the gtest executables under the build directory and
-   * returns a map from a test name to the executable containing it.
+   * returns gtest executables under the directory.
    *
    * TODO(oka): What executables are run when the package is emerged with the
    * FEATURES=test flag is written in the platform_pkg_tests function of the
@@ -206,20 +209,18 @@ export class Runner {
    * Therefore ideally we should parse the platform_pkg_tests function as a
    * shell script and collect all the executable names passed to platform_test.
    */
-  private async collectGtests(
-    buildDir: string
-  ): Promise<Map<string, string> | undefined> {
+  private async collectGtests(buildDir: string): Promise<GTestInfo[]> {
     // We consider an executable a gtest if it contains one of the following markers.
     const gtestMarker = new Set(['usr/include/gtest/gtest.h', 'libgtest.so']);
 
-    const testNameToExecutable = new Map<string, string>();
+    const results: GTestInfo[] = [];
 
     // Parallelize time consuming operations.
     const listTestsOperations: Promise<void>[] = [];
 
     for (const fileName of await this.chrootService.chroot.readdir(buildDir)) {
       if (this.cancellation.isCancellationRequested) {
-        return undefined;
+        return [];
       }
       const fileInChroot = path.join(buildDir, fileName);
       try {
@@ -236,7 +237,7 @@ export class Runner {
 
       listTestsOperations.push(
         (async () => {
-          const strings = await this.chrootService.exec(
+          const stringsResult = await this.chrootService.exec(
             'strings',
             [fileInChroot],
             {
@@ -245,14 +246,13 @@ export class Runner {
               cancellationToken: this.cancellation,
             }
           );
-          if (strings instanceof Error) {
-            this.output.appendLine(strings.message);
+          if (stringsResult instanceof Error) {
+            this.output.appendLine(stringsResult.message);
             return;
           }
+          const strings = stringsResult.stdout.split('\n');
 
-          const isGtest = strings.stdout
-            .split('\n')
-            .find(s => gtestMarker.has(s));
+          const isGtest = strings.find(s => gtestMarker.has(s));
           if (!isGtest) {
             return;
           }
@@ -263,16 +263,33 @@ export class Runner {
             return;
           }
 
-          for (const testName of testNames) {
-            testNameToExecutable.set(testName, fileInChroot);
+          const platform2Dirs = new Set<string>();
+          for (const line of strings) {
+            // testrunner.cc is the entrypoint of all the platform2 unit tests.
+            // Use the file as a needle to find the location of the platform2
+            // directory relative to the executable, which we later use for path
+            // substitutions.
+            const m = /^(.*\/platform2)\/common-mk\/testrunner\.cc$/.exec(line);
+            if (m) {
+              platform2Dirs.add(m[1]);
+            }
           }
+          if (platform2Dirs.size === 0) {
+            return;
+          }
+
+          results.push({
+            testNames,
+            executable: fileInChroot,
+            platform2Dirs: [...platform2Dirs.values()],
+          });
         })()
       );
     }
 
     await Promise.all(listTestsOperations);
 
-    return testNameToExecutable;
+    return results;
   }
 
   private async listTests(gtestInChroot: string): Promise<string[] | Error> {
@@ -323,7 +340,7 @@ export class Runner {
     }
   }
 
-  private async debugTestOrThrow(executableInChroot: string, test: GtestCase) {
+  private async debugTestOrThrow(gtestInfo: GTestInfo, test: GtestCase) {
     if (!vscode.extensions.getExtension(DEBUG_EXTENSION_ID)) {
       void (async () => {
         const INSTALL = 'Install';
@@ -359,7 +376,7 @@ export class Runner {
     srv.close();
 
     const sysroot = `/build/${this.board}`;
-    const pathInSysroot = executableInChroot.substring(sysroot.length);
+    const pathInSysroot = gtestInfo.executable.substring(sysroot.length);
 
     const ongoingTest = this.chrootService.exec(
       PLATFORM2_TEST_PY,
@@ -379,10 +396,12 @@ export class Runner {
       }
     );
 
-    const relativePathToPlatform2 = path.relative(
-      path.dirname(executableInChroot),
-      '/mnt/host/source/src/platform2'
-    );
+    const pathSubstitutions: {[pathInChroot: string]: string} = {
+      '/': this.chrootService.chroot.root,
+    };
+    for (const platform2InChroot of gtestInfo.platform2Dirs) {
+      pathSubstitutions[platform2InChroot] = this.platform2;
+    }
 
     // See https://github.com/WebFreak001/code-debug/blob/master/package.json
     // for the meaning of the fields.
@@ -392,20 +411,33 @@ export class Runner {
       request: 'attach',
 
       cwd: this.platform2,
-      pathSubstitutions: {
-        [relativePathToPlatform2]: this.platform2,
-        '/': this.chrootService.chroot.root,
-      },
+      pathSubstitutions,
+      printCalls: true,
       remote: true,
       target: `:${port}`,
       valuesFormatting: 'prettyPrinters',
     };
+
+    this.output.appendLine(
+      `CrOS IDE running debugger with the following config: ${JSON.stringify(
+        debugConfiguration
+      )}`
+    );
 
     await vscode.debug.startDebugging(undefined, debugConfiguration);
 
     await ongoingTest;
   }
 }
+
+type GTestInfo = {
+  // Name of tests the executable contains.
+  testNames: string[];
+  // Path to the executable in chroot.
+  executable: string;
+  // Possible platform2 directories relative to the executable.
+  platform2Dirs: string[];
+};
 
 /**
  * Parses output from a gtest executable run with the --gtest_list_tests flag
