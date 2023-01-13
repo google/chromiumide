@@ -5,7 +5,7 @@
 import * as vscode from 'vscode';
 import * as metrics from '../../../metrics/metrics';
 import * as provider from '../device_tree_data_provider';
-import {SyslogSession} from '../syslog_session';
+import {SyslogPanel} from '../syslog/panel';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
 
 /** Ask the remote system log to open. */
@@ -86,10 +86,10 @@ export async function openSystemLogViewer(
   const remoteSyslogPath = await askRemoteSyslogPath();
   if (!remoteSyslogPath) return;
 
-  await SyslogSession.create(
+  new SyslogPanel(
     hostname,
     remoteSyslogPath,
-    context.extensionContext,
+    context.extensionContext.extensionUri,
     context.output
   );
 }

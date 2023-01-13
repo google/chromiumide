@@ -92,7 +92,7 @@ const viewsConfig = {
   // https://webpack.js.org/configuration/entry-context/
   entry: {
     vnc: './views/src/vnc.ts',
-    syslog: './views/src/syslog.ts',
+    syslog_view: './views/src/features/device_management/syslog_view.tsx',
     add_owned_device_view:
       './views/src/features/device_management/owned/add_owned_device_view.tsx',
     flash_device_view:
