@@ -11,6 +11,7 @@ module.exports = {
     './node_modules/gts/',
     'plugin:import/recommended',
     'plugin:import/typescript',
+    'plugin:react-hooks/recommended',
   ],
   parserOptions: {
     ecmaVersion: 'latest',

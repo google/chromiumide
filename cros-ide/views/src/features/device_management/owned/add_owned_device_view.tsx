@@ -390,6 +390,8 @@ function PortForwardingStep(props: AddOwnedDeviceStepProps) {
     });
   };
 
+  const [tab, setTab] = useState('chrome');
+
   if (props.connectionConfig.networkType !== model.DutNetworkType.HOME) {
     return (
       <>
@@ -402,7 +404,6 @@ function PortForwardingStep(props: AddOwnedDeviceStepProps) {
     );
   }
 
-  const [tab, setTab] = useState('chrome');
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
     setTab(newValue);
   };
@@ -582,7 +583,7 @@ function ConnectionTestStep(props: AddOwnedDeviceStepProps) {
       command: 'testDeviceConnection',
       config: props.connectionConfig,
     });
-  }, []); // [] causes this to be run only once, after the first render
+  }, [props.connectionConfig]); // [] causes this to be run only once, after the first render
 
   // Once the connection succeeds, the ssh config change sticks and we shouldn't revisit steps.
   props.setBackEnabled(!success);

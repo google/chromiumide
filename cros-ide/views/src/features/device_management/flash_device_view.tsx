@@ -76,7 +76,7 @@ export function FlashDeviceView(props: {state: model.FlashDeviceViewState}) {
     });
 
     vscodeApi.postMessage({command: 'LoadBuilds'} as model.LoadBuilds);
-  }, []);
+  }, [state]);
 
   return <Container>{StepContents(state, handleStateChange)}</Container>;
 }
@@ -512,7 +512,7 @@ function FlashProgress(props: {
           props.setState({...props.state, flashError: message.errorMessage});
       }
     });
-  }, []); // [] causes this to be run only once, after the first render
+  }, [props]); // [] causes this to be run only once, after the first render
   const handleCancel = () => {
     vscodeApi.postMessage({
       command: 'cancelFlash',
