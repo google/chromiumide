@@ -219,7 +219,7 @@ function SyslogRow(props: {entry: SyslogEntry}): JSX.Element {
 }
 
 /** Calculate the style for the syslog table row, based on the severity. */
-function sxSyslogEntry(severity: SyslogSeverity): SxProps {
+function sxSyslogEntry(severity?: SyslogSeverity): SxProps {
   switch (severity) {
     case 'DEBUG':
     case 'INFO':

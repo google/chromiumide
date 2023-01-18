@@ -11,10 +11,10 @@ import * as commonUtil from '../../../../common/common_util';
 import * as sshUtil from '../ssh_util';
 import {ReactPanel} from '../../../../services/react_panel';
 import {
-  SyslogViewBackendMessage,
+  parseSyslogLine,
   SyslogEntry,
+  SyslogViewBackendMessage,
   SyslogViewContext,
-  SyslogSeverity,
   SyslogViewFrontendMessage,
 } from './model';
 
@@ -129,16 +129,6 @@ export class SyslogPanel extends ReactPanel<SyslogViewContext> {
     const contents = await fs.promises.readFile(this.localSyslogPath!, 'utf-8');
     const lines = contents.split('\n');
     if (lines[lines.length - 1] === '') lines.pop();
-    return lines.map((text, lineNum) => {
-      const [timestamp, severity, process, ...messages] = text.split(' ');
-      const message = messages.join(' ');
-      return {
-        lineNum,
-        timestamp,
-        severity: severity as SyslogSeverity,
-        process,
-        message,
-      };
-    });
+    return lines.map(parseSyslogLine);
   }
 }
