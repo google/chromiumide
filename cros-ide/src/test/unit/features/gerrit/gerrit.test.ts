@@ -230,8 +230,7 @@ describe('Gerrit', () => {
     const git = new testing.Git(tempDir.path);
     await git.init();
     await git.commit('First');
-    await git.checkout('cros/main', {createBranch: true});
-    await git.checkout('main');
+    await git.setupCrosBranches();
     await testing.putFiles(git.root, {
       'cryptohome/cryptohome.cc': 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n',
     });
@@ -298,8 +297,7 @@ describe('Gerrit', () => {
     const git = new testing.Git(tempDir.path);
     await git.init();
     await git.commit('First');
-    await git.checkout('cros/main', {createBranch: true});
-    await git.checkout('main');
+    await git.setupCrosBranches();
     await testing.putFiles(git.root, {
       'cryptohome/cryptohome.cc': 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n',
     });
@@ -410,8 +408,7 @@ describe('Gerrit', () => {
     const git = new testing.Git(tempDir.path);
     await git.init();
     await git.commit('First');
-    await git.checkout('cros/main', {createBranch: true});
-    await git.checkout('main');
+    await git.setupCrosBranches();
     await testing.putFiles(git.root, {
       'cryptohome/crypto.h': 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n',
     });
@@ -527,8 +524,7 @@ describe('Gerrit', () => {
     });
     await git.addAll();
     await git.commit('Initial file');
-    await git.checkout('cros/main', {createBranch: true});
-    await git.checkout('main');
+    await git.setupCrosBranches();
 
     const changeId = 'I6adb56bd6f1998dde6b24af26881095292ac2620';
 
@@ -632,8 +628,7 @@ describe('Gerrit', () => {
           Line 8`,
     });
     await git.commit('Merged');
-    await git.checkout('cros/main', {createBranch: true});
-    await git.checkout('main');
+    await git.setupCrosBranches();
 
     // First commit in a chain.
     await testing.putFiles(git.root, {
@@ -750,8 +745,7 @@ describe('Gerrit', () => {
     const git = new testing.Git(tempDir.path);
     await git.init();
     await git.commit('Mainline');
-    await git.checkout('cros/main', {createBranch: true});
-    await git.checkout('main');
+    await git.setupCrosBranches();
     await testing.putFiles(git.root, {
       'cryptohome/cryptohome.cc': 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n',
     });
@@ -809,8 +803,7 @@ describe('Gerrit', () => {
     const git = new testing.Git(tempDir.path);
     await git.init();
     await git.commit('First');
-    await git.checkout('cros/main', {createBranch: true});
-    await git.checkout('main');
+    await git.setupCrosBranches();
     const changeId = 'Iaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
     await git.commit(`Second\nChange-Id: ${changeId}`);
 
@@ -858,8 +851,7 @@ describe('Gerrit', () => {
     const git = new testing.Git(tempDir.path);
     await git.init({repoId: 'cros-internal'});
     await git.commit('First');
-    await git.checkout('cros-internal/main', {createBranch: true});
-    await git.checkout('main');
+    await git.setupCrosBranches({internal: true});
     await testing.putFiles(git.root, {
       'cryptohome/cryptohome.cc': 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5\n',
     });
@@ -939,8 +931,7 @@ describe('Gerrit', () => {
     const git = new testing.Git(tempDir.path);
     await git.init();
     await git.commit('Mainline');
-    await git.checkout('cros/main', {createBranch: true});
-    await git.checkout('main');
+    await git.setupCrosBranches();
     await git.addAll();
     const changeId = 'Iaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa12345';
     const commitId1 = await git.commit(`Under review\nChange-Id: ${changeId}`);

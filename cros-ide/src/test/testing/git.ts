@@ -37,6 +37,17 @@ export class Git {
     await commonUtil.execOrThrow('git', args, {cwd: this.root});
   }
 
+  /** Run `git branch --set-upstream-to <upstream>`. */
+  async setUpstreamTo(upstream: string) {
+    await commonUtil.execOrThrow(
+      'git',
+      ['branch', '--set-upstream-to', upstream],
+      {
+        cwd: this.root,
+      }
+    );
+  }
+
   /** Run git commit and returns commit hash. */
   async commit(
     message: string,
@@ -58,6 +69,14 @@ export class Git {
         cwd: this.root,
       })
     ).stdout.trim();
+  }
+
+  /** Creates cros(-internal)/main and sets main to track it. */
+  async setupCrosBranches(opts?: {internal?: boolean}) {
+    const crosMain = opts?.internal ? 'cros-internal/main' : 'cros/main';
+    await this.checkout(crosMain, {createBranch: true});
+    await this.checkout('main');
+    await this.setUpstreamTo(crosMain);
   }
 }
 

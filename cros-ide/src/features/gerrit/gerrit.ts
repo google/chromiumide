@@ -341,7 +341,7 @@ class Gerrit {
     const repoId = await this.getRepoId(gitDir);
     if (repoId === undefined) return;
     const authCookie = await this.readAuthCookie(repoId);
-    const gitLogInfos = await this.readGitLog(gitDir, repoId);
+    const gitLogInfos = await this.readGitLog(gitDir);
     if (gitLogInfos.length === 0) return;
 
     // Fetch the user's account info
@@ -419,18 +419,14 @@ class Gerrit {
   }
 
   /**
-   * Gets the array of GitLogInfo
-   * from HEAD (inclusive) to remote main (exclusive).
+   * Gets the array of GitLogInfo for local changes,
+   * typically these are the changes from HEAD (inclusive) to remote main (exclusive).
    */
-  private async readGitLog(
-    gitDir: string,
-    repoId: string
-  ): Promise<git.GitLogInfo[]> {
-    const range = `${repoId}/main..HEAD`;
-    const gitLogInfos = await git.readGitLog(gitDir, range, this.outputChannel);
+  private async readGitLog(gitDir: string): Promise<git.GitLogInfo[]> {
+    const gitLogInfos = await git.readGitLog(gitDir, this.outputChannel);
     if (gitLogInfos instanceof Error) {
       this.showErrorMessage({
-        log: `Failed to get commits in the range ${range} in ${gitDir}`,
+        log: `Failed to get commits in ${gitDir}`,
         metrics: 'readGitLog failed to get commits',
       });
       return [];

@@ -165,18 +165,48 @@ export type GitLogInfo = {
   readonly changeId: string;
 };
 
+async function isHeadDetached(
+  gitDir: string,
+  logger: vscode.OutputChannel
+): Promise<boolean | Error> {
+  // `git rev-parse --symbolic-full-name HEAD` outputs `HEAD`
+  // when the head is detached.
+  const revParseHead = await commonUtil.exec(
+    'git',
+    ['rev-parse', '--symbolic-full-name', 'HEAD'],
+    {
+      cwd: gitDir,
+      logStdout: true,
+      logger,
+    }
+  );
+  if (revParseHead instanceof Error) {
+    return revParseHead;
+  }
+  return revParseHead.stdout.trim() === 'HEAD';
+}
+
 /**
- * Extracts change ids from Git log in the range
+ * Extracts change ids from Git log in the range `@{upstream}..HEAD`
  *
- * The ids are ordered from new to old. If the HEAD is already merged,
- * the result will be an empty array.
+ * The ids are ordered from new to old. If the HEAD is already merged
+ * or detached the result will be an empty array.
  */
 export async function readGitLog(
   gitDir: string,
-  range: string,
   logger: vscode.OutputChannel
 ): Promise<GitLogInfo[] | Error> {
-  const branchLog = await commonUtil.exec('git', ['log', range], {
+  const detachedHead = await isHeadDetached(gitDir, logger);
+  if (detachedHead instanceof Error) return detachedHead;
+
+  if (detachedHead) {
+    logger.appendLine(
+      'Detected detached head. Gerrit comments will not be shown.'
+    );
+    return [];
+  }
+
+  const branchLog = await commonUtil.exec('git', ['log', '@{upstream}..HEAD'], {
     cwd: gitDir,
     logger,
   });

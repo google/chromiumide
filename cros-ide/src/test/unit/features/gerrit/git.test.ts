@@ -2,8 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as vscode from 'vscode';
 import * as testing from '../../../testing';
-import {commitExists, TEST_ONLY} from '../../../../features/gerrit/git';
+import {
+  commitExists,
+  readGitLog,
+  TEST_ONLY,
+} from '../../../../features/gerrit/git';
 
 const {parseGitLog} = TEST_ONLY;
 
@@ -89,5 +94,36 @@ describe('Git helper', () => {
     expect(
       await commitExists('08f5019f534c2c5075c5de4425b7902d7517342e', repo.root)
     ).toBeFalse();
+  });
+
+  it('returns local changes (empty on detached head)', async () => {
+    const repo = new testing.Git(tempDir.path);
+    await repo.init();
+    await repo.commit('First');
+    await repo.setupCrosBranches();
+    const outputChannel = vscode.window.createOutputChannel('git');
+
+    const changeId2 = 'Iaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+    const commitId2 = await repo.commit(`Second\nChange-Id: ${changeId2}`);
+
+    const changeId3 = 'Ibbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+    const commitId3 = await repo.commit(`Third\nChange-Id: ${changeId3}`);
+
+    const branchLog = await readGitLog(repo.root, outputChannel);
+    expect(branchLog).toEqual([
+      {
+        localCommitId: commitId3,
+        changeId: changeId3,
+      },
+      {
+        localCommitId: commitId2,
+        changeId: changeId2,
+      },
+    ]);
+
+    await repo.checkout(commitId2);
+
+    const detachedHeadLog = await readGitLog(repo.root, outputChannel);
+    expect(detachedHeadLog).toHaveSize(0);
   });
 });
