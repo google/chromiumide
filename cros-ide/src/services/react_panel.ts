@@ -110,7 +110,8 @@ export abstract class ReactPanel<TInitialData> {
            href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
         <link rel="stylesheet"
            href="https://fonts.googleapis.com/icon?family=Material+Icons" />
-      </head>
+        <link href="vscode/codicon.css" rel="stylesheet" />
+    </head>
 
       <body>
         <noscript>You need to enable JavaScript to run this app.</noscript>

@@ -126,8 +126,15 @@ const viewsConfig = {
   },
   plugins: [
     new CopyPlugin({
-      // Copy webview static files to dist/views/*.
-      patterns: [{from: 'views/static', to: '.'}],
+      patterns: [
+        // Copy webview static files to dist/views/.
+        {from: 'views/static', to: '.'},
+        // Copy @vscode/codicons's dist files to dist/views/vscode/.
+        {
+          from: 'node_modules/@vscode/codicons/dist/',
+          to: './vscode/',
+        },
+      ],
     }),
   ],
 };
