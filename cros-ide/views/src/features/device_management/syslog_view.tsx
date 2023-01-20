@@ -3,12 +3,18 @@
 // found in the LICENSE file.
 
 import {
+  Checkbox,
+  FormLabel,
   Input,
+  InputAdornment,
+  Stack,
   Table,
   TableHead,
   TableBody,
   TableRow,
   TableCell,
+  Tooltip,
+  TooltipProps,
 } from '@mui/material';
 import {createTheme, SxProps, ThemeProvider} from '@mui/material/styles';
 import {
@@ -53,9 +59,28 @@ type SyslogViewPersistentState = {
   filter: SyslogFilter;
 };
 
-/** Filter on a syslog entry. */
+/**
+ * Filter on a syslog entry.
+ * It means the conjunction of the conditions.
+ *
+ * TODO(ymat): Also support the disjunction.
+ */
 type SyslogFilter = {
+  onProcess: TextFilter;
+  onMessage: TextFilter;
+};
+
+/** Filter on a text, possibly using a regex. */
+type TextFilter = {
+  /** The thing expected to be included in the message. */
   includes: string;
+  /** Whether the string `includes` is a regex or a plain string. */
+  byRegex: boolean;
+  /**
+   * The cached regex object.
+   * Is set only if `byRegex` is true and `includes` is a valid regular expression.
+   */
+  regex?: RegExp;
 };
 
 /**
@@ -63,7 +88,15 @@ type SyslogFilter = {
  * Wrapper of `vscodeApi.getState`.
  */
 function getPersistentState(): SyslogViewPersistentState {
-  return vscodeApi.getState() ?? {filter: {includes: ''}};
+  return (
+    vscodeApi.getState() ?? {
+      filter: {onProcess: initialTextFilter(), onMessage: initialTextFilter()},
+    }
+  );
+}
+
+function initialTextFilter(): TextFilter {
+  return {includes: '', byRegex: false, regex: undefined};
 }
 
 /**
@@ -87,6 +120,7 @@ function SyslogView(props: {ctx: SyslogViewContext}): JSX.Element {
   const {
     ctx: {remoteSyslogPath},
   } = props;
+
   // Create MUI theme.
   const muiTheme = useMemo(
     () =>
@@ -98,18 +132,29 @@ function SyslogView(props: {ctx: SyslogViewContext}): JSX.Element {
       }),
     []
   );
+
   // Manage the filter.
-  const [filter, setFilter] = useState<SyslogFilter>(
+  const [filter, setFilterBase] = useState<SyslogFilter>(
     getPersistentState().filter
   );
-  const handleIncludes: ChangeEventHandler<HTMLInputElement> = useCallback(
-    ({target: {value: includes}}) => {
-      const newFilter: SyslogFilter = {...filter, includes};
-      setFilter(newFilter);
-      setPersistentState({filter: newFilter});
+  const setFilter = useCallback(
+    (filter: SyslogFilter): void => {
+      setFilterBase(filter);
+      setPersistentState({filter});
     },
-    [filter]
+    [setFilterBase]
   );
+  const setProcessFilter = useCallback(
+    (processFilter: TextFilter): void =>
+      setFilter({...filter, onProcess: processFilter}),
+    [filter, setFilter]
+  );
+  const setMessageFilter = useCallback(
+    (messageFilter: TextFilter): void =>
+      setFilter({...filter, onMessage: messageFilter}),
+    [filter, setFilter]
+  );
+
   return (
     <ThemeProvider theme={muiTheme}>
       <div
@@ -124,19 +169,110 @@ function SyslogView(props: {ctx: SyslogViewContext}): JSX.Element {
           flexDirection: 'column',
         }}
       >
-        <h1 style={{fontSize: 15}}>{remoteSyslogPath}</h1>
-        <div>
-          Message includes:
-          <Input
-            sx={{marginLeft: 0.7}}
-            value={filter.includes}
-            onChange={handleIncludes}
+        <h1 style={{fontSize: 18}}>{remoteSyslogPath}</h1>
+        <Stack direction="row" spacing={7}>
+          <TextFilterInput
+            title="Process"
+            textFilter={filter.onProcess}
+            setTextFilter={setProcessFilter}
           />
-        </div>
+          <TextFilterInput
+            title="Message"
+            textFilter={filter.onMessage}
+            setTextFilter={setMessageFilter}
+          />
+        </Stack>
         <SyslogTable filter={filter} />
       </div>
     </ThemeProvider>
   );
+}
+
+/** The input for a text filter. */
+function TextFilterInput(props: {
+  title: string;
+  textFilter: TextFilter;
+  setTextFilter: (textFilter: TextFilter) => void;
+}) {
+  const {title, textFilter, setTextFilter} = props;
+  const [inputError, setInputError] = useState<string>();
+  const updateTextFilter = useCallback(
+    (newTextFilter: Partial<TextFilter>): void =>
+      setTextFilter({...textFilter, ...newTextFilter}),
+    [textFilter, setTextFilter]
+  );
+  // Calculate regex, setting `inputError` on syntax error.
+  const calcRegex = useCallback(
+    (includes: string, byRegex: boolean): RegExp | undefined => {
+      if (!byRegex) {
+        setInputError(undefined);
+        return;
+      }
+      try {
+        const regex = new RegExp(includes);
+        setInputError(undefined);
+        return regex;
+      } catch (err) {
+        if (err instanceof SyntaxError) {
+          setInputError(err.message);
+        }
+      }
+    },
+    [setInputError]
+  );
+  // Handle changes
+  const handleMessageIncludes: ChangeEventHandler<HTMLInputElement> =
+    useCallback(
+      ({target: {value: includes}}) =>
+        updateTextFilter({
+          includes,
+          regex: calcRegex(includes, textFilter.byRegex),
+        }),
+      [updateTextFilter, calcRegex, textFilter]
+    );
+  const handleMessageByRegex: ChangeEventHandler<HTMLInputElement> =
+    useCallback(
+      ({target: {checked: byRegex}}) => {
+        updateTextFilter({
+          byRegex,
+          regex: calcRegex(textFilter.includes, byRegex),
+        });
+      },
+      [updateTextFilter, calcRegex, textFilter]
+    );
+
+  return (
+    <div>
+      <FormLabel>
+        <div style={{display: 'inline-block', marginRight: 10}}>{title}:</div>
+      </FormLabel>
+      <CustomTooltip title={inputError}>
+        <Input
+          placeholder={`Filter ${textFilter.regex ? 'regex' : 'text'}`}
+          value={textFilter.includes}
+          onChange={handleMessageIncludes}
+          error={!!inputError}
+          endAdornment={
+            <InputAdornment position="end">
+              <CustomTooltip title="Use regular expression">
+                <Checkbox
+                  checked={textFilter.byRegex}
+                  onChange={handleMessageByRegex}
+                  icon={<RegexIcon />}
+                  checkedIcon={<RegexIcon />}
+                />
+              </CustomTooltip>
+            </InputAdornment>
+          }
+        />
+      </CustomTooltip>
+    </div>
+  );
+}
+
+/** The icon for the regex option. */
+function RegexIcon(): JSX.Element {
+  return <i className="codicon codicon-regex" />;
 }
 
 /** The table for the syslog. */
@@ -209,11 +345,20 @@ function SyslogTable(props: {filter: SyslogFilter}): JSX.Element {
   );
 }
 
-/** Check if the syslog entry matches the filter. */
+/** Checks if the syslog entry matches the filter. */
 function matchesFilter(entry: SyslogEntry, filter: SyslogFilter): boolean {
-  const {message} = entry;
-  const {includes} = filter;
-  return !includes || message.includes(includes);
+  const {process, message} = entry;
+  const {onProcess, onMessage} = filter;
+  return (
+    matchesTextFilter(process ?? '', onProcess) &&
+    matchesTextFilter(message, onMessage)
+  );
+}
+
+/** Checks if a text matches the text filter. */
+function matchesTextFilter(text: string, textFilter: TextFilter): boolean {
+  const {includes, byRegex, regex} = textFilter;
+  return !byRegex ? text.includes(includes) : !regex || regex.test(text);
 }
 
 /** The row for each syslog entry. */
@@ -251,4 +396,23 @@ function sxSyslogEntry(severity?: SyslogSeverity): SxProps {
     default:
       return {};
   }
+}
+
+/** Custom tooltip, with the distance between the top reduced. */
+function CustomTooltip(props: TooltipProps) {
+  return (
+    <Tooltip
+      {...props}
+      PopperProps={{
+        modifiers: [
+          {
+            name: 'offset',
+            options: {
+              offset: [0, -10],
+            },
+          },
+        ],
+      }}
+    />
+  );
 }
