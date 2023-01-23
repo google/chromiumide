@@ -43,21 +43,12 @@ const WARNING_COLOR = 'var(--vscode-editorWarning-foreground)';
 const ERROR_COLOR = 'var(--vscode-editorError-foreground)';
 
 // Acquire the VS Code webview instance.
-const vscodeApi = acquireVsCodeApi<SyslogViewPersistentState>();
+const vscodeApi = acquireVsCodeApi();
 
 // Create the panel.
 ReactPanelHelper.receiveInitialData<SyslogViewContext>(vscodeApi).then(ctx => {
   ReactPanelHelper.createAndRenderRoot(<SyslogView ctx={ctx} />);
 });
-
-/**
- * Persistent state of the syslog view.
- *
- * It doesn't include the log contents, as they can be huge.
- */
-type SyslogViewPersistentState = {
-  filter: SyslogFilter;
-};
 
 /**
  * Filter on a syslog entry.
@@ -83,28 +74,9 @@ type TextFilter = {
   regex?: RegExp;
 };
 
-/**
- * Gets the persistent state, initializing it for the startup.
- * Wrapper of `vscodeApi.getState`.
- */
-function getPersistentState(): SyslogViewPersistentState {
-  return (
-    vscodeApi.getState() ?? {
-      filter: {onProcess: initialTextFilter(), onMessage: initialTextFilter()},
-    }
-  );
-}
-
+/** Initial text filter. */
 function initialTextFilter(): TextFilter {
   return {includes: '', byRegex: false, regex: undefined};
-}
-
-/**
- * Updates the persistent state, overwriting some fields.
- * Wrapper of `vscodeApi.setState`.
- */
-function setPersistentState(state: Partial<SyslogViewPersistentState>): void {
-  vscodeApi.setState({...getPersistentState(), ...state});
 }
 
 /**
@@ -134,16 +106,10 @@ function SyslogView(props: {ctx: SyslogViewContext}): JSX.Element {
   );
 
   // Manage the filter.
-  const [filter, setFilterBase] = useState<SyslogFilter>(
-    getPersistentState().filter
-  );
-  const setFilter = useCallback(
-    (filter: SyslogFilter): void => {
-      setFilterBase(filter);
-      setPersistentState({filter});
-    },
-    [setFilterBase]
-  );
+  const [filter, setFilter] = useState<SyslogFilter>({
+    onProcess: initialTextFilter(),
+    onMessage: initialTextFilter(),
+  });
   const setProcessFilter = useCallback(
     (processFilter: TextFilter): void =>
       setFilter({...filter, onProcess: processFilter}),

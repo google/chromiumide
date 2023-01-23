@@ -28,25 +28,32 @@ export abstract class ReactPanel<TInitialData> {
    * @param extensionUri Extension URI from vscode context.
    * @param title Title for the webview.
    * @param initialData Initial data to be sent to the view script, which is sandboxed inside the
-   * webview, or null if the view will not request it. @see receiveInitialData
-   * in react_panel_helper.
-   * @param column ViewColumn in which to place the WebView.
-   * @param viewType vscode view type (ID). Defaults to the script name (no extension).
+   * webview, or null if the view will not request it. @see receiveInitialData in react_panel_helper.
+   * @param options Options.
+   * - `retainContextWhenHidden`: Whether to retain all the context or terminate the script
+   *   (default) each time the webview gets background.
+   * - `column`: ViewColumn in which to place the WebView (One by default).
+   * - `viewType`: vscode view type (ID). Defaults to the script name (no extension).
    */
   protected constructor(
     scriptNameNoExt: string,
     protected readonly extensionUri: vscode.Uri,
     title: string,
     initialData: TInitialData | null,
-    column: vscode.ViewColumn = vscode.ViewColumn.One,
-    viewType: string | null = null
+    options?: {
+      retainContextWhenHidden?: boolean;
+      column?: vscode.ViewColumn;
+      viewType?: string;
+    }
   ) {
+    const {retainContextWhenHidden, column, viewType} = options ?? {};
     this.panel = vscode.window.createWebviewPanel(
       viewType ?? scriptNameNoExt,
       title,
-      column,
+      column ?? vscode.ViewColumn.One,
       {
         enableScripts: true,
+        retainContextWhenHidden,
       }
     );
 

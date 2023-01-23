@@ -44,10 +44,13 @@ export class SyslogPanel extends ReactPanel<SyslogViewContext> {
     extensionUri: vscode.Uri,
     private readonly output: vscode.OutputChannel
   ) {
-    super('syslog_view', extensionUri, `${hostname}: ${remoteSyslogPath}`, {
-      hostname,
-      remoteSyslogPath,
-    });
+    super(
+      'syslog_view',
+      extensionUri,
+      `${hostname}: ${remoteSyslogPath}`,
+      {hostname, remoteSyslogPath},
+      {retainContextWhenHidden: true}
+    );
 
     // Clean up the canceller on disposal.
     this.disposables.push(this.canceller);
