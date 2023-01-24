@@ -105,23 +105,13 @@ function SyslogView(props: {ctx: SyslogViewContext}): JSX.Element {
       }),
     []
   );
-
   // Manage the filter.
-  const [filter, setFilter] = useState<SyslogFilter>({
-    onProcess: initialTextFilter(),
-    onMessage: initialTextFilter(),
-  });
-  const setProcessFilter = useCallback(
-    (processFilter: TextFilter): void =>
-      setFilter({...filter, onProcess: processFilter}),
-    [filter, setFilter]
+  const [processFilter, setProcessFilter] = useState<TextFilter>(
+    initialTextFilter()
   );
-  const setMessageFilter = useCallback(
-    (messageFilter: TextFilter): void =>
-      setFilter({...filter, onMessage: messageFilter}),
-    [filter, setFilter]
+  const [messageFilter, setMessageFilter] = useState<TextFilter>(
+    initialTextFilter()
   );
-
   return (
     <ThemeProvider theme={muiTheme}>
       <div
@@ -140,16 +130,21 @@ function SyslogView(props: {ctx: SyslogViewContext}): JSX.Element {
         <Stack direction="row" spacing={7}>
           <TextFilterInput
             title="Process"
-            textFilter={filter.onProcess}
+            textFilter={processFilter}
             setTextFilter={setProcessFilter}
           />
           <TextFilterInput
             title="Message"
-            textFilter={filter.onMessage}
+            textFilter={messageFilter}
             setTextFilter={setMessageFilter}
           />
         </Stack>
-        <SyslogTable filter={filter} />
+        <SyslogTable
+          filter={{
+            onProcess: processFilter,
+            onMessage: messageFilter,
+          }}
+        />
       </div>
     </ThemeProvider>
   );
@@ -159,15 +154,10 @@ function SyslogView(props: {ctx: SyslogViewContext}): JSX.Element {
 function TextFilterInput(props: {
   title: string;
   textFilter: TextFilter;
-  setTextFilter: (textFilter: TextFilter) => void;
+  setTextFilter: (update: (prev: TextFilter) => TextFilter) => void;
 }) {
   const {title, textFilter, setTextFilter} = props;
   const [inputError, setInputError] = useState<string>();
-  const updateTextFilter = useCallback(
-    (newTextFilter: Partial<TextFilter>): void =>
-      setTextFilter({...textFilter, ...newTextFilter}),
-    [textFilter, setTextFilter]
-  );
   // Calculate regex, setting `inputError` on syntax error.
   const calcRegex = useCallback(
     (includes: string, byRegex: boolean): RegExp | undefined => {
@@ -191,21 +181,23 @@ function TextFilterInput(props: {
   const handleMessageIncludes: ChangeEventHandler<HTMLInputElement> =
     useCallback(
       ({target: {value: includes}}) =>
-        updateTextFilter({
+        setTextFilter(textFilter => ({
+          ...textFilter,
           includes,
           regex: calcRegex(includes, textFilter.byRegex),
-        }),
-      [updateTextFilter, calcRegex, textFilter]
+        })),
+      [setTextFilter, calcRegex]
     );
   const handleMessageByRegex: ChangeEventHandler<HTMLInputElement> =
     useCallback(
       ({target: {checked: byRegex}}) => {
-        updateTextFilter({
+        setTextFilter(textFilter => ({
+          ...textFilter,
           byRegex,
           regex: calcRegex(textFilter.includes, byRegex),
-        });
+        }));
       },
-      [updateTextFilter, calcRegex, textFilter]
+      [setTextFilter, calcRegex]
     );
 
   return (
