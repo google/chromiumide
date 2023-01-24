@@ -4,7 +4,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as fs from 'fs/promises';
+import * as fs from 'fs';
 import * as dateFns from 'date-fns';
 import * as commonUtil from '../../common/common_util';
 import * as services from '../../services';
@@ -438,7 +438,7 @@ class Gerrit {
   async readAuthCookie(repoId: git.RepoId): Promise<string | undefined> {
     const filePath = await auth.getGitcookiesPath(this.outputChannel);
     try {
-      const str = await fs.readFile(filePath, {encoding: 'utf8'});
+      const str = await fs.promises.readFile(filePath, {encoding: 'utf8'});
       return auth.parseAuthGitcookies(repoId, str);
     } catch (err) {
       if ((err as {code?: unknown}).code === 'ENOENT') {
