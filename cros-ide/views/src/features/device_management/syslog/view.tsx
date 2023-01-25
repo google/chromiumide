@@ -4,6 +4,7 @@
 
 import {
   Checkbox,
+  Fab,
   FormLabel,
   Input,
   InputAdornment,
@@ -15,18 +16,26 @@ import {
   TableCell,
   Tooltip,
   TooltipProps,
+  Zoom,
 } from '@mui/material';
 import {createTheme, SxProps, ThemeProvider} from '@mui/material/styles';
+import {ArrowDownward} from '@mui/icons-material';
 import {
   forwardRef,
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   ChangeEventHandler,
   CSSProperties,
+  MutableRefObject,
 } from 'react';
-import {TableVirtuoso, TableVirtuosoProps} from 'react-virtuoso';
+import {
+  TableVirtuoso,
+  TableVirtuosoHandle,
+  TableVirtuosoProps,
+} from 'react-virtuoso';
 import * as ReactPanelHelper from '../../../react/common/react_panel_helper';
 import {
   SyslogViewContext,
@@ -242,13 +251,18 @@ function SyslogTable(props: {filter: SyslogFilter}): JSX.Element {
   );
 }
 
-/** The body of the syslog table, wrapping `TableVirtuoso`. */
+/**
+ * The body of the syslog table,
+ * wrapping `TableVirtuoso` and the 'Jump to bottom' button.
+ */
 function SyslogTableBody(props: {entries: SyslogEntry[]}) {
   const {entries} = props;
+  const virtuosoRef = useRef<TableVirtuosoHandle>(null);
   // Memoizes props passed to `TableVirtuoso` for performance
   const virtuosoProps: TableVirtuosoProps<SyslogEntry, unknown> = useMemo(
     () => ({
       style: {marginTop: 10},
+      followOutput: 'smooth',
       components: {
         Table: props => {
           const {children, ...propsRest} = props;
@@ -295,7 +309,90 @@ function SyslogTableBody(props: {entries: SyslogEntry[]}) {
     }),
     []
   );
-  return <TableVirtuoso data={entries} {...virtuosoProps} />;
+  // Handle the 'at bottom recently' state, i.e., whether
+  // the scroller was 'at bottom' any time in the last 1 second.
+  const [atBottomRecently, setAtBottomRecently] = useState(false);
+  const atBottomClearer = useRef<NodeJS.Timeout | null>(null);
+  const handleAtBottom = useCallback(
+    (atBottom: boolean) => {
+      if (atBottom) {
+        clearTimeoutRef(atBottomClearer); // Cancel the clearer.
+        setAtBottomRecently(true);
+      } else {
+        // Delay setting `atBottom` to `false` by 1 second, because
+        // `exactAtBottom` can be temporarily `false` due to auto-scrolling.
+        setTimeoutRef(atBottomClearer, () => setAtBottomRecently(false), 1000);
+      }
+    },
+    [atBottomClearer, setAtBottomRecently]
+  );
+  // Handle the 'scrolling recently' state, i.e., whether
+  // the scroller was 'scrolling' any time in the last 3 seconds.
+  const [scrollingRecently, setScrollingRecently] = useState(true);
+  const scrollingClearer = useRef<NodeJS.Timeout | null>(null);
+  const handleScrolling = useCallback(
+    (scrolling: boolean) => {
+      if (scrolling) {
+        clearTimeoutRef(scrollingClearer); // Cancel the clearer.
+        setScrollingRecently(true);
+      } else {
+        // Delay setting `scrolling` to `false` by 3 seconds.
+        setTimeoutRef(
+          scrollingClearer,
+          () => setScrollingRecently(false),
+          3000
+        );
+      }
+    },
+    [scrollingClearer, setScrollingRecently]
+  );
+  // For the 'Jump to bottom' button.
+  const handleBottomJumper = useCallback(() => {
+    virtuosoRef.current?.scrollToIndex({
+      index: entries.length - 1,
+      behavior: 'auto',
+    });
+  }, [virtuosoRef, entries]);
+  const bottomJumperShown =
+    // The 'Jump to bottom' button is shown if
+    // scrolling recently and not at bottom recently.
+    !atBottomRecently && scrollingRecently;
+  return (
+    <>
+      <TableVirtuoso
+        ref={virtuosoRef}
+        data={entries}
+        atBottomStateChange={handleAtBottom}
+        isScrolling={handleScrolling}
+        {...virtuosoProps}
+      />
+      <CustomTooltip title={bottomJumperShown && 'Jump to bottom'}>
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 30,
+            // Center the button horizontally
+            left: '50%',
+            transform: 'translateX(-50%)',
+          }}
+        >
+          <Zoom in={bottomJumperShown}>
+            <Fab
+              onClick={handleBottomJumper}
+              color="primary"
+              size="small"
+              sx={{
+                opacity: 0.5,
+                '&:hover': {opacity: 1},
+              }}
+            >
+              <ArrowDownward />
+            </Fab>
+          </Zoom>
+        </div>
+      </CustomTooltip>
+    </>
+  );
 }
 
 /** The row for each syslog entry. */
@@ -361,4 +458,21 @@ function CustomTooltip(props: TooltipProps) {
       }}
     />
   );
+}
+
+/** Wraps `setTimeout` for a mutable ref of timeout. */
+function setTimeoutRef(
+  timeoutRef: MutableRefObject<NodeJS.Timeout | null>,
+  callback: () => void,
+  ms: number
+) {
+  if (timeoutRef.current) return;
+  timeoutRef.current = setTimeout(callback, ms);
+}
+
+/** Wraps `clearTimeout` for a mutable ref of timeout. */
+function clearTimeoutRef(timeoutRef: MutableRefObject<NodeJS.Timeout | null>) {
+  if (!timeoutRef.current) return;
+  clearTimeout(timeoutRef.current);
+  timeoutRef.current = null;
 }
