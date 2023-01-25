@@ -123,7 +123,10 @@ describe('ErrorMessageRouter', () => {
 });
 
 /** Build Gerrit API response from typed input. */
-function apiString(data: Object): string {
+function apiString(data?: Object): string | undefined {
+  if (!data) {
+    return undefined;
+  }
   return ')]}\n' + JSON.stringify(data);
 }
 
@@ -301,6 +304,60 @@ describe('Gerrit', () => {
     };
   });
 
+  type GerritHttpsSetupOpts = {accountsMe?: string; internal?: boolean};
+
+  function setupGerritHttps(
+    opts?: GerritHttpsSetupOpts
+  ): GerritHttpsSetupHelper {
+    return new GerritHttpsSetupHelper(opts);
+  }
+
+  /** Fluent helper for creating mocking `http.getOrThrow`. */
+  class GerritHttpsSetupHelper {
+    private readonly spy;
+    private readonly baseUrl;
+    private readonly reqOpts;
+
+    /**
+     * Processes `internal` option and sets up `/accounts/me`.
+     */
+    constructor(opts?: GerritHttpsSetupOpts) {
+      this.baseUrl = opts?.internal ? CHROME_INTERNAL_GERRIT : CHROMIUM_GERRIT;
+
+      this.reqOpts = opts?.internal
+        ? CHROME_INTERNAL_OPTIONS
+        : CHROMIUM_OPTIONS;
+
+      this.spy = spyOn(https, 'getOrThrow')
+        .withArgs(`${this.baseUrl}/accounts/me`, this.reqOpts)
+        .and.resolveTo(opts?.accountsMe);
+    }
+
+    /**
+     * Sets up `/changes/<changeId>?o=ALL_REVISIONS`, `/changes/<changeId>/comments`,
+     * and `/changes/<changeId>/drafts`.
+     */
+    withChange(c: {
+      id: string;
+      info?: api.ChangeInfo;
+      comments?: api.FilePathToBaseCommentInfos;
+      drafts?: api.FilePathToBaseCommentInfos;
+    }) {
+      this.spy
+        .withArgs(
+          `${this.baseUrl}/changes/${c.id}?o=ALL_REVISIONS`,
+          this.reqOpts
+        )
+        .and.resolveTo(apiString(c.info))
+        .withArgs(`${this.baseUrl}/changes/${c.id}/comments`, this.reqOpts)
+        .and.resolveTo(apiString(c.comments))
+        .withArgs(`${this.baseUrl}/changes/${c.id}/drafts`, this.reqOpts)
+        .and.resolveTo(apiString(c.drafts));
+
+      return this;
+    }
+  }
+
   it('displays a comment', async () => {
     // Create a repo with two commits:
     //   1) The first simulates cros/main.
@@ -323,24 +380,11 @@ describe('Gerrit', () => {
       state.statusManager
     );
 
-    spyOn(https, 'getOrThrow')
-      .withArgs(`${CHROMIUM_GERRIT}/accounts/me`, CHROMIUM_OPTIONS)
-      .and.resolveTo(undefined)
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}?o=ALL_REVISIONS`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(CHANGE_INFO(changeId, [commitId])))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}/comments`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(SIMPLE_COMMENT_INFOS_MAP(commitId)))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}/drafts`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(undefined);
+    setupGerritHttps().withChange({
+      id: changeId,
+      info: CHANGE_INFO(changeId, [commitId]),
+      comments: SIMPLE_COMMENT_INFOS_MAP(commitId),
+    });
 
     await expectAsync(
       gerrit.showChanges(abs('cryptohome/cryptohome.cc'))
@@ -390,24 +434,12 @@ describe('Gerrit', () => {
       state.statusManager
     );
 
-    spyOn(https, 'getOrThrow')
-      .withArgs(`${CHROMIUM_GERRIT}/accounts/me`, CHROMIUM_OPTIONS)
-      .and.resolveTo(apiString(AUTHOR))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}?o=ALL_REVISIONS`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(CHANGE_INFO(changeId, [commitId])))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}/comments`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(SIMPLE_COMMENT_INFOS_MAP(commitId)))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}/drafts`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(SIMPLE_DRAFT_COMMENT_INFOS_MAP(commitId)));
+    setupGerritHttps({accountsMe: apiString(AUTHOR)}).withChange({
+      id: changeId,
+      info: CHANGE_INFO(changeId, [commitId]),
+      comments: SIMPLE_COMMENT_INFOS_MAP(commitId),
+      drafts: SIMPLE_DRAFT_COMMENT_INFOS_MAP(commitId),
+    });
 
     await expectAsync(
       gerrit.showChanges(abs('cryptohome/cryptohome.cc'))
@@ -507,24 +539,11 @@ describe('Gerrit', () => {
       new bgTaskStatus.TEST_ONLY.StatusManagerImpl()
     );
 
-    spyOn(https, 'getOrThrow')
-      .withArgs(`${CHROMIUM_GERRIT}/accounts/me`, CHROMIUM_OPTIONS)
-      .and.resolveTo(undefined)
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}?o=ALL_REVISIONS`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(CHANGE_INFO(changeId, [reviewCommitId])))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}/comments`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(SPECIAL_COMMENT_TYPES(reviewCommitId)))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}/drafts`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(undefined);
+    setupGerritHttps().withChange({
+      id: changeId,
+      info: CHANGE_INFO(changeId, [reviewCommitId]),
+      comments: SPECIAL_COMMENT_TYPES(reviewCommitId),
+    });
 
     await expectAsync(
       gerrit.showChanges(abs('cryptohome/crypto.h'))
@@ -638,26 +657,11 @@ describe('Gerrit', () => {
 
     const fileName = abs('cryptohome/cryptohome.cc');
 
-    spyOn(https, 'getOrThrow')
-      .withArgs(`${CHROMIUM_GERRIT}/accounts/me`, CHROMIUM_OPTIONS)
-      .and.resolveTo(undefined)
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}?o=ALL_REVISIONS`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(CHANGE_INFO(changeId, [commitId1, commitId2])))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}/comments`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(
-        apiString(TWO_PATCHSETS_COMMENT_INFOS_MAP(commitId1, commitId2))
-      )
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}/drafts`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(undefined);
+    setupGerritHttps().withChange({
+      id: changeId,
+      info: CHANGE_INFO(changeId, [commitId1, commitId2]),
+      comments: TWO_PATCHSETS_COMMENT_INFOS_MAP(commitId1, commitId2),
+    });
 
     await expectAsync(gerrit.showChanges(fileName)).toBeResolved();
 
@@ -746,39 +750,17 @@ describe('Gerrit', () => {
       new bgTaskStatus.TEST_ONLY.StatusManagerImpl()
     );
 
-    spyOn(https, 'getOrThrow')
-      .withArgs(`${CHROMIUM_GERRIT}/accounts/me`, CHROMIUM_OPTIONS)
-      .and.resolveTo(undefined)
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId1}?o=ALL_REVISIONS`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(CHANGE_INFO(changeId1, [commitId1])))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId1}/comments`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(SIMPLE_COMMENT_INFOS_MAP(commitId1)))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId1}/drafts`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(undefined)
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId2}?o=ALL_REVISIONS`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(CHANGE_INFO(changeId2, [commitId2])))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId2}/comments`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(SECOND_COMMIT_IN_CHAIN(commitId2)))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId2}/drafts`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(undefined);
+    setupGerritHttps()
+      .withChange({
+        id: changeId1,
+        info: CHANGE_INFO(changeId1, [commitId1]),
+        comments: SIMPLE_COMMENT_INFOS_MAP(commitId1),
+      })
+      .withChange({
+        id: changeId2,
+        info: CHANGE_INFO(changeId2, [commitId2]),
+        comments: SECOND_COMMIT_IN_CHAIN(commitId2),
+      });
 
     await expectAsync(
       gerrit.showChanges(abs('cryptohome/cryptohome.cc'))
@@ -841,24 +823,11 @@ describe('Gerrit', () => {
       state.statusManager
     );
 
-    spyOn(https, 'getOrThrow')
-      .withArgs(`${CHROMIUM_GERRIT}/accounts/me`, CHROMIUM_OPTIONS)
-      .and.resolveTo(undefined)
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}?o=ALL_REVISIONS`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(CHANGE_INFO(changeId, [commitId])))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}/comments`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(SIMPLE_COMMENT_INFOS_MAP(commitId)))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}/drafts`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(undefined);
+    setupGerritHttps().withChange({
+      id: changeId,
+      info: CHANGE_INFO(changeId, [commitId]),
+      comments: SIMPLE_COMMENT_INFOS_MAP(commitId),
+    });
 
     await expectAsync(
       gerrit.showChanges(abs('cryptohome/cryptohome.cc'))
@@ -892,24 +861,9 @@ describe('Gerrit', () => {
       state.statusManager
     );
 
-    spyOn(https, 'getOrThrow')
-      .withArgs(`${CHROMIUM_GERRIT}/accounts/me`, CHROMIUM_OPTIONS)
-      .and.resolveTo(undefined)
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}?o=ALL_REVISIONS`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(undefined)
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}/comments`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(undefined)
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}/drafts`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(undefined);
+    setupGerritHttps().withChange({
+      id: changeId,
+    });
 
     await expectAsync(
       gerrit.showChanges(abs('cryptohome/cryptohome.cc'))
@@ -944,27 +898,11 @@ describe('Gerrit', () => {
       state.statusManager
     );
 
-    spyOn(https, 'getOrThrow')
-      .withArgs(
-        `${CHROME_INTERNAL_GERRIT}/accounts/me`,
-        CHROME_INTERNAL_OPTIONS
-      )
-      .and.resolveTo(undefined)
-      .withArgs(
-        `${CHROME_INTERNAL_GERRIT}/changes/${changeId}?o=ALL_REVISIONS`,
-        CHROME_INTERNAL_OPTIONS
-      )
-      .and.resolveTo(apiString(CHANGE_INFO(changeId, [commitId])))
-      .withArgs(
-        `${CHROME_INTERNAL_GERRIT}/changes/${changeId}/comments`,
-        CHROME_INTERNAL_OPTIONS
-      )
-      .and.resolveTo(apiString(SIMPLE_COMMENT_INFOS_MAP(commitId)))
-      .withArgs(
-        `${CHROME_INTERNAL_GERRIT}/changes/${changeId}/drafts`,
-        CHROME_INTERNAL_OPTIONS
-      )
-      .and.resolveTo(undefined);
+    setupGerritHttps({internal: true}).withChange({
+      id: changeId,
+      info: CHANGE_INFO(changeId, [commitId]),
+      comments: SIMPLE_COMMENT_INFOS_MAP(commitId),
+    });
 
     await expectAsync(
       gerrit.showChanges(abs('cryptohome/cryptohome.cc'))
@@ -1022,26 +960,11 @@ describe('Gerrit', () => {
       state.statusManager
     );
 
-    spyOn(https, 'getOrThrow')
-      .withArgs(`${CHROMIUM_GERRIT}/accounts/me`, CHROMIUM_OPTIONS)
-      .and.resolveTo(undefined)
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}?o=ALL_REVISIONS`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(apiString(CHANGE_INFO(changeId, [commitId1, commitId2])))
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}/comments`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(
-        apiString(TWO_PATCHSETS_COMMENT_INFOS_MAP(commitId1, commitId2))
-      )
-      .withArgs(
-        `${CHROMIUM_GERRIT}/changes/${changeId}/drafts`,
-        CHROMIUM_OPTIONS
-      )
-      .and.resolveTo(undefined);
+    setupGerritHttps().withChange({
+      id: changeId,
+      info: CHANGE_INFO(changeId, [commitId1, commitId2]),
+      comments: TWO_PATCHSETS_COMMENT_INFOS_MAP(commitId1, commitId2),
+    });
 
     await expectAsync(
       gerrit.showChanges(abs('cryptohome/cryptohome.cc'))
