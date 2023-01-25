@@ -487,8 +487,10 @@ class Gerrit {
       this.errorMessageRouter.show({
         log:
           `The patchset ${commitId} was not available locally. This happens ` +
-          'when some patchsets were uploaded to Gerrit from a different chroot.',
-        metrics: 'commit not available locally',
+          'when some patchsets were uploaded to Gerrit from a different chroot, ' +
+          'when a change is submitted, but local repo is not synced, etc.',
+        metrics: '(warning) commit not available locally',
+        noErrorStatus: true,
       });
     }
     return commitExists;

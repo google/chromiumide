@@ -999,7 +999,7 @@ describe('Gerrit', () => {
     expect(metrics.send).toHaveBeenCalledWith({
       category: 'error',
       group: 'gerrit',
-      description: 'commit not available locally',
+      description: '(warning) commit not available locally',
     });
     expect(metrics.send).toHaveBeenCalledWith({
       category: 'background',
@@ -1007,9 +1007,6 @@ describe('Gerrit', () => {
       action: 'update comments',
       value: 2,
     });
-    expect(state.statusManager.setStatus).toHaveBeenCalledOnceWith(
-      'Gerrit',
-      bgTaskStatus.TaskStatus.ERROR
-    );
+    expect(state.statusManager.setStatus).not.toHaveBeenCalled();
   });
 });
