@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as fs from 'fs';
@@ -178,6 +179,15 @@ async function openExternal(repoId: git.RepoId, path: string): Promise<void> {
   void vscode.env.openExternal(vscode.Uri.parse(url));
 }
 
+/** Removes sensitive data from a string sent to metrics. */
+// This function is a part of gerrit package, not metrics,
+// because it's easier to test it here.
+// TODO(ttylenda): Move this logic to metrics package.
+function redactPII(input: string): string {
+  const user = os.userInfo().username;
+  return input.replace(new RegExp(user, 'g'), '${USER}');
+}
+
 class Gerrit {
   private changes?: Change[];
   private errorMessageRouter: ErrorMessageRouter;
@@ -264,9 +274,10 @@ class Gerrit {
         });
       }
     } catch (err) {
+      const redacted = redactPII(`${err}`);
       this.errorMessageRouter.show({
         log: `Failed to show Gerrit changes: ${err}`,
-        metrics: 'Failed to show Gerrit changes (top-level error)',
+        metrics: 'Failed to show Gerrit changes (top-level): ' + redacted,
       });
       return;
     }

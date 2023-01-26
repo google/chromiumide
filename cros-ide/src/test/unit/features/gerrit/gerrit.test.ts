@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as api from '../../../../features/gerrit/api';
@@ -1022,8 +1023,11 @@ describe('Gerrit', () => {
     const changeId = 'I23f50ecfe44ee28972aa640e1fa82ceabcc706a8';
     const commitId = await git.commit(`Second\nChange-Id: ${changeId}`);
 
+    const user = os.userInfo().username;
     state.commentController.createCommentThread.and.throwError(
-      new Error('test error')
+      new Error(
+        `${user} saw a test error while editing /home/${user}/hello/world.php`
+      )
     );
 
     const gerrit = new Gerrit(
@@ -1050,7 +1054,9 @@ describe('Gerrit', () => {
     expect(metrics.send).toHaveBeenCalledWith({
       category: 'error',
       group: 'gerrit',
-      description: 'Failed to show Gerrit changes (top-level error)',
+      description:
+        'Failed to show Gerrit changes (top-level): ' +
+        'Error: ${USER} saw a test error while editing /home/${USER}/hello/world.php',
     });
   });
 });
