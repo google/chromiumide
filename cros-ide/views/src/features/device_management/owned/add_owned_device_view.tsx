@@ -37,7 +37,7 @@ import * as colors from '@mui/material/colors';
 import TabPanel from '@mui/lab/TabPanel';
 import isValidHostname from 'is-valid-hostname';
 import {TabContext} from '@mui/lab';
-import * as model from '../../../../../src/features/chromiumos/device_management/owned/add_owned_device_model';
+import * as model from '../../../../../src/features/chromiumos/device_management/v2/add_owned_device_model';
 import * as ReactPanelHelper from '../../../react/common/react_panel_helper';
 
 const STEP_CONTENT_HEIGHT = '24em';
