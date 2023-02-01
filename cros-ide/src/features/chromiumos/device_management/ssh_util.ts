@@ -94,7 +94,7 @@ export function buildSshCommand(
  * @param extensionUri cros-ide extension URI.
  * @returns string[] of the individual arguments.
  */
-function buildMinimalDeviceSshArgs(
+export function buildMinimalDeviceSshArgs(
   hostAndPort: string,
   extensionUri: vscode.Uri,
   extraOptions: string[] = []
