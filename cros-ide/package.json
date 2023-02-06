@@ -101,7 +101,8 @@
       {
         "command": "cros-ide.deviceManagement.openSystemLogViewer",
         "category": "CrOS",
-        "title": "Open System Log Viewer"
+        "title": "Open System Log Viewer",
+        "icon": "$(output)"
       },
       {
         "command": "cros-ide.deviceManagement.addDevice",
@@ -441,6 +442,11 @@
           "command": "cros-ide.deviceManagement.flashPrebuiltImage",
           "when": "view == devices && viewItem =~ /^device-/",
           "group": "2_operation@1"
+        },
+        {
+          "command": "cros-ide.deviceManagement.openSystemLogViewer",
+          "when": "view == devices && viewItem =~ /^device-/",
+          "group": "inline@4"
         },
         {
           "command": "cros-ide.deviceManagement.openSystemLogViewer",
