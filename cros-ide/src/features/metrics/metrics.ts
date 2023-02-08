@@ -94,6 +94,7 @@ type FeatureGroup =
   | 'misc'
   | 'package'
   | 'spellchecker'
+  | 'tast'
   // 'virtualdocument' should be used in features that rely on virtual documents,
   // such as Gerrit and spellchecker, when the user interacts with such a document.
   // Event label should be chosen carefully to simplify building a dashboard

@@ -6,6 +6,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as services from '../../../services';
 import * as config from '../../../services/config';
+import * as metrics from '../../../features/metrics/metrics';
 import {TestCase} from './test_case';
 import {LazyTestController} from './lazy_test_controller';
 
@@ -149,6 +150,11 @@ export class TastTests implements vscode.Disposable {
       ADD
     );
     if (choice === ADD) {
+      metrics.send({
+        category: 'interactive',
+        group: 'tast',
+        action: 'set up dev environment',
+      });
       // It will restart VSCode.
       vscode.workspace.updateWorkspaceFolders(
         /* start = */ 0,
