@@ -39,11 +39,21 @@ index 511bb797b..e475e16d4 100644
 
 `;
 
+const testDiffNewFile = `diff --git a/new2.txt b/new2.txt
+new file mode 100644
+index 0000000000..0cfbf08886
+--- /dev/null
++++ b/new2.txt
+@@ -0,0 +1 @@
++2
+`;
+
 describe('Gerrit support', () => {
   it('handles empty diffs', () => {
     const hunkRangesEmpty = parseDiffHunks(testDiffEmpty);
     expect(hunkRangesEmpty).toEqual({});
   });
+
   it('extracts ranges of each hunk', () => {
     const hunkRanges = parseDiffHunks(testDiff);
     expect(hunkRanges).toEqual({
@@ -85,6 +95,20 @@ describe('Gerrit support', () => {
           originalSize: 2,
           currentStart: 8,
           currentSize: 3,
+        }),
+      ],
+    });
+  });
+
+  it('handles new files', () => {
+    const hunkRanges = parseDiffHunks(testDiffNewFile);
+    expect(hunkRanges).toEqual({
+      'new2.txt': [
+        Hunk.of({
+          originalStart: 0,
+          originalSize: 0,
+          currentStart: 1,
+          currentSize: 1,
         }),
       ],
     });
