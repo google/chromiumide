@@ -19,14 +19,15 @@ function textEditor(document: vscode.TextDocument) {
 }
 
 describe('open text editors watcher', () => {
-  const {vscodeEmitters} = testing.installVscodeDouble();
+  const {vscodeEmitters, vscodeGetters} = testing.installVscodeDouble();
 
   it('fires after onDidChangeActiveTextEditor (first time) and onDidCloseTextDocument', async () => {
     // file that's already opened when VSCode starts
     const uriInitial = vscode.Uri.file('/src/initial.cc');
     const docInitial = textDocument(uriInitial);
     const editorInitial = textEditor(docInitial);
-    vscode.window.activeTextEditor = editorInitial;
+
+    vscodeGetters.window.activeTextEditor.and.returnValue(editorInitial);
 
     const watcher = TextEditorsWatcher.createForTesting();
     const activateReader = new testing.EventReader(watcher.onDidActivate);

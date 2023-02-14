@@ -130,6 +130,101 @@ function newVscodeEmitters() {
   };
 }
 
+/**
+ * Spy objects for vscode properties.
+ *
+ * Example:
+ *  vscodeGetters.workspace.workspaceFolders.and.returnValue(fakeValue);
+ */
+export type VscodeGetters = ReturnType<typeof newVscodeGetters>;
+
+/**
+ * Returns an object with settable properties in vscode namespaces.
+ *
+ * Properties whose annotated type can be undefined with a comment "not" are
+ * not undefined on the real vscode namespace.
+ */
+function newVscodeProperties() {
+  // TODO(oka): Add debug, env, extensions, scm, and tasks namespaces.
+  return {
+    window: {
+      activeTerminal: undefined as vscode.Terminal | undefined,
+      activeTextEditor: undefined as vscode.TextEditor | undefined,
+      state: {focused: true},
+      terminals: [] as vscode.Terminal[],
+      visibleTextEditors: [] as vscode.TextEditor[],
+    },
+    workspace: {
+      fs: undefined as vscode.FileSystem | /*not*/ undefined,
+      name: undefined as string | undefined,
+      rootPath: undefined as string | undefined,
+      workspaceFile: undefined as vscode.Uri | undefined,
+      workspaceFolders: undefined as vscode.WorkspaceFolder[] | undefined,
+      textDocuments: [] as vscode.TextDocument[],
+    },
+  };
+}
+
+/**
+ * Returns an object, which for each property of `target` has a property of
+ * the same name, whose value is a jasmine Spy. Each of these spies is
+ * initialized to return the current value of corresponding property on
+ * `target`.
+ *
+ * This means the spies initially behave as follows:
+ * buildGetters('x', x).y() === x.y;
+ *
+ * But they can be changed, e.g., as follows:
+ * const getters = buildGetters('x', x);
+ * getters.y.and.callFake(() => 2 * x.y);
+ */
+function buildGetters<T extends {}>(
+  namespace: string,
+  target: T
+): {[P in keyof T]: jasmine.Spy<() => T[P]>} {
+  type R = {[P in keyof T]: jasmine.Spy<() => T[P]>};
+
+  const res: Partial<R> = {};
+  for (const property in target) {
+    res[property] = jasmine
+      .createSpy<() => T[typeof property]>(`${namespace}.${String(property)}`)
+      .and.callFake(() => target[property]);
+  }
+  return res as R;
+}
+
+/**
+ * Returns an object, which for each property of `target` has a property of the
+ * same name, whose value is obtained by applying buildGetters for the original
+ * property.
+ *
+ * This means the spies initially behave as follows:
+ * buildNamespaceGetters('x', x).y.z() === x.y.z;
+ *
+ * But they can be changed, e.g., as follows:
+ * const getters = buildNamespaceGetters('x', x);
+ * getters.y.z.and.callFake(() => 2 * x.y.z);
+ */
+function buildNamespaceGetters<T extends {[K in keyof T]: {}}>(
+  namespace: string,
+  target: T
+): {[N in keyof T]: {[P in keyof T[N]]: jasmine.Spy<() => T[N][P]>}} {
+  type R = {[N in keyof T]: {[P in keyof T[N]]: jasmine.Spy<() => T[N][P]>}};
+
+  const res: Partial<R> = {};
+  for (const property in target) {
+    res[property] = buildGetters(
+      `${namespace}.${String(property)}}`,
+      target[property]
+    );
+  }
+  return res as R;
+}
+
+function newVscodeGetters() {
+  return buildNamespaceGetters('vscode', newVscodeProperties());
+}
+
 function copyVscodeNamespaces() {
   return {
     authentication: vscode.authentication,
@@ -155,9 +250,11 @@ function copyVscodeNamespaces() {
 export function installVscodeDouble(): {
   vscodeSpy: VscodeSpy;
   vscodeEmitters: VscodeEmitters;
+  vscodeGetters: VscodeGetters;
 } {
   const vscodeSpy = cleanState(() => newVscodeSpy());
   const vscodeEmitters = cleanState(() => newVscodeEmitters());
+  const vscodeGetters = cleanState(() => newVscodeGetters());
 
   // This an injected module for unit tests and real vscode module for integration tests.
   const theVscode = vscode;
@@ -173,12 +270,14 @@ export function installVscodeDouble(): {
     theVscode.window = buildNamespace(
       theVscode.window,
       vscodeSpy.window,
-      vscodeEmitters.window
+      vscodeEmitters.window,
+      vscodeGetters.window
     );
     theVscode.workspace = buildNamespace(
       theVscode.workspace,
       vscodeSpy.workspace,
-      vscodeEmitters.workspace
+      vscodeEmitters.workspace,
+      vscodeGetters.workspace
     );
   });
   afterEach(() => {
@@ -188,6 +287,7 @@ export function installVscodeDouble(): {
   return {
     vscodeSpy,
     vscodeEmitters,
+    vscodeGetters,
   };
 }
 
@@ -201,7 +301,8 @@ export function installVscodeDouble(): {
 function buildNamespace(
   maybeFakeVscodeNamespace: Object,
   spies: jasmine.SpyObj<unknown>,
-  emitters: {[key: string]: vscode.EventEmitter<unknown>}
+  emitters: {[key: string]: vscode.EventEmitter<unknown>},
+  getters: {[key: string]: () => unknown} = {}
 ) {
   let original: [string, unknown][] = [];
   try {
@@ -209,14 +310,19 @@ function buildNamespace(
   } catch (_e) {
     // Do nothing
   }
-  return Object.fromEntries([
-    ...original,
-    ...Object.entries(spies).map(([key, spy]) => [
-      key,
-      (...args: unknown[]) => (spy as jasmine.Spy)(...args),
+  return Object.defineProperties(
+    Object.fromEntries([
+      ...original,
+      ...Object.entries(spies).map(([key, spy]) => [
+        key,
+        (...args: unknown[]) => (spy as jasmine.Spy)(...args),
+      ]),
+      ...Object.entries(emitters).map(([key, emitter]) => [key, emitter.event]),
     ]),
-    ...Object.entries(emitters).map(([key, emitter]) => [key, emitter.event]),
-  ]);
+    Object.fromEntries([
+      ...Object.entries(getters).map(([key]) => [key, {get: getters[key]}]),
+    ])
+  );
 }
 
 /**
