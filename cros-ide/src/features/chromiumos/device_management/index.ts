@@ -17,13 +17,13 @@ import * as provider from './device_tree_data_provider';
 import * as sshUtil from './ssh_util';
 import * as abandonedDevices from './abandoned_devices';
 
-export async function activate(
+export function activate(
   context: vscode.ExtensionContext,
   statusManager: bgTaskStatus.StatusManager,
-  chrootService: services.chromiumos.ChrootService,
+  chromiumosServices: services.chromiumos.ChromiumosServiceModule,
   cipdRepository: cipd.CipdRepository
 ) {
-  await rsaKeyFixPermission(context.extensionUri);
+  rsaKeyFixPermission(context.extensionUri);
 
   const output = vscode.window.createOutputChannel(
     'CrOS IDE: Device Management'
@@ -38,7 +38,7 @@ export async function activate(
   );
   const commandsDisposable = commands.registerCommands(
     context,
-    chrootService,
+    chromiumosServices,
     output,
     deviceRepository,
     crosfleetRunner,
@@ -70,10 +70,10 @@ export async function activate(
 /**
  * Ensures that test_rsa key perms are 0600, otherwise cannot be used for ssh
  */
-async function rsaKeyFixPermission(extensionUri: vscode.Uri) {
+function rsaKeyFixPermission(extensionUri: vscode.Uri) {
   const rsaKeyPath = sshUtil.getTestingRsaPath(extensionUri);
   try {
-    await fs.promises.chmod(rsaKeyPath, '0600');
+    fs.chmodSync(rsaKeyPath, '0600');
   } catch {
     void vscode.window.showErrorMessage(
       'Fatal: unable to update testing_rsa permission: ' + rsaKeyPath

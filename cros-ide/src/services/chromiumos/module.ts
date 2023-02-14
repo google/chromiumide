@@ -19,6 +19,9 @@ export type Services = {
  * User of the class should subscribe to the event in this instance to be
  * notified when the module is updated upon the change of the chromiumos
  * directory.
+ *
+ * Note that the event should be synchronously subscribed after the class is
+ * constructed so that the subscriber can receive the first event.
  */
 export class ChromiumosServiceModule implements vscode.Disposable {
   private readonly watcher = new services.ProductWatcher('chromiumos');

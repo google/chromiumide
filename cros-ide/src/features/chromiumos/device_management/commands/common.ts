@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as services from '../../../../services';
 import * as abandonedDevices from '../abandoned_devices';
 import * as crosfleet from '../crosfleet';
 import * as repository from '../device_repository';
@@ -17,7 +16,6 @@ import * as vnc from '../vnc_session';
  */
 export interface CommandContext {
   readonly extensionContext: vscode.ExtensionContext;
-  readonly chrootService: services.chromiumos.ChrootService;
   readonly output: vscode.OutputChannel;
   readonly deviceRepository: repository.DeviceRepository;
   readonly crosfleetRunner: crosfleet.CrosfleetRunner;

@@ -9,11 +9,15 @@ import * as vscode from 'vscode';
 import * as shutil from '../../../../common/shutil';
 import * as ssh from '../ssh_session';
 import * as netUtil from '../../../../common/net_util';
+import * as services from '../../../../services';
 import * as metrics from '../../../metrics/metrics';
 import * as parser from '../../tast/parser';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
 
-export async function runTastTests(context: CommandContext): Promise<void> {
+export async function runTastTests(
+  context: CommandContext,
+  chrootService: services.chromiumos.ChrootService
+): Promise<void> {
   metrics.send({
     category: 'interactive',
     group: 'device',
@@ -86,7 +90,12 @@ export async function runTastTests(context: CommandContext): Promise<void> {
   const target = `localhost:${port}`;
   let testList = undefined;
   try {
-    testList = await getAvailableTests(context, target, testCase.name);
+    testList = await getAvailableTests(
+      context,
+      chrootService,
+      target,
+      testCase.name
+    );
   } catch (err: unknown) {
     const choice = await vscode.window.showErrorMessage(
       'Error finding available tests.',
@@ -153,6 +162,7 @@ function getTerminalNameForTastExecution(hostname: string): string {
  */
 async function getAvailableTests(
   context: CommandContext,
+  chrootService: services.chromiumos.ChrootService,
   target: string,
   testName: string
 ): Promise<string[] | undefined> {
@@ -164,7 +174,7 @@ async function getAvailableTests(
       title: 'Getting available tests for host... (may take 1+ minutes)',
     },
     async (_progress, token) => {
-      const res = await context.chrootService.exec('tast', ['list', target], {
+      const res = await chrootService.exec('tast', ['list', target], {
         sudoReason: 'to get list of available tests.',
         logger: context.output,
         cancellationToken: token,

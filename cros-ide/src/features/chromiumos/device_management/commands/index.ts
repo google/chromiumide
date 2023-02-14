@@ -31,7 +31,7 @@ import {browseChromeOsBuilds} from './browse_chromeos_builds';
  */
 export function registerCommands(
   extensionContext: vscode.ExtensionContext,
-  chrootService: services.chromiumos.ChrootService,
+  chromiumosServices: services.chromiumos.ChromiumosServiceModule,
   output: vscode.OutputChannel,
   deviceRepository: repository.DeviceRepository,
   crosfleetRunner: crosfleet.CrosfleetRunner,
@@ -42,7 +42,6 @@ export function registerCommands(
 
   const context: CommandContext = {
     extensionContext,
-    chrootService,
     output,
     deviceRepository,
     crosfleetRunner,
@@ -80,10 +79,6 @@ export function registerCommands(
       (item?: provider.DeviceItem) => openSystemLogViewer(context, item)
     ),
     vscode.commands.registerCommand(
-      'cros-ide.deviceManagement.flashPrebuiltImage',
-      (item?: provider.DeviceItem) => flashPrebuiltImage(context, item)
-    ),
-    vscode.commands.registerCommand(
       'cros-ide.deviceManagement.crosfleetLogin',
       () => crosfleetLogin(context)
     ),
@@ -103,14 +98,45 @@ export function registerCommands(
       (item: provider.DeviceItem) => copyHostname(context, item)
     ),
     vscode.commands.registerCommand(
-      'cros-ide.deviceManagement.runTastTests',
-      () => runTastTests(context)
-    ),
-    vscode.commands.registerCommand(
       'cros-ide.deviceManagement.openLogs',
       () => {
         output.show();
       }
-    )
+    ),
+    registerChromiumosCommands(context, chromiumosServices)
+  );
+}
+
+function registerChromiumosCommands(
+  context: CommandContext,
+  chromiumosServices: services.chromiumos.ChromiumosServiceModule
+): vscode.Disposable {
+  const subscriptions: vscode.Disposable[] = [];
+
+  const disposeSubscriptions = () => {
+    vscode.Disposable.from(...subscriptions).dispose();
+    subscriptions.length = 0;
+  };
+
+  return vscode.Disposable.from(
+    chromiumosServices.onDidUpdate(event => {
+      disposeSubscriptions();
+
+      const chrootService = event?.chrootService;
+      if (chrootService) {
+        subscriptions.push(
+          vscode.commands.registerCommand(
+            'cros-ide.deviceManagement.flashPrebuiltImage',
+            (item?: provider.DeviceItem) =>
+              flashPrebuiltImage(context, chrootService, item)
+          ),
+          vscode.commands.registerCommand(
+            'cros-ide.deviceManagement.runTastTests',
+            () => runTastTests(context, chrootService)
+          )
+        );
+      }
+    }),
+    new vscode.Disposable(disposeSubscriptions)
   );
 }

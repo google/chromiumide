@@ -4,3 +4,4 @@
 
 export {ChrootService, type CrosFs, execInChroot} from './chroot';
 export {Packages, type Atom, type PackageInfo} from './packages';
+export {ChromiumosServiceModule} from './module';

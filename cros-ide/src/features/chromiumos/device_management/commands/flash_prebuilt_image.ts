@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import * as services from '../../../../services';
 import {underDevelopment} from '../../../../services/config';
 import * as metrics from '../../../metrics/metrics';
 import * as deviceClient from '../device_client';
@@ -27,6 +28,7 @@ const BOTO_PATH =
 
 export async function flashPrebuiltImage(
   context: CommandContext,
+  chrootService: services.chromiumos.ChrootService,
   item?: provider.DeviceItem
 ): Promise<void> {
   metrics.send({
@@ -35,7 +37,7 @@ export async function flashPrebuiltImage(
     action: 'flash prebuilt image',
   });
 
-  const source = context.chrootService.source;
+  const source = chrootService.source;
 
   const hostname = await promptKnownHostnameIfNeeded(
     'Device to Flash',
@@ -63,7 +65,7 @@ export async function flashPrebuiltImage(
     const matches = defaultBoard.match(/([^-]+)/gm);
     const baseBoardName = matches ? matches[0] : defaultBoard;
 
-    await flashDeviceV2(context, hostname, baseBoardName);
+    await flashDeviceV2(context, chrootService, hostname, baseBoardName);
     return;
   }
 
@@ -83,7 +85,7 @@ export async function flashPrebuiltImage(
     async () => {
       return await prebuiltUtil.listPrebuiltVersions(
         board,
-        context.chrootService,
+        chrootService,
         context.output
       );
     }
@@ -124,11 +126,12 @@ async function retrieveBoardWithProgress(
 
 async function flashDeviceV2(
   context: CommandContext,
+  chrootService: services.chromiumos.ChrootService,
   hostname: string,
   board: string
 ) {
   const service = new FlashDeviceService(
-    context.chrootService,
+    chrootService,
     context.output,
     context.extensionContext
   );

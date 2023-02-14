@@ -67,9 +67,16 @@ async function postMetricsActivate(
   const statusManager = bgTaskStatus.activate(context);
   const cipdRepository = new cipd.CipdRepository();
 
+  const chromiumosServices = new services.chromiumos.ChromiumosServiceModule();
+
   context.subscriptions.push(
     new ChromiumActivation(context, statusManager),
-    new ChromiumosActivation(context, statusManager, cipdRepository)
+    new ChromiumosActivation(
+      context,
+      statusManager,
+      cipdRepository,
+      chromiumosServices
+    )
   );
 
   context.subscriptions.push(
@@ -167,7 +174,8 @@ class ChromiumosActivation implements vscode.Disposable {
   constructor(
     context: vscode.ExtensionContext,
     statusManager: bgTaskStatus.StatusManager,
-    cipdRepository: cipd.CipdRepository
+    cipdRepository: cipd.CipdRepository,
+    chromiumosServices: services.chromiumos.ChromiumosServiceModule
   ) {
     this.subscriptions.push(
       this.watcher.onDidChangeRoot(root => {
@@ -177,7 +185,8 @@ class ChromiumosActivation implements vscode.Disposable {
               context,
               root,
               statusManager,
-              cipdRepository
+              cipdRepository,
+              chromiumosServices
             )
           : undefined;
       })

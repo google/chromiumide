@@ -49,7 +49,8 @@ export class Chromiumos implements vscode.Disposable {
     context: Context,
     private readonly root: string,
     private readonly statusManager: bgTaskStatus.StatusManager,
-    private readonly cipdRepository: cipd.CipdRepository
+    private readonly cipdRepository: cipd.CipdRepository,
+    private readonly chromiumosServices: services.chromiumos.ChromiumosServiceModule
   ) {
     void (async () => {
       try {
@@ -72,6 +73,16 @@ export class Chromiumos implements vscode.Disposable {
   // TODO(oka): Cancel ongoing activation when this class is disposed.
   private async activate(context: Context) {
     const ephemeralContext = newContext(context, this.subscriptions);
+
+    // This method call should come before any `await` so that the first event from
+    // `this.chromiumosServices` is properly received.
+    this.featureName = 'deviceManagement';
+    deviceManagement.activate(
+      ephemeralContext,
+      this.statusManager,
+      this.chromiumosServices,
+      this.cipdRepository
+    );
 
     const gitDirsWatcher = new services.GitDirsWatcher(this.root);
 
@@ -103,14 +114,6 @@ export class Chromiumos implements vscode.Disposable {
 
       this.featureName = 'boardsPackages';
       await boardsPackages.activate(this.subscriptions, chrootService);
-
-      this.featureName = 'deviceManagement';
-      await deviceManagement.activate(
-        ephemeralContext,
-        this.statusManager,
-        chrootService,
-        this.cipdRepository
-      );
 
       if (config.underDevelopment.crosFormat.get()) {
         crosFormat.activate(ephemeralContext, this.root, this.statusManager);
