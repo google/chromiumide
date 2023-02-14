@@ -71,6 +71,10 @@ echo $1
 
 const shellLintOutput = `cros-disks/aaa.sh:3:6: note: Double quote to prevent globbing and word splitting. [SC2086]
 `;
+const shellLintStderr = `12:34:56: WARNING: cros-disks/aaa.sh: delete trailing blank lines
+12:34:56: WARNING: cros-disks/aaa.sh:14: trim trailing whitespace: esac
+12:34:56: ERROR: Found lint errors in 1 files in 0.029s.
+`;
 
 const gnFileName = 'example/BUILD.gn';
 
@@ -250,7 +254,7 @@ describe('Lint Integration', () => {
     const textDocument = await vscode.workspace.openTextDocument(uri);
     const actual = crosLint.parseCrosLintShell(
       shellLintOutput,
-      '',
+      shellLintStderr,
       textDocument
     );
     await extensionTesting.closeDocument(textDocument);
@@ -261,6 +265,22 @@ describe('Lint Integration', () => {
           new vscode.Position(2, Number.MAX_VALUE)
         ),
         'note: Double quote to prevent globbing and word splitting. [SC2086]',
+        'CrOS lint'
+      ),
+      warning(
+        new vscode.Range(
+          new vscode.Position(0, 0),
+          new vscode.Position(0, Number.MAX_VALUE)
+        ),
+        'delete trailing blank lines',
+        'CrOS lint'
+      ),
+      warning(
+        new vscode.Range(
+          new vscode.Position(13, 0),
+          new vscode.Position(13, Number.MAX_VALUE)
+        ),
+        'trim trailing whitespace: esac',
         'CrOS lint'
       ),
     ];

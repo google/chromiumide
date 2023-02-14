@@ -168,9 +168,6 @@ const languageToLintConfigs = new Map<string, LintConfig[]>([
         executable: realpath => crosExeFor(realpath),
         arguments: (path: string) => ['lint', '--output=parseable', path],
         parse: parseCrosLintShell,
-        // Multiple empty lines at the end of scripts cause errors.
-        // TODO(b/268282249): Parse the error ("delete trailing blank lines") and show it.
-        ignoreEmptyDiagnostics: true,
       },
     ],
   ],
@@ -503,7 +500,7 @@ export function parseCrosLintPython(
 // Parse output from cros lint --output=parseable on shell files.
 export function parseCrosLintShell(
   stdout: string,
-  _stderr: string,
+  stderr: string,
   document: vscode.TextDocument
 ): vscode.Diagnostic[] {
   const lineRE = /^([^ \n:]+):([0-9]+):([0-9]+): (.*)/gm;
@@ -516,6 +513,19 @@ export function parseCrosLintShell(
     const message = match[4];
     if (sameFile(document.uri.fsPath, file)) {
       diagnostics.push(createDiagnostic(message, 'CrOS lint', line, startCol));
+    }
+  }
+
+  const stderrLineRE =
+    /[0-9]+:[0-9]+:[0-9]+: WARNING:([^\n:]+):(([0-9]+):)? (.*)/gm;
+  while ((match = stderrLineRE.exec(stderr)) !== null) {
+    const file = match[1];
+    // Some warnings does not have a line number. Line #1 is filled as a placeholder.
+    // TODO(b/268282249): Point to the last line of the file when it is more appropriate.
+    const line = match[3] ? Number(match[3]) : 1;
+    const message = match[4];
+    if (sameFile(document.uri.fsPath, file)) {
+      diagnostics.push(createDiagnostic(message, 'CrOS lint', line));
     }
   }
   return diagnostics;
