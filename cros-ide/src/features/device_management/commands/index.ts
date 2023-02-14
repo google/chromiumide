@@ -118,24 +118,34 @@ function registerChromiumosCommands(
     subscriptions.length = 0;
   };
 
+  const updateChromiumosCommands = (
+    chrootService?: services.chromiumos.ChrootService
+  ) => {
+    disposeSubscriptions();
+
+    subscriptions.push(
+      vscode.commands.registerCommand(
+        'cros-ide.deviceManagement.flashPrebuiltImage',
+        (item?: provider.DeviceItem) =>
+          flashPrebuiltImage(context, chrootService, item)
+      )
+    );
+
+    if (chrootService) {
+      subscriptions.push(
+        vscode.commands.registerCommand(
+          'cros-ide.deviceManagement.runTastTests',
+          () => runTastTests(context, chrootService)
+        )
+      );
+    }
+  };
+
+  updateChromiumosCommands(undefined);
+
   return vscode.Disposable.from(
     chromiumosServices.onDidUpdate(event => {
-      disposeSubscriptions();
-
-      const chrootService = event?.chrootService;
-      if (chrootService) {
-        subscriptions.push(
-          vscode.commands.registerCommand(
-            'cros-ide.deviceManagement.flashPrebuiltImage',
-            (item?: provider.DeviceItem) =>
-              flashPrebuiltImage(context, chrootService, item)
-          ),
-          vscode.commands.registerCommand(
-            'cros-ide.deviceManagement.runTastTests',
-            () => runTastTests(context, chrootService)
-          )
-        );
-      }
+      updateChromiumosCommands(event?.chrootService);
     }),
     new vscode.Disposable(disposeSubscriptions)
   );

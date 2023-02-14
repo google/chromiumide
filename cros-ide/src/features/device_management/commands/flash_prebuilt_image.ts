@@ -25,9 +25,14 @@ const BOTO_PATH =
 
 export async function flashPrebuiltImage(
   context: CommandContext,
-  chrootService: services.chromiumos.ChrootService,
+  chrootService?: services.chromiumos.ChrootService,
   item?: provider.DeviceItem
 ): Promise<void> {
+  if (!chrootService) {
+    void showMissingInternalRepoErrorMessage();
+    return;
+  }
+
   metrics.send({
     category: 'interactive',
     group: 'device',
@@ -104,6 +109,30 @@ export async function flashPrebuiltImage(
     `env BOTO_CONFIG=${source.root}/${BOTO_PATH} cros flash ssh://${hostname} xbuddy://remote/${board}-release/${version}/test`
   );
   terminal.show();
+}
+
+async function showMissingInternalRepoErrorMessage() {
+  const openGuide = 'Open guide';
+  const openFolder = 'Open folder';
+
+  switch (
+    await vscode.window.showErrorMessage(
+      'Flashing prebuilt image requires internal chromiumos source code. Please set it up following the official guide, and open a folder in chromiumos repository.',
+      openGuide,
+      openFolder
+    )
+  ) {
+    case openGuide:
+      await vscode.env.openExternal(
+        vscode.Uri.parse(
+          'https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md#get-the-source-code'
+        )
+      );
+      break;
+    case openFolder:
+      await vscode.commands.executeCommand('vscode.openFolder');
+      break;
+  }
 }
 
 async function retrieveBoardWithProgress(
