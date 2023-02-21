@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {RunTastTestsResult} from '../../device_management/commands/run_tast_tests';
 
 /**
  * Handles requests to run tests.
@@ -41,18 +42,29 @@ export class RunProfile implements vscode.Disposable {
 
     for (const testItem of testItems) {
       run.started(testItem);
-
       const start = new Date();
 
-      await vscode.commands.executeCommand(
-        'cros-ide.deviceManagement.runTastTests'
-      );
+      try {
+        const runResult: RunTastTestsResult | null | Error =
+          await vscode.commands.executeCommand(
+            'cros-ide.deviceManagement.runTastTests'
+          );
 
-      const duration = new Date().getMilliseconds() - start.getMilliseconds();
-
-      // TODO(oka): Report failure or cancellation of the test.
-
-      run.passed(testItem, duration);
+        if (runResult !== null) {
+          const duration =
+            new Date().getMilliseconds() - start.getMilliseconds();
+          run.passed(testItem, duration);
+        } else {
+          run.skipped(testItem);
+        }
+      } catch (err) {
+        run.failed(
+          testItem,
+          new vscode.TestMessage(
+            'Failed to run the test. View the logs for more details.'
+          )
+        );
+      }
     }
 
     run.end();
