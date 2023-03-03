@@ -17,6 +17,7 @@ import * as boilerplate from './features/boilerplate';
 import * as codesearch from './features/codesearch';
 import * as crosLint from './features/cros_lint';
 import * as deviceManagement from './features/device_management';
+import * as dirMetadata from './features/dir_metadata';
 import * as gerrit from './features/gerrit';
 import * as gn from './features/gn';
 import * as hints from './features/hints';
@@ -128,6 +129,9 @@ async function postMetricsActivate(
   shortLinkProvider.activate(context);
   if (config.ownersFiles.links.get()) {
     ownersLinks.activate(context);
+  }
+  if (config.dirMetadata.links.get()) {
+    dirMetadata.activate(context, statusManager, cipdRepository);
   }
   codesearch.activate(context);
   suggestExtension.activate(context);

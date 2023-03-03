@@ -174,6 +174,10 @@ export const deviceManagement = {
   devices: new ConfigValue<string[]>('deviceManagement.devices'),
 };
 
+export const dirMetadata = {
+  links: new ConfigValue<boolean>('dirMetadata.links'),
+};
+
 export const metrics = {
   collectMetrics: new ConfigValue<boolean>('metrics.collectMetrics'),
   showMessage: new ConfigValue<boolean>('metrics.showMessage'),

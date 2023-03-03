@@ -871,6 +871,11 @@
           "description": "Format files with 'cros format'",
           "default": true
         },
+        "chromiumide.dirMetadata.links": {
+          "type": "boolean",
+          "description": "Make references to components in DIR_METADATA files clickable.",
+          "default": true
+        },
         "chromiumide.ebuildSupport.enabled": {
           "type": "boolean",
           "description": "Enable features for ChromeOS EBuilds",

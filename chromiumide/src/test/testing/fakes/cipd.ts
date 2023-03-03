@@ -31,6 +31,17 @@ export function installFakeCipd(fakeExec: FakeExec): cipd.CipdRepository {
       ],
       'ok'
     );
+    fakeExec.installStdout(
+      'cipd',
+      [
+        'install',
+        '-root',
+        tempDir.path,
+        'infra/tools/dirmd/${platform}',
+        'latest',
+      ],
+      'ok'
+    );
   });
 
   return cipdRepository;

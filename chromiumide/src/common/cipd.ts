@@ -104,4 +104,9 @@ export class CipdRepository {
     );
     return path.join(this.installDir, 'spellchecker');
   }
+
+  async ensureDirmd(output: vscode.OutputChannel): Promise<string> {
+    await this.ensurePackage('infra/tools/dirmd/${platform}', 'latest', output);
+    return path.join(this.installDir, 'dirmd');
+  }
 }

@@ -18,6 +18,13 @@ describe('CIPD repository', () => {
     );
     expect(path.startsWith(cipdRepository.installDir)).toBeTrue();
   });
+
+  it('downloads dirmd', async () => {
+    const path = await cipdRepository.ensureDirmd(
+      new fakes.VoidOutputChannel()
+    );
+    expect(path.startsWith(cipdRepository.installDir)).toBeTrue();
+  });
 });
 
 describe('CIPD repository', () => {
