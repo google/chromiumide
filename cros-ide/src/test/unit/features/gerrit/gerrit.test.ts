@@ -8,26 +8,17 @@ import * as vscode from 'vscode';
 import * as api from '../../../../features/gerrit/api';
 import * as auth from '../../../../features/gerrit/auth';
 import {TEST_ONLY} from '../../../../features/gerrit/gerrit';
-import * as git from '../../../../features/gerrit/git';
-import * as https from '../../../../features/gerrit/https';
 import * as metrics from '../../../../features/metrics/metrics';
 import * as bgTaskStatus from '../../../../ui/bg_task_status';
 import {TaskStatus} from '../../../../ui/bg_task_status';
 import * as testing from '../../../testing';
 import {VoidOutputChannel} from '../../../testing/fakes';
 import {FakeCommentController} from '../../../testing/fakes/comment_controller';
+import {FakeGerrit} from './fake_env';
 
 const {Gerrit} = TEST_ONLY;
 
-/** Build Gerrit API response from typed input. */
-function apiString(data?: Object): string | undefined {
-  if (!data) {
-    return undefined;
-  }
-  return ')]}\n' + JSON.stringify(data);
-}
-
-const AUTHOR = Object.freeze({
+const AUTHOR: api.AccountInfo = Object.freeze({
   _account_id: 1355869,
   name: 'Tomasz Tylenda',
   email: 'ttylenda@chromium.org',
@@ -45,7 +36,7 @@ function CHANGE_INFO(changeId: string, commitIds: string[]): api.ChangeInfo {
   return {change_id: changeId, revisions} as api.ChangeInfo;
 }
 
-const COMMENT_INFO = Object.freeze({
+const COMMENT_INFO_TEMPLATE = Object.freeze({
   author: AUTHOR,
   change_message_id: '592dcb09ed96952012e147fe621d264db460cd6f',
   unresolved: true,
@@ -60,7 +51,7 @@ const SIMPLE_COMMENT_INFOS_MAP = (
   return {
     'cryptohome/cryptohome.cc': [
       {
-        ...COMMENT_INFO,
+        ...COMMENT_INFO_TEMPLATE,
         id: 'b2698729_8e2b9e9a',
         line: 3,
         message: 'Unresolved comment on the added line.',
@@ -76,7 +67,7 @@ const SIMPLE_DRAFT_COMMENT_INFOS_MAP = (
   return {
     'cryptohome/cryptohome.cc': [
       {
-        ...COMMENT_INFO,
+        ...COMMENT_INFO_TEMPLATE,
         id: 'aaaaaaaaa_bbbbbbbb',
         line: 3,
         message: 'Draft reply.',
@@ -96,7 +87,7 @@ const SECOND_COMMIT_IN_CHAIN = (
   return {
     'cryptohome/cryptohome.cc': [
       {
-        ...COMMENT_INFO,
+        ...COMMENT_INFO_TEMPLATE,
         id: '91ffb8ea_d3594fb4',
         line: 6,
         message: 'Comment on the second change',
@@ -116,7 +107,7 @@ const TWO_PATCHSETS_COMMENT_INFOS_MAP = (
   return {
     'cryptohome/cryptohome.cc': [
       {
-        ...COMMENT_INFO,
+        ...COMMENT_INFO_TEMPLATE,
         // Note, that we use commit_id to identify distinct patchset, not the patch_set.
         id: '3d3c9023_4550daf0',
         line: 15,
@@ -124,7 +115,7 @@ const TWO_PATCHSETS_COMMENT_INFOS_MAP = (
         commit_id: commitId1,
       },
       {
-        ...COMMENT_INFO,
+        ...COMMENT_INFO_TEMPLATE,
         id: '9845ccec_3e772fd4',
         line: 18,
         message: 'Comment on unistd',
@@ -139,25 +130,6 @@ const GITCOOKIES_PATH = path.join(
   __dirname,
   '../../../../../src/test/testdata/gerrit/gitcookies'
 );
-
-function COOKIE(repoId: git.RepoId): string {
-  return `o=git-ymat.google.com=${
-    repoId === 'cros' ? 'chromium-newtoken' : 'chrome-internal-newtoken'
-  }`;
-}
-function OPTIONS(repoId: git.RepoId) {
-  return {
-    headers: {
-      cookie: COOKIE(repoId),
-    },
-  };
-}
-const CHROMIUM_OPTIONS = OPTIONS('cros');
-const CHROME_INTERNAL_OPTIONS = OPTIONS('cros-internal');
-
-const CHROMIUM_GERRIT = 'https://chromium-review.googlesource.com';
-const CHROME_INTERNAL_GERRIT =
-  'https://chrome-internal-review.googlesource.com';
 
 describe('Gerrit', () => {
   const tempDir = testing.tempDir();
@@ -202,60 +174,6 @@ describe('Gerrit', () => {
     subscriptions.length = 0;
   });
 
-  type GerritHttpsSetupOpts = {accountsMe?: string; internal?: boolean};
-
-  function setupGerritHttps(
-    opts?: GerritHttpsSetupOpts
-  ): GerritHttpsSetupHelper {
-    return new GerritHttpsSetupHelper(opts);
-  }
-
-  /** Fluent helper for creating mocking `http.getOrThrow`. */
-  class GerritHttpsSetupHelper {
-    private readonly spy;
-    private readonly baseUrl;
-    private readonly reqOpts;
-
-    /**
-     * Processes `internal` option and sets up `/accounts/me`.
-     */
-    constructor(opts?: GerritHttpsSetupOpts) {
-      this.baseUrl = opts?.internal ? CHROME_INTERNAL_GERRIT : CHROMIUM_GERRIT;
-
-      this.reqOpts = opts?.internal
-        ? CHROME_INTERNAL_OPTIONS
-        : CHROMIUM_OPTIONS;
-
-      this.spy = spyOn(https, 'getOrThrow')
-        .withArgs(`${this.baseUrl}/accounts/me`, this.reqOpts)
-        .and.resolveTo(opts?.accountsMe);
-    }
-
-    /**
-     * Sets up `/changes/<changeId>?o=ALL_REVISIONS`, `/changes/<changeId>/comments`,
-     * and `/changes/<changeId>/drafts`.
-     */
-    withChange(c: {
-      id: string;
-      info?: api.ChangeInfo;
-      comments?: api.FilePathToBaseCommentInfos;
-      drafts?: api.FilePathToBaseCommentInfos;
-    }) {
-      this.spy
-        .withArgs(
-          `${this.baseUrl}/changes/${c.id}?o=ALL_REVISIONS`,
-          this.reqOpts
-        )
-        .and.resolveTo(apiString(c.info))
-        .withArgs(`${this.baseUrl}/changes/${c.id}/comments`, this.reqOpts)
-        .and.resolveTo(apiString(c.comments))
-        .withArgs(`${this.baseUrl}/changes/${c.id}/drafts`, this.reqOpts)
-        .and.resolveTo(apiString(c.drafts));
-
-      return this;
-    }
-  }
-
   it('displays a comment', async () => {
     // Create a repo with two commits:
     //   1) The first simulates cros/main.
@@ -278,7 +196,7 @@ describe('Gerrit', () => {
     );
     subscriptions.push(gerrit);
 
-    setupGerritHttps().withChange({
+    FakeGerrit.initialize().setChange({
       id: changeId,
       info: CHANGE_INFO(changeId, [commitId]),
       comments: SIMPLE_COMMENT_INFOS_MAP(commitId),
@@ -331,7 +249,7 @@ describe('Gerrit', () => {
     );
     subscriptions.push(gerrit);
 
-    setupGerritHttps({accountsMe: apiString(AUTHOR)}).withChange({
+    FakeGerrit.initialize({accountsMe: AUTHOR}).setChange({
       id: changeId,
       info: CHANGE_INFO(changeId, [commitId]),
       comments: SIMPLE_COMMENT_INFOS_MAP(commitId),
@@ -370,11 +288,13 @@ describe('Gerrit', () => {
   it('handles special comment types (line, file, commit msg, patchset)', async () => {
     // Based on crrev.com/c/3980425
     // Contains four comments: on a line, on a file, on the commit message, and patchset level.
-    const SPECIAL_COMMENT_TYPES = (commitId: string) => {
+    const SPECIAL_COMMENT_TYPES = (
+      commitId: string
+    ): api.FilePathToBaseCommentInfos => {
       return {
         '/COMMIT_MSG': [
           {
-            ...COMMENT_INFO,
+            ...COMMENT_INFO_TEMPLATE,
             id: '11f22565_49cc073f',
             line: 7,
             message: 'Commit message comment',
@@ -383,7 +303,7 @@ describe('Gerrit', () => {
         ],
         '/PATCHSET_LEVEL': [
           {
-            ...COMMENT_INFO,
+            ...COMMENT_INFO_TEMPLATE,
             id: '413f2364_e012168b',
             updated: '2022-10-27 08:26:37.000000000',
             message: 'Patchset level comment.',
@@ -392,13 +312,13 @@ describe('Gerrit', () => {
         ],
         'cryptohome/crypto.h': [
           {
-            ...COMMENT_INFO,
+            ...COMMENT_INFO_TEMPLATE,
             id: 'dac128a9_60677732',
             message: 'File comment.',
             commit_id: commitId,
           },
           {
-            ...COMMENT_INFO,
+            ...COMMENT_INFO_TEMPLATE,
             id: 'e5b66a14_6d8b4554',
             line: 11,
             message: 'Line comment.',
@@ -435,7 +355,7 @@ describe('Gerrit', () => {
     );
     subscriptions.push(gerrit);
 
-    setupGerritHttps().withChange({
+    FakeGerrit.initialize().setChange({
       id: changeId,
       info: CHANGE_INFO(changeId, [reviewCommitId]),
       comments: SPECIAL_COMMENT_TYPES(reviewCommitId),
@@ -549,7 +469,7 @@ describe('Gerrit', () => {
 
     const fileName = abs('cryptohome/cryptohome.cc');
 
-    setupGerritHttps().withChange({
+    FakeGerrit.initialize().setChange({
       id: changeId,
       info: CHANGE_INFO(changeId, [commitId1, commitId2]),
       comments: TWO_PATCHSETS_COMMENT_INFOS_MAP(commitId1, commitId2),
@@ -638,13 +558,13 @@ describe('Gerrit', () => {
     );
     subscriptions.push(gerrit);
 
-    setupGerritHttps()
-      .withChange({
+    FakeGerrit.initialize()
+      .setChange({
         id: changeId1,
         info: CHANGE_INFO(changeId1, [commitId1]),
         comments: SIMPLE_COMMENT_INFOS_MAP(commitId1),
       })
-      .withChange({
+      .setChange({
         id: changeId2,
         info: CHANGE_INFO(changeId2, [commitId2]),
         comments: SECOND_COMMIT_IN_CHAIN(commitId2),
@@ -709,7 +629,7 @@ describe('Gerrit', () => {
     );
     subscriptions.push(gerrit);
 
-    setupGerritHttps().withChange({
+    FakeGerrit.initialize().setChange({
       id: changeId,
       info: CHANGE_INFO(changeId, [commitId]),
       comments: SIMPLE_COMMENT_INFOS_MAP(commitId),
@@ -745,7 +665,7 @@ describe('Gerrit', () => {
     );
     subscriptions.push(gerrit);
 
-    setupGerritHttps().withChange({
+    FakeGerrit.initialize().setChange({
       id: changeId,
     });
 
@@ -783,7 +703,7 @@ describe('Gerrit', () => {
     );
     subscriptions.push(gerrit);
 
-    setupGerritHttps({internal: true}).withChange({
+    FakeGerrit.initialize({internal: true}).setChange({
       id: changeId,
       info: CHANGE_INFO(changeId, [commitId]),
       comments: SIMPLE_COMMENT_INFOS_MAP(commitId),
@@ -844,7 +764,7 @@ describe('Gerrit', () => {
     );
     subscriptions.push(gerrit);
 
-    setupGerritHttps().withChange({
+    FakeGerrit.initialize().setChange({
       id: changeId,
       info: CHANGE_INFO(changeId, [commitId1, commitId2]),
       comments: TWO_PATCHSETS_COMMENT_INFOS_MAP(commitId1, commitId2),
