@@ -30,4 +30,8 @@ export class FakeStatusManager implements StatusManager {
     const data = this.tasks.get(taskName);
     this.setTask(taskName, {...data, status});
   }
+
+  getStatus(taskName: string): TaskStatus | undefined {
+    return this.tasks.get(taskName)?.status;
+  }
 }

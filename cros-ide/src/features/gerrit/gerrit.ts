@@ -26,7 +26,7 @@ export function activate(
   statusManager: bgTaskStatus.StatusManager,
   gitDirsWatcher: services.GitDirsWatcher,
   subscriptions?: vscode.Disposable[],
-  internalErrorForTesting?: Error
+  internalErrorForTesting?: () => Error | undefined
 ): vscode.Disposable {
   if (!subscriptions) {
     subscriptions = [];
@@ -181,7 +181,7 @@ class Gerrit implements vscode.Disposable {
     private readonly sink: Sink,
     private readonly statusBar: vscode.StatusBarItem,
     gitDirsWatcher: services.GitDirsWatcher,
-    private readonly internalErrorForTesting?: Error
+    private readonly internalErrorForTesting?: () => Error | undefined
   ) {
     const gerritComments = new GerritComments(
       gitDirsWatcher,
@@ -228,7 +228,8 @@ class Gerrit implements vscode.Disposable {
   ): Promise<void> {
     try {
       if (this.internalErrorForTesting) {
-        throw this.internalErrorForTesting;
+        const err = this.internalErrorForTesting();
+        if (err) throw err;
       }
 
       const gitDir = await git.findGitDir(filePath, this.sink);
@@ -281,6 +282,7 @@ class Gerrit implements vscode.Disposable {
           value: nCommentThreads,
         });
       }
+      this.sink.clearErrorStatus();
     } catch (err) {
       helpers.showTopLevelError(err as Error, this.sink);
       return;

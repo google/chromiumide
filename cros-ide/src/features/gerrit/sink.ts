@@ -70,6 +70,10 @@ export class Sink implements vscode.Disposable {
     }
   }
 
+  clearErrorStatus() {
+    this.statusManager.setStatus(GERRIT, TaskStatus.OK);
+  }
+
   dispose() {
     vscode.Disposable.from(this.output).dispose();
   }

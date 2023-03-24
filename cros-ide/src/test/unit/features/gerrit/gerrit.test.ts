@@ -12,7 +12,6 @@ import {
 } from '../../../../features/gerrit/model/gerrit_comments';
 import * as metrics from '../../../../features/metrics/metrics';
 import {GitDirsWatcher} from '../../../../services';
-import * as bgTaskStatus from '../../../../ui/bg_task_status';
 import {TaskStatus} from '../../../../ui/bg_task_status';
 import * as testing from '../../../testing';
 import {FakeStatusManager, VoidOutputChannel} from '../../../testing/fakes';
@@ -65,10 +64,7 @@ describe('Gerrit', () => {
       ),
       commentController: new FakeCommentController(),
       outputChannel: new VoidOutputChannel(),
-      statusManager: jasmine.createSpyObj<bgTaskStatus.StatusManager>(
-        'statusManager',
-        ['setStatus', 'setTask']
-      ),
+      statusManager: new FakeStatusManager(),
     };
 
     vscodeSpy.comments.createCommentController.and.returnValue(
@@ -164,7 +160,7 @@ describe('Gerrit', () => {
       action: 'update comments',
       value: 1,
     });
-    expect(state.statusManager.setStatus).not.toHaveBeenCalled();
+    expect(state.statusManager.getStatus('Gerrit')).toEqual(TaskStatus.OK);
   });
 
   it('displays a draft comment', async () => {
@@ -259,7 +255,7 @@ describe('Gerrit', () => {
       action: 'update comments',
       value: 1,
     });
-    expect(state.statusManager.setStatus).not.toHaveBeenCalled();
+    expect(state.statusManager.getStatus('Gerrit')).toEqual(TaskStatus.OK);
   });
 
   it('handles special comment types (line, file, commit msg, patchset)', async () => {
@@ -920,7 +916,7 @@ describe('Gerrit', () => {
     expect(state.statusBarItem.show).not.toHaveBeenCalled();
     expect(state.statusBarItem.hide).toHaveBeenCalled();
     expect(metrics.send).not.toHaveBeenCalled();
-    expect(state.statusManager.setStatus).not.toHaveBeenCalled();
+    expect(state.statusManager.getStatus('Gerrit')).toEqual(TaskStatus.OK);
   });
 
   it('displays a comment for an internal repo', async () => {
@@ -999,7 +995,7 @@ describe('Gerrit', () => {
       action: 'update comments',
       value: 1,
     });
-    expect(state.statusManager.setStatus).not.toHaveBeenCalled();
+    expect(state.statusManager.getStatus('Gerrit')).toEqual(TaskStatus.OK);
   });
 
   it('does not throw errors when repositioning is triggered outside a Git repo', async () => {
@@ -1022,7 +1018,7 @@ describe('Gerrit', () => {
 
     await completeShowChangeEvents.read();
 
-    expect(state.statusManager.setStatus).not.toHaveBeenCalled();
+    expect(state.statusManager.getStatus('Gerrit')).toEqual(TaskStatus.OK);
   });
 
   it('shows a specific error when a commit is not available locally', async () => {
@@ -1118,13 +1114,25 @@ describe('Gerrit', () => {
       action: 'update comments',
       value: 2,
     });
-    expect(state.statusManager.setStatus).not.toHaveBeenCalled();
+    expect(state.statusManager.getStatus('Gerrit')).toEqual(TaskStatus.OK);
   });
 
   it('reports unexpected errors', async () => {
+    const git = new testing.Git(tempDir.path);
+
+    await testing.cachedSetup(
+      tempDir.path,
+      async () => {
+        await git.init();
+        await git.commit('Mainline');
+        await git.setupCrosBranches();
+      },
+      'gerrit_reports_unexpected_errors'
+    );
+
     const user = os.userInfo().username;
 
-    const internalError = new Error(
+    let internalError: Error | undefined = new Error(
       `${user} saw a test error while editing /home/${user}/hello/world.php`
     );
 
@@ -1132,7 +1140,7 @@ describe('Gerrit', () => {
       state.statusManager,
       new GitDirsWatcher('/', subscriptions),
       subscriptions,
-      internalError
+      () => internalError
     );
 
     const completeShowChangeEvents = new testing.EventReader(
@@ -1148,10 +1156,7 @@ describe('Gerrit', () => {
 
     await completeShowChangeEvents.read();
 
-    expect(state.statusManager.setStatus).toHaveBeenCalledOnceWith(
-      'Gerrit',
-      TaskStatus.ERROR
-    );
+    expect(state.statusManager.getStatus('Gerrit')).toEqual(TaskStatus.ERROR);
     expect(metrics.send).toHaveBeenCalledWith({
       category: 'error',
       group: 'gerrit',
@@ -1159,6 +1164,17 @@ describe('Gerrit', () => {
         'Failed to show Gerrit changes (top-level): ' +
         'Error: ${USER} saw a test error while editing /home/${USER}/hello/world.php',
     });
+
+    internalError = undefined;
+
+    vscodeEmitters.workspace.onDidSaveTextDocument.fire({
+      uri: vscode.Uri.file(cryptohomeFilePath),
+      fileName: cryptohomeFilePath,
+    } as vscode.TextDocument);
+
+    await completeShowChangeEvents.read();
+
+    expect(state.statusManager.getStatus('Gerrit')).toEqual(TaskStatus.OK);
   });
 });
 
