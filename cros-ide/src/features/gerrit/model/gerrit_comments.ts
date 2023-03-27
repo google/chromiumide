@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import {GitDirsWatcher} from '../../../services';
 import * as api from '../api';
 import * as auth from '../auth';
-import {Change} from '../gerrit';
+import {Change} from '../data';
 import * as git from '../git';
 import {Sink} from '../sink';
 import {Clock} from './clock';

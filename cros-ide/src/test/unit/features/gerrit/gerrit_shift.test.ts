@@ -5,6 +5,8 @@
 import 'jasmine';
 import * as commonUtil from '../../../../common/common_util';
 import * as api from '../../../../features/gerrit/api';
+import {CommentThread, Revision} from '../../../../features/gerrit/data';
+import {FilePathToCommentThreads} from '../../../../features/gerrit/data/revision';
 import * as gerrit from '../../../../features/gerrit/gerrit';
 import * as git from '../../../../features/gerrit/git';
 import * as testing from '../../../testing';
@@ -36,11 +38,11 @@ type CommentInfoLike = {
 function commentThread(
   data: CommentInfoLike,
   opts?: {newLine?: number}
-): gerrit.CommentThread {
-  const revision = undefined as unknown as gerrit.Revision;
+): CommentThread {
+  const revision = undefined as unknown as Revision;
   data.author = {_account_id: 12345};
   const commentInfo = data as api.CommentInfo;
-  const t = new gerrit.CommentThread(revision, [commentInfo]);
+  const t = new CommentThread(revision, [commentInfo]);
   if (opts?.newLine) {
     t.overwriteShiftForTesting(opts.newLine - data.line!);
   }
@@ -64,7 +66,7 @@ describe('Comment shifting algorithm (hardcoded diff hunks)', () => {
   };
 
   it('updates comment threads', () => {
-    const commentThreadsMap: gerrit.FilePathToCommentThreads = {
+    const commentThreadsMap: FilePathToCommentThreads = {
       'foo.ts': [
         commentThread({message: 'foo'}), // comment on a file
         commentThread({range: range(1, 1, 1, 2), line: 1}), // comment on characters
@@ -94,7 +96,7 @@ describe('Comment shifting algorithm (hardcoded diff hunks)', () => {
       ],
       'bar.ts': [commentThread({line: 1}, {newLine: 2})],
       // TODO(teramon): Add other test cases
-    } as unknown as gerrit.FilePathToCommentThreads;
+    } as unknown as FilePathToCommentThreads;
 
     shiftCommentThreadsByHunks(commentThreadsMap, hunksMap);
     expect(commentThreadsMap).toEqual(wantCommentThreadsMap);
@@ -141,7 +143,7 @@ describe('Comment shifting algorithm (generated diff hunks)', () => {
       `;
 
     const diffHunksMap: git.FilePathToHunks = await readDiffHunks(left, right);
-    const commentThreadsMap: gerrit.FilePathToCommentThreads = {
+    const commentThreadsMap: FilePathToCommentThreads = {
       'right.txt': [
         commentThread({line: 1, message: 'one'}),
         commentThread({line: 2, message: 'two'}),
