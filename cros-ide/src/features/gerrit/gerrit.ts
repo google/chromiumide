@@ -16,7 +16,6 @@ import {
   VscodeComment,
   VscodeCommentThread,
 } from './data';
-import {FilePathToCommentThreads} from './data/revision';
 import * as git from './git';
 import * as helpers from './helpers';
 import {GerritComments} from './model';
@@ -244,7 +243,13 @@ class Gerrit implements vscode.Disposable {
         // Save off the new changes if they were found.
         this.changes.set(filePath, changes);
       }
-      let nCommentThreads = 0;
+
+      const threadsToDisplay: {
+        shift: number;
+        filePath: string;
+        commentThread: CommentThread;
+      }[] = [];
+
       for (const {revisions} of this.changes.get(gitDir) ?? []) {
         for (const revision of Object.values(revisions)) {
           const {commitId, commentThreadsMap} = revision;
@@ -253,35 +258,57 @@ class Gerrit implements vscode.Disposable {
             gitDir,
             this.sink
           );
+
+          let hunksMap: git.FilePathToHunks = {};
           if (commitExists) {
-            await this.shiftCommentThreadsMap(
-              gitDir,
-              commitId,
-              commentThreadsMap
+            // TODO: If the local branch is rebased after uploading it for review,
+            // unrestricted `git diff` will include everything that changed
+            // in the entire repo. This can have performance implications.
+            const filePaths = Object.keys(commentThreadsMap).filter(
+              filePath => !api.MAGIC_PATHS.includes(filePath)
             );
+            hunksMap =
+              (await git.readDiffHunks(
+                gitDir,
+                commitId,
+                filePaths,
+                this.sink
+              )) ?? {};
           }
-          // We still want to show comments that cannot be repositioned correctly
+
           for (const [filePath, commentThreads] of Object.entries(
             commentThreadsMap
           )) {
+            // We still want to show comments that cannot be repositioned correctly.
+            const hunks = hunksMap[filePath] ?? [];
             for (const commentThread of commentThreads) {
-              commentThread.displayForVscode(
-                this.commentController,
-                gitDir,
-                filePath
-              );
-              nCommentThreads++;
+              const shift = commentThread.getShift(hunks, filePath);
+              threadsToDisplay.push({
+                shift,
+                filePath,
+                commentThread,
+              });
             }
           }
         }
       }
+
+      for (const {shift, filePath, commentThread} of threadsToDisplay) {
+        commentThread.displayForVscode(
+          this.commentController,
+          gitDir,
+          filePath,
+          shift
+        );
+      }
+
       this.updateStatusBar();
-      if (changes && nCommentThreads > 0) {
+      if (changes && threadsToDisplay.length > 0) {
         metrics.send({
           category: 'background',
           group: 'gerrit',
           action: 'update comments',
-          value: nCommentThreads,
+          value: threadsToDisplay.length,
         });
       }
       this.sink.clearErrorStatus();
@@ -313,32 +340,6 @@ class Gerrit implements vscode.Disposable {
     this.statusBar.show();
   }
 
-  /**
-   * Updates line numbers in `commentThreadsMap`, which are assumed to be made
-   * on `commitId`, so they can be placed in the right lines on the files
-   * in the working tree.
-   */
-  private async shiftCommentThreadsMap(
-    gitDir: string,
-    commitId: string,
-    commentThreadsMap: FilePathToCommentThreads
-  ): Promise<void> {
-    // TODO: If the local branch is rebased after uploading it for review,
-    // unrestricted `git diff` will include everything that changed
-    // in the entire repo. This can have performance implications.
-    const filePaths = Object.keys(commentThreadsMap).filter(
-      filePath => !api.MAGIC_PATHS.includes(filePath)
-    );
-    const hunksMap = await git.readDiffHunks(
-      gitDir,
-      commitId,
-      filePaths,
-      this.sink
-    );
-    if (!hunksMap) return;
-    shiftCommentThreadsByHunks(commentThreadsMap, hunksMap);
-  }
-
   clearCommentThreadsFromVscode(filePath: string): void {
     for (const commentThread of this.commentThreads(filePath)) {
       commentThread.clearFromVscode();
@@ -347,20 +348,5 @@ class Gerrit implements vscode.Disposable {
 
   dispose(): void {
     vscode.Disposable.from(...this.subscriptions.reverse()).dispose();
-  }
-}
-
-/**
- * Repositions comment threads based on the given hunks.
- */
-function shiftCommentThreadsByHunks(
-  commentThreadsMap: FilePathToCommentThreads,
-  hunksAllFiles: git.FilePathToHunks
-) {
-  for (const [filePath, commentThreads] of Object.entries(commentThreadsMap)) {
-    const hunks = hunksAllFiles[filePath] ?? [];
-    for (const commentThread of commentThreads) {
-      commentThread.setShift(hunks, filePath);
-    }
   }
 }

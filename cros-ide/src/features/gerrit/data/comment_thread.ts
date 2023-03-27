@@ -16,19 +16,12 @@ import {Comment} from '.';
  * Represents a Gerrit comment thread that belongs to a Gerrit CL.
  * The usage of this class is as follows.
  * 1. Initialize with the comment infos and the local git log info for the CL.
- * 2. Call setShift to update the shift count and displayForVscode to display the comment thread
- *    on VSCode.
- * 3. To clear the comment thread from VSCode, call clearFromVscode
+ * 2. Call getShift to compute the shift count.
+ * 3. Call displayForVscode with the shift count.
  */
 export class CommentThread {
   private readonly comments: readonly Comment[];
   private vscodeCommentThread?: VscodeCommentThread;
-  /**
-   * Line shift for repositioning the comment thread from the original
-   * location to the corresponding line in the working tree.
-   * (Column shift is ignored)
-   */
-  private shift = 0;
 
   constructor(
     private readonly localCommitId: string,
@@ -56,20 +49,20 @@ export class CommentThread {
   }
 
   /** Shifted line */
-  private get line(): number | undefined {
+  private line(shift: number): number | undefined {
     const ol = this.originalLine;
     if (ol === undefined) return undefined;
-    return ol + this.shift;
+    return ol + shift;
   }
 
   /** Shifted range */
-  private get range(): api.CommentRange | undefined {
+  private range(shift: number): api.CommentRange | undefined {
     const r = this.firstComment.commentInfo.range;
     if (r === undefined) return undefined;
     return {
-      start_line: r.start_line + this.shift,
+      start_line: r.start_line + shift,
       start_character: r.start_character,
-      end_line: r.end_line + this.shift,
+      end_line: r.end_line + shift,
       end_character: r.end_character,
     };
   }
@@ -82,12 +75,12 @@ export class CommentThread {
   }
 
   /**
-   * Repositions threads based on the given hunks.
+   * Computes how many line shift is needed to reposition the comment thread
+   * from the given diff hunks.
    *
-   * Thread position is determined by its first comment,
-   * so only the first comment is updated. The updates are in-place.
+   * Thread position is determined by its first comment.
    */
-  setShift(hunks: readonly git.Hunk[], filePath: string): void {
+  getShift(hunks: readonly git.Hunk[], filePath: string): number {
     let shift = 0;
     const ol = this.originalLine;
     for (const hunk of hunks) {
@@ -116,11 +109,7 @@ export class CommentThread {
       // Compensate the difference between commit message on Gerrit and Terminal
       shift -= ol > 6 ? 6 : ol - 1;
     }
-    this.shift = shift;
-  }
-
-  overwriteShiftForTesting(shift: number): void {
-    this.shift = shift;
+    return shift;
   }
 
   /**
@@ -155,25 +144,27 @@ export class CommentThread {
   displayForVscode(
     controller: vscode.CommentController,
     gitDir: string,
-    filePath: string
+    filePath: string,
+    shift: number
   ): void {
     if (this.vscodeCommentThread) {
       // Recompute the range
-      this.vscodeCommentThread.range = this.getVscodeRange();
+      this.vscodeCommentThread.range = this.getVscodeRange(shift);
       return;
     }
-    this.createVscodeCommentThread(controller, gitDir, filePath);
+    this.createVscodeCommentThread(controller, gitDir, filePath, shift);
   }
 
   private createVscodeCommentThread(
     controller: vscode.CommentController,
     gitDir: string,
-    path: string
+    path: string,
+    shift: number
   ): void {
     const dataUri = this.getDataUri(gitDir, path);
     const vscodeCommentThread = controller.createCommentThread(
       dataUri,
-      this.getVscodeRange(),
+      this.getVscodeRange(shift),
       this.comments.map(comment => toVscodeComment(comment))
     ) as VscodeCommentThread;
     vscodeCommentThread.gerritCommentThread = this; // Remember the comment thread
@@ -209,8 +200,8 @@ export class CommentThread {
   }
 
   /** Gets vscode.Range for the comment. */
-  private getVscodeRange(): vscode.Range {
-    const r = this.range;
+  private getVscodeRange(shift: number): vscode.Range {
+    const r = this.range(shift);
     if (r !== undefined) {
       // Comment thread for some range
       // VSCode is 0-base, whereas Gerrit has 1-based lines and 0-based columns.
@@ -221,7 +212,7 @@ export class CommentThread {
         r.end_character
       );
     }
-    const l = this.line;
+    const l = this.line(shift);
     if (l !== undefined) {
       // Comment thread for a line
       return new vscode.Range(l - 1, 0, l - 1, 0);
