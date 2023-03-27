@@ -11,17 +11,15 @@ import * as virtualDocument from '../virtual_document';
 import {getCommentContextValue, toVscodeComment} from './comment';
 import {Comment} from '.';
 
-// TODO(oka): Make this class immutable.
 /**
  * Represents a Gerrit comment thread that belongs to a Gerrit CL.
  * The usage of this class is as follows.
  * 1. Initialize with the comment infos and the local git log info for the CL.
  * 2. Call getShift to compute the shift count.
- * 3. Call displayForVscode with the shift count.
+ * 3. Call createVscodeCommentThread or decorateVscodeCommentThread with the shift count.
  */
 export class CommentThread {
   private readonly comments: readonly Comment[];
-  private vscodeCommentThread?: VscodeCommentThread;
 
   constructor(
     private readonly localCommitId: string,
@@ -34,6 +32,14 @@ export class CommentThread {
     this.comments = commentInfos.map(
       commentInfo => new Comment(repoId, changeNumber, commentInfo)
     );
+  }
+
+  /**
+   * Thread identifier which is the same for the same thread even if the class
+   * instances are different or replies are added.
+   */
+  get id(): string {
+    return this.firstComment.commentId;
   }
 
   get firstComment(): Comment {
@@ -137,36 +143,34 @@ export class CommentThread {
   }
 
   /**
-   * Displays the comment thread in the UI,
-   * creating a VS Code comment thread if not yet created.
-   * To reposition by local changes, call setShift before calling it.
+   * Creates the comment thread in the UI.
    */
-  displayForVscode(
-    controller: vscode.CommentController,
-    gitDir: string,
-    filePath: string,
-    shift: number
-  ): void {
-    if (this.vscodeCommentThread) {
-      // Recompute the range
-      this.vscodeCommentThread.range = this.getVscodeRange(shift);
-      return;
-    }
-    this.createVscodeCommentThread(controller, gitDir, filePath, shift);
-  }
-
-  private createVscodeCommentThread(
+  createVscodeCommentThread(
     controller: vscode.CommentController,
     gitDir: string,
     path: string,
     shift: number
-  ): void {
+  ): VscodeCommentThread {
     const dataUri = this.getDataUri(gitDir, path);
     const vscodeCommentThread = controller.createCommentThread(
       dataUri,
-      this.getVscodeRange(shift),
-      this.comments.map(comment => toVscodeComment(comment))
+      // Decorated later.
+      new vscode.Range(new vscode.Position(0, 0), new vscode.Position(0, 0)),
+      []
     ) as VscodeCommentThread;
+
+    this.decorateVscodeCommentThread(vscodeCommentThread, shift);
+    return vscodeCommentThread;
+  }
+
+  decorateVscodeCommentThread(
+    vscodeCommentThread: VscodeCommentThread,
+    shift: number
+  ) {
+    vscodeCommentThread.range = this.getVscodeRange(shift);
+    vscodeCommentThread.comments = this.comments.map(comment =>
+      toVscodeComment(comment)
+    );
     vscodeCommentThread.gerritCommentThread = this; // Remember the comment thread
     vscodeCommentThread.canReply = false;
     const revisionNumber = this.revisionNumber;
@@ -182,7 +186,6 @@ export class CommentThread {
     vscodeCommentThread.contextValue = getCommentContextValue(
       this.comments?.[0]?.commentInfo
     );
-    this.vscodeCommentThread = vscodeCommentThread;
   }
 
   private getDataUri(gitDir: string, filePath: string): vscode.Uri {
@@ -219,20 +222,6 @@ export class CommentThread {
     }
     // Comment thread for the entire file
     return new vscode.Range(0, 0, 0, 0);
-  }
-
-  clearFromVscode(): void {
-    if (this.vscodeCommentThread) {
-      this.vscodeCommentThread.dispose();
-      this.vscodeCommentThread = undefined;
-    }
-  }
-
-  collapseInVscode(): void {
-    if (this.vscodeCommentThread) {
-      this.vscodeCommentThread.collapsibleState =
-        vscode.CommentThreadCollapsibleState.Collapsed;
-    }
   }
 }
 

@@ -170,7 +170,14 @@ async function openExternal(repoId: git.RepoId, path: string): Promise<void> {
 
 class Gerrit implements vscode.Disposable {
   // Map git root directory to their associated changes.
-  private changes = new Map<string, readonly Change[]>();
+  private readonly changes = new Map<string, readonly Change[]>();
+
+  // All the visible vscode threads. It maps git root directory to a map from
+  // thread id to vscode comment thread.
+  private readonly gitDirToThreadIdToVscodeCommentThread = new Map<
+    string,
+    Map<string, VscodeCommentThread>
+  >();
 
   private readonly commentController = vscode.comments.createCommentController(
     'cros-ide-gerrit',
@@ -236,10 +243,6 @@ class Gerrit implements vscode.Disposable {
       const gitDir = await git.findGitDir(filePath, this.sink);
       if (!gitDir) return;
       if (changes) {
-        // Clear existing comments.
-        this.clearCommentThreadsFromVscode(filePath);
-        this.changes.delete(filePath);
-
         // Save off the new changes if they were found.
         this.changes.set(filePath, changes);
       }
@@ -293,13 +296,39 @@ class Gerrit implements vscode.Disposable {
         }
       }
 
+      // Atomically update vscode threads to display.
+      if (!this.gitDirToThreadIdToVscodeCommentThread.has(gitDir)) {
+        this.gitDirToThreadIdToVscodeCommentThread.set(gitDir, new Map());
+      }
+      const threadIdToVscodeCommentThread =
+        this.gitDirToThreadIdToVscodeCommentThread.get(gitDir)!;
+
+      const threadIdsToRemove = new Set(threadIdToVscodeCommentThread.keys());
       for (const {shift, filePath, commentThread} of threadsToDisplay) {
-        commentThread.displayForVscode(
-          this.commentController,
-          gitDir,
-          filePath,
-          shift
+        const id = commentThread.id;
+
+        threadIdsToRemove.delete(id);
+
+        const existingThread = threadIdToVscodeCommentThread.get(id);
+
+        if (existingThread) {
+          commentThread.decorateVscodeCommentThread(existingThread, shift);
+          continue;
+        }
+
+        threadIdToVscodeCommentThread.set(
+          id,
+          commentThread.createVscodeCommentThread(
+            this.commentController,
+            gitDir,
+            filePath,
+            shift
+          )
         );
+      }
+      for (const id of threadIdsToRemove.keys()) {
+        threadIdToVscodeCommentThread.get(id)?.dispose();
+        threadIdToVscodeCommentThread.delete(id);
       }
 
       this.updateStatusBar();
@@ -319,8 +348,11 @@ class Gerrit implements vscode.Disposable {
   }
 
   collapseAllCommentThreadsInVscode(): void {
-    for (const commentThread of this.commentThreads()) {
-      commentThread.collapseInVscode();
+    for (const threadIdToVscodeCommentThread of this.gitDirToThreadIdToVscodeCommentThread.values()) {
+      for (const commentThread of threadIdToVscodeCommentThread.values()) {
+        commentThread.collapsibleState =
+          vscode.CommentThreadCollapsibleState.Collapsed;
+      }
     }
   }
 
@@ -338,12 +370,6 @@ class Gerrit implements vscode.Disposable {
     this.statusBar.text = `$(comment) ${nUnresolved}`;
     this.statusBar.tooltip = `Gerrit comments: ${nUnresolved} unresolved (${nAll} total)`;
     this.statusBar.show();
-  }
-
-  clearCommentThreadsFromVscode(filePath: string): void {
-    for (const commentThread of this.commentThreads(filePath)) {
-      commentThread.clearFromVscode();
-    }
   }
 
   dispose(): void {
