@@ -396,17 +396,18 @@
       "comments/commentThread/context": [
         {
           "command": "cros-ide.gerrit.reply",
-          "group": "inline@a"
+          "group": "inline@a",
+          "when": "commentController == cros-ide-gerrit"
         },
         {
           "command": "cros-ide.gerrit.replyAndResolve",
           "group": "inline@b",
-          "when": "commentThread =~ /<unresolved>/"
+          "when": "commentController == cros-ide-gerrit && commentThread =~ /<unresolved>/"
         },
         {
           "command": "cros-ide.gerrit.replyAndUnresolve",
           "group": "inline@b",
-          "when": "commentThread =~ /<resolved>/"
+          "when": "commentController == cros-ide-gerrit && commentThread =~ /<resolved>/"
         }
       ],
       "comments/comment/title": [
