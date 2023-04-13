@@ -201,6 +201,13 @@ export class ChromiumOSBoilerplateGenerator extends BoilerplateGenerator {
  * A boilerplate generator for Chromium projects.
  */
 export class ChromiumBoilerplateGenerator extends BoilerplateGenerator {
+  private NO_COMPILE_LINES = [
+    'This is a "No Compile Test" suite.',
+    'https://dev.chromium.org/developers/testing/no-compile-tests',
+  ];
+
+  private TEST_SUFFIXES = ['_test', '_unittest', '_browsertest'];
+
   constructor(private readonly chromiumSrc: string) {
     super();
   }
@@ -218,5 +225,120 @@ export class ChromiumBoilerplateGenerator extends BoilerplateGenerator {
       'Use of this source code is governed by a BSD-style license that can be',
       'found in the LICENSE file.',
     ];
+  }
+
+  public override async getBoilerplate(
+    document: vscode.TextDocument
+  ): Promise<string | null> {
+    const copyrightHeader = this.getCopyrightHeader(document);
+    if (copyrightHeader === null) {
+      return null;
+    }
+    let boilerplate = copyrightHeader + '\n';
+
+    // TODO(cmfcmf): Implement automatic namespace detection based on other files in the same
+    // folder.
+    const namespace = null;
+
+    const relativePath = path.relative(this.chromiumSrc, document.fileName);
+    const extension = path.extname(relativePath);
+    if (extension === '.h') {
+      boilerplate += this.boilerplateForCppHeader(relativePath, namespace);
+    } else if (extension === '.cc') {
+      boilerplate += this.boilerplateForCppImplementation(
+        relativePath,
+        namespace
+      );
+    } else if (extension === '.nc') {
+      boilerplate += this.boilerplateForNoCompile(relativePath);
+    } else if (extension === '.mm') {
+      boilerplate += this.boilerplateForObjCppImplementation(relativePath);
+    }
+
+    return boilerplate;
+  }
+
+  private boilerplateForCppHeader(
+    relativePath: string,
+    namespace: string | null
+  ) {
+    let guard = relativePath.toUpperCase() + '_';
+    guard = guard.replace(/[/\\.+]/g, '_');
+    return `
+#ifndef ${guard}
+#define ${guard}
+
+${
+  namespace !== null
+    ? this.boilerplateForNamespace(relativePath, namespace)
+    : ''
+}
+
+#endif  // ${guard}
+`;
+  }
+
+  private boilerplateForCppImplementation(
+    relativePath: string,
+    namespace: string | null
+  ) {
+    const includePath =
+      this.normalizeSlashes(this.removeTestSuffix(relativePath)) + '.h';
+    return `
+#include "${includePath}"
+
+${
+  namespace !== null
+    ? this.boilerplateForNamespace(relativePath, namespace) + '\n'
+    : ''
+}`;
+  }
+
+  private boilerplateForNoCompile(relativePath: string) {
+    return (
+      '\n' +
+      this.makeComment('//', this.NO_COMPILE_LINES) +
+      '\n' +
+      this.boilerplateForCppImplementation(relativePath, null)
+    );
+  }
+
+  private boilerplateForObjCppImplementation(relativePath: string) {
+    const includePath =
+      this.normalizeSlashes(this.removeTestSuffix(relativePath)) + '.h';
+    return `
+#import "${includePath}"
+
+`;
+  }
+
+  private boilerplateForNamespace(relativePath: string, namespace: string) {
+    const isTestFile = this.TEST_SUFFIXES.some(suffix =>
+      path.parse(relativePath).name.endsWith(suffix)
+    );
+
+    return `\
+namespace ${namespace} {
+${isTestFile ? 'namespace {\n' : ''}\
+
+
+
+${isTestFile ? '}  // namespace\n' : ''}\
+}  // namespace ${namespace}`;
+  }
+
+  private removeTestSuffix(relativePath: string) {
+    const parts = path.parse(relativePath);
+    const base = path.join(parts.dir, parts.name);
+    for (const suffix of this.TEST_SUFFIXES) {
+      if (base.endsWith(suffix)) {
+        return base.slice(0, -suffix.length);
+      }
+    }
+    return base;
+  }
+
+  private normalizeSlashes(relativePath: string) {
+    return relativePath.replace(/\\/g, '/');
   }
 }
