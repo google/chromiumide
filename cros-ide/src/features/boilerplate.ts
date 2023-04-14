@@ -4,6 +4,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import {TextDecoder} from 'util';
 
 /**
  * Inserts boilerplate (such as the copyright header) into newly created files. Whenever a new file
@@ -46,7 +47,6 @@ export class BoilerplateInserter implements vscode.Disposable {
 
   private async handle(uri: vscode.Uri) {
     const document = await vscode.workspace.openTextDocument(uri);
-
     for (const generator of this.boilerplateGenerators) {
       if (generator.supportsDocument(document)) {
         await this.insertBoilerplate(document, generator);
@@ -236,15 +236,16 @@ export class ChromiumBoilerplateGenerator extends BoilerplateGenerator {
     }
     let boilerplate = copyrightHeader + '\n';
 
-    // TODO(cmfcmf): Implement automatic namespace detection based on other files in the same
-    // folder.
-    const namespace = null;
-
     const relativePath = path.relative(this.chromiumSrc, document.fileName);
     const extension = path.extname(relativePath);
+    const parentDirectoryUri = vscode.Uri.file(
+      path.dirname(document.uri.fsPath)
+    );
     if (extension === '.h') {
+      const namespace = await guessNamespace(parentDirectoryUri);
       boilerplate += this.boilerplateForCppHeader(relativePath, namespace);
     } else if (extension === '.cc') {
+      const namespace = await guessNamespace(parentDirectoryUri);
       boilerplate += this.boilerplateForCppImplementation(
         relativePath,
         namespace
@@ -342,3 +343,52 @@ ${isTestFile ? '}  // namespace\n' : ''}\
     return relativePath.replace(/\\/g, '/');
   }
 }
+
+/**
+ * Reads all .cc and .h files in the given directory and retrieves the most commonly used namespace
+ * from them. Will timeout after 500ms in case there are too many files.
+ */
+async function guessNamespace(directory: vscode.Uri): Promise<string | null> {
+  const startTime = Date.now();
+  const namespaces = new Map<string, number>();
+  for (const [name, fileType] of await vscode.workspace.fs.readDirectory(
+    directory
+  )) {
+    // Search for at most 500ms to avoid a long delay in folders with many and large files.
+    if (Date.now() - startTime >= 500) {
+      break;
+    }
+    if (fileType !== vscode.FileType.File) {
+      continue;
+    }
+    if (!name.endsWith('.cc') && !name.endsWith('.h')) {
+      continue;
+    }
+
+    // Read the file and scan it for `namespace ... {`.
+    const bytes = await vscode.workspace.fs.readFile(
+      vscode.Uri.joinPath(directory, name)
+    );
+    const text = new TextDecoder().decode(bytes);
+    for (const match of text.matchAll(/^namespace (.+) \{$/gm)) {
+      const namespace = match[1];
+      namespaces.set(namespace, (namespaces.get(namespace) ?? 0) + 1);
+    }
+  }
+
+  let mostCommonNamespace: string | null = null;
+  for (const [namespace, count] of namespaces.entries()) {
+    if (
+      mostCommonNamespace === null ||
+      count > namespaces.get(mostCommonNamespace)!
+    ) {
+      mostCommonNamespace = namespace;
+    }
+  }
+
+  return mostCommonNamespace;
+}
+
+export const TEST_ONLY = {
+  guessNamespace,
+};

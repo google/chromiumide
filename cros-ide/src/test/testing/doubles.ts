@@ -146,6 +146,8 @@ function newVscodeEmitters() {
  */
 export type VscodeGetters = ReturnType<typeof newVscodeGetters>;
 
+export type VscodeProperties = ReturnType<typeof newVscodeProperties>;
+
 /**
  * Returns an object with settable properties in vscode namespaces.
  *
@@ -229,8 +231,8 @@ function buildNamespaceGetters<T extends {[K in keyof T]: {}}>(
   return res as R;
 }
 
-function newVscodeGetters() {
-  return buildNamespaceGetters('vscode', newVscodeProperties());
+function newVscodeGetters(vscodeProperties: VscodeProperties) {
+  return buildNamespaceGetters('vscode', vscodeProperties);
 }
 
 function copyVscodeNamespaces() {
@@ -259,10 +261,12 @@ export function installVscodeDouble(): {
   vscodeSpy: VscodeSpy;
   vscodeEmitters: VscodeEmitters;
   vscodeGetters: VscodeGetters;
+  vscodeProperties: VscodeProperties;
 } {
   const vscodeSpy = cleanState(() => newVscodeSpy());
   const vscodeEmitters = cleanState(() => newVscodeEmitters());
-  const vscodeGetters = cleanState(() => newVscodeGetters());
+  const vscodeProperties = cleanState(() => newVscodeProperties());
+  const vscodeGetters = cleanState(() => newVscodeGetters(vscodeProperties));
 
   // This an injected module for unit tests and real vscode module for integration tests.
   const theVscode = vscode;
@@ -312,6 +316,7 @@ export function installVscodeDouble(): {
     vscodeSpy,
     vscodeEmitters,
     vscodeGetters,
+    vscodeProperties,
   };
 }
 

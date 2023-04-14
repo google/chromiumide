@@ -15,6 +15,7 @@ export {Disposable} from './disposable';
 export {EndOfLine} from './end_of_line';
 export {EventEmitter} from './event';
 export {ExtensionMode} from './extension_mode';
+export {FileType} from './file_type';
 export {MarkdownString} from './markdown_string';
 export {Position} from './position';
 export {Range} from './range';
