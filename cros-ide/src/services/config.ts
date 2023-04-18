@@ -92,9 +92,6 @@ export const gerrit = {
 
 export const underDevelopment = {
   chromiumBuild: new ConfigValue<boolean>('underDevelopment.chromiumBuild'),
-  chromiumOutputDirectories: new ConfigValue<boolean>(
-    'underDevelopment.chromiumOutputDirectories'
-  ),
   crosFormat: new ConfigValue<boolean>('underDevelopment.crosFormat'),
   deviceManagement: new ConfigValue<boolean>(
     'underDevelopment.deviceManagement'
@@ -151,6 +148,7 @@ export const goExtension = {
 export const chrome = {
   ashBuildDir: new ConfigValue<string>('chrome.ashBuildDir'),
   dutName: new ConfigValue<string>('chrome.dutName'),
+  outputDirectories: new ConfigValue<boolean>('chrome.outputDirectories'),
 };
 
 export const spellchecker = new ConfigValue<boolean>('spellchecker');

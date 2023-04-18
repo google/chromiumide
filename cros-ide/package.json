@@ -373,7 +373,7 @@
         {
           "id": "cros-ide.chromium.outputDirectories",
           "name": "Chromium: Output Directories",
-          "when": "config.cros-ide.underDevelopment.chromiumOutputDirectories"
+          "when": "config.cros-ide.chrome.outputDirectories"
         }
       ]
     },
@@ -683,6 +683,11 @@
           "description": "Name to use for SSH to DUT for deploy chrome",
           "default": "DUT"
         },
+        "cros-ide.chrome.outputDirectories": {
+          "type": "boolean",
+          "description": "Enable view for Chromium output directories in the Explorer sidebar",
+          "default": true
+        },
         "cros-ide.codeSearch": {
           "type": "string",
           "enum": [
@@ -748,11 +753,6 @@
         "cros-ide.underDevelopment.chromiumBuild": {
           "type": "boolean",
           "description": "Enable build + deploy for chromium code (incomplete)",
-          "default": false
-        },
-        "cros-ide.underDevelopment.chromiumOutputDirectories": {
-          "type": "boolean",
-          "description": "Enable output directory view for Chromium code (under development)",
           "default": false
         },
         "cros-ide.underDevelopment.crosFormat": {
