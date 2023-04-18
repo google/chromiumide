@@ -118,7 +118,7 @@ async function postMetricsActivate(
   crosLint.activate(context, statusManager, linterLogger);
   gn.activate(context, statusManager, linterLogger);
   shortLinkProvider.activate(context);
-  if (config.underDevelopment.ownersFileLinks.get()) {
+  if (config.ownersFiles.links.get()) {
     ownersLinks.activate(context);
   }
   codesearch.activate(context);

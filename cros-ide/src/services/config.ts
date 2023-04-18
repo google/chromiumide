@@ -101,7 +101,6 @@ export const underDevelopment = {
     'underDevelopment.deviceManagementFlashV2'
   ),
   gerrit: new ConfigValue<boolean>('underDevelopment.gerrit'),
-  ownersFileLinks: new ConfigValue<boolean>('underDevelopment.ownersFileLinks'),
   platform2GtestDebugging: new ConfigValue<boolean>(
     'underDevelopment.platform2GtestDebugging'
   ),
@@ -118,6 +117,10 @@ export const deviceManagement = {
 export const metrics = {
   collectMetrics: new ConfigValue<boolean>('metrics.collectMetrics'),
   showMessage: new ConfigValue<boolean>('metrics.showMessage'),
+};
+
+export const ownersFiles = {
+  links: new ConfigValue<boolean>('ownersFiles.links'),
 };
 
 export const paths = {

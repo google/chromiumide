@@ -698,6 +698,11 @@
           "markdownDescription": "Enable Gerrit comments.",
           "default": true
         },
+        "cros-ide.ownersFiles.links": {
+          "type": "boolean",
+          "description": "Make references to other OWNERS files clickable.",
+          "default": true
+        },
         "cros-ide.platformEC.board": {
           "type": "string",
           "description": "EC target, for example, bloonchipper."
@@ -763,11 +768,6 @@
         "cros-ide.underDevelopment.gerrit": {
           "type": "boolean",
           "description": "Enable new features for Gerrit (under development)",
-          "default": false
-        },
-        "cros-ide.underDevelopment.ownersFileLinks": {
-          "type": "boolean",
-          "description": "Enable experimental support for clickable links in OWNERS files.",
           "default": false
         },
         "cros-ide.underDevelopment.platform2GtestDebugging": {
