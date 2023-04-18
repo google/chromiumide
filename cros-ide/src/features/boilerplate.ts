@@ -247,13 +247,13 @@ export class ChromiumBoilerplateGenerator extends BoilerplateGenerator {
       path.dirname(document.uri.fsPath)
     );
     if (extension === '.h') {
-      const namespace = await guessNamespace(parentDirectoryUri);
-      boilerplate += this.boilerplateForCppHeader(relativePath, namespace);
+      const nameSpace = await guessNamespace(parentDirectoryUri);
+      boilerplate += this.boilerplateForCppHeader(relativePath, nameSpace);
     } else if (extension === '.cc') {
-      const namespace = await guessNamespace(parentDirectoryUri);
+      const nameSpace = await guessNamespace(parentDirectoryUri);
       boilerplate += this.boilerplateForCppImplementation(
         relativePath,
-        namespace
+        nameSpace
       );
     } else if (extension === '.nc') {
       boilerplate += this.boilerplateForNoCompile(relativePath);
@@ -266,7 +266,7 @@ export class ChromiumBoilerplateGenerator extends BoilerplateGenerator {
 
   private boilerplateForCppHeader(
     relativePath: string,
-    namespace: string | null
+    nameSpace: string | null
   ) {
     let guard = relativePath.toUpperCase() + '_';
     guard = guard.replace(/[/\\.+]/g, '_');
@@ -275,8 +275,8 @@ export class ChromiumBoilerplateGenerator extends BoilerplateGenerator {
 #define ${guard}
 
 ${
-  namespace !== null
-    ? this.boilerplateForNamespace(relativePath, namespace)
+  nameSpace !== null
+    ? this.boilerplateForNamespace(relativePath, nameSpace)
     : ''
 }
 
@@ -286,7 +286,7 @@ ${
 
   private boilerplateForCppImplementation(
     relativePath: string,
-    namespace: string | null
+    nameSpace: string | null
   ) {
     const includePath =
       this.normalizeSlashes(this.removeTestSuffix(relativePath)) + '.h';
@@ -294,8 +294,8 @@ ${
 #include "${includePath}"
 
 ${
-  namespace !== null
-    ? this.boilerplateForNamespace(relativePath, namespace) + '\n'
+  nameSpace !== null
+    ? this.boilerplateForNamespace(relativePath, nameSpace) + '\n'
     : ''
 }`;
   }
@@ -318,19 +318,19 @@ ${
 `;
   }
 
-  private boilerplateForNamespace(relativePath: string, namespace: string) {
+  private boilerplateForNamespace(relativePath: string, nameSpace: string) {
     const isTestFile = this.TEST_SUFFIXES.some(suffix =>
       path.parse(relativePath).name.endsWith(suffix)
     );
 
     return `\
-namespace ${namespace} {
+namespace ${nameSpace} {
 ${isTestFile ? 'namespace {\n' : ''}\
 
 
 
 ${isTestFile ? '}  // namespace\n' : ''}\
-}  // namespace ${namespace}`;
+}  // namespace ${nameSpace}`;
   }
 
   private removeTestSuffix(relativePath: string) {
@@ -380,18 +380,18 @@ async function guessNamespace(directory: vscode.Uri): Promise<string | null> {
     );
     const text = new TextDecoder().decode(bytes);
     for (const match of text.matchAll(/^namespace (.+) \{$/gm)) {
-      const namespace = match[1];
-      namespaces.set(namespace, (namespaces.get(namespace) ?? 0) + 1);
+      const nameSpace = match[1];
+      namespaces.set(nameSpace, (namespaces.get(nameSpace) ?? 0) + 1);
     }
   }
 
   let mostCommonNamespace: string | null = null;
-  for (const [namespace, count] of namespaces.entries()) {
+  for (const [nameSpace, count] of namespaces.entries()) {
     if (
       mostCommonNamespace === null ||
       count > namespaces.get(mostCommonNamespace)!
     ) {
-      mostCommonNamespace = namespace;
+      mostCommonNamespace = nameSpace;
     }
   }
 

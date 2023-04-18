@@ -50,6 +50,9 @@ module.exports = {
           'use services/configs.ts instead',
       },
     ],
+    // Disallow variables called `namespace`, because they mess up Gerrit's
+    // syntax highlighting.
+    'id-match': ['error', '^(?!(namespace)$)'],
   },
   settings: {
     'import/core-modules': ['vscode'],

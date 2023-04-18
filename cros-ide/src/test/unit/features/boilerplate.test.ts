@@ -305,8 +305,8 @@ namespace {
 
       state.fs.readDirectory.withArgs(uri).and.resolveTo([]);
 
-      const namespace = await boilerplate.TEST_ONLY.guessNamespace(uri);
-      expect(namespace).toBeNull();
+      const nameSpace = await boilerplate.TEST_ONLY.guessNamespace(uri);
+      expect(nameSpace).toBeNull();
     });
 
     it('only reads files in the same folder', async () => {
@@ -332,8 +332,8 @@ int x;
 }`)
         );
 
-      const namespace = await boilerplate.TEST_ONLY.guessNamespace(uri);
-      expect(namespace).toEqual('cmfcmf');
+      const nameSpace = await boilerplate.TEST_ONLY.guessNamespace(uri);
+      expect(nameSpace).toEqual('cmfcmf');
     });
 
     it('guesses the most common namespace from files in the same folder', async () => {
@@ -370,8 +370,8 @@ namespace web::app {
 }`)
       );
 
-      const namespace = await boilerplate.TEST_ONLY.guessNamespace(uri);
-      expect(namespace).toEqual('web::app');
+      const nameSpace = await boilerplate.TEST_ONLY.guessNamespace(uri);
+      expect(nameSpace).toEqual('web::app');
     });
 
     it('times out after 500ms', async () => {
@@ -395,8 +395,8 @@ int x;
         .withArgs(vscode.Uri.joinPath(uri, 'b.cc'))
         .and.throwError('should not be called due to timeout');
 
-      const namespace = await boilerplate.TEST_ONLY.guessNamespace(uri);
-      expect(namespace).toEqual('cmfcmf');
+      const nameSpace = await boilerplate.TEST_ONLY.guessNamespace(uri);
+      expect(nameSpace).toEqual('cmfcmf');
     });
   });
 });

@@ -189,7 +189,7 @@ function newVscodeProperties() {
  * getters.y.and.callFake(() => 2 * x.y);
  */
 function buildGetters<T extends {}>(
-  namespace: string,
+  nameSpace: string,
   target: T
 ): {[P in keyof T]: jasmine.Spy<() => T[P]>} {
   type R = {[P in keyof T]: jasmine.Spy<() => T[P]>};
@@ -197,7 +197,7 @@ function buildGetters<T extends {}>(
   const res: Partial<R> = {};
   for (const property in target) {
     res[property] = jasmine
-      .createSpy<() => T[typeof property]>(`${namespace}.${String(property)}`)
+      .createSpy<() => T[typeof property]>(`${nameSpace}.${String(property)}`)
       .and.callFake(() => target[property]);
   }
   return res as R;
@@ -216,7 +216,7 @@ function buildGetters<T extends {}>(
  * getters.y.z.and.callFake(() => 2 * x.y.z);
  */
 function buildNamespaceGetters<T extends {[K in keyof T]: {}}>(
-  namespace: string,
+  nameSpace: string,
   target: T
 ): {[N in keyof T]: {[P in keyof T[N]]: jasmine.Spy<() => T[N][P]>}} {
   type R = {[N in keyof T]: {[P in keyof T[N]]: jasmine.Spy<() => T[N][P]>}};
@@ -224,7 +224,7 @@ function buildNamespaceGetters<T extends {[K in keyof T]: {}}>(
   const res: Partial<R> = {};
   for (const property in target) {
     res[property] = buildGetters(
-      `${namespace}.${String(property)}}`,
+      `${nameSpace}.${String(property)}}`,
       target[property]
     );
   }

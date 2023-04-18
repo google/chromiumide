@@ -514,8 +514,8 @@ export class OutputDirectoriesDataProvider
       vscode.Uri.file(this.srcPath)
     );
 
-    return entries.flatMap(([name, type]) => {
-      if (type !== vscode.FileType.Directory) {
+    return entries.flatMap(([name, fileType]) => {
+      if (fileType !== vscode.FileType.Directory) {
         return [];
       }
       if (name === 'out' || name.startsWith('out_')) {
@@ -539,11 +539,11 @@ export class OutputDirectoriesDataProvider
     const nodes: Node[] = [];
     try {
       await Promise.all(
-        entries.map(async ([name, type]) => {
+        entries.map(async ([name, fileType]) => {
           // Contains the name of this output folder, relative to Chromium's src directory. Examples:
           // `out/Default`, `out_hatch/Debug`, ...
           const outName = path.join(topLevelOutDirName, name);
-          if (type === vscode.FileType.Directory) {
+          if (fileType === vscode.FileType.Directory) {
             nodes.push(
               new DirNode(outName, /*isCurrent=*/ false, /*gnArgs=*/ 'unknown')
             );
@@ -551,7 +551,7 @@ export class OutputDirectoriesDataProvider
           }
 
           if (
-            type ===
+            fileType ===
             (vscode.FileType.Directory | vscode.FileType.SymbolicLink)
           ) {
             // TODO(cmfcmf): Unfortunately, `vscode.workspace.fs` has not method to read the link
@@ -584,7 +584,7 @@ export class OutputDirectoriesDataProvider
             return;
           }
 
-          if (type === vscode.FileType.File && name === 'args.gn') {
+          if (fileType === vscode.FileType.File && name === 'args.gn') {
             // It looks like this output directory is only one level deep. A lot of Chromium tooling
             // expects output directories to always be exactly two levels deep. Thus, abort here and
             // return an empty list for this top level output directory.
