@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {JobManager} from '../../../common/common_util';
 import {GitDirsWatcher} from '../../../services';
 import * as api from '../api';
 import * as auth from '../auth';
@@ -13,7 +14,6 @@ import {Clock} from './clock';
 import {Ticket} from './ticket';
 
 export const POLL_INTERVAL_MILLIS = 10 * 1000;
-export const FETCH_THROTTLE_INTERVAL_MILLIS = 500;
 
 /**
  * Retrieves and holds current comments from Gerrit. It does this by fetching
@@ -22,7 +22,7 @@ export const FETCH_THROTTLE_INTERVAL_MILLIS = 500;
  */
 export class GerritComments implements vscode.Disposable {
   private readonly gitDirToChanges = new Map<string, [Ticket, Change[]]>();
-  private readonly gitDirToTimeoutId = new Map<string, NodeJS.Timeout>();
+  private readonly gitDirToJobManager = new Map<string, JobManager<void>>();
 
   private readonly onDidUpdateCommentsEmitter = new vscode.EventEmitter<{
     gitDir: string;
@@ -69,21 +69,20 @@ export class GerritComments implements vscode.Disposable {
   }
 
   private requestFetch(gitDir: string, ticket: Ticket): void {
-    const existingTimeoutId = this.gitDirToTimeoutId.get(gitDir);
-    if (existingTimeoutId !== undefined) {
-      clearTimeout(existingTimeoutId);
+    let jobManager = this.gitDirToJobManager.get(gitDir);
+    if (!jobManager) {
+      jobManager = new JobManager<void>();
+      this.gitDirToJobManager.set(gitDir, jobManager);
     }
 
-    const timeoutId = setTimeout(() => {
-      void this.fetch(gitDir, ticket);
-    }, FETCH_THROTTLE_INTERVAL_MILLIS);
-    this.gitDirToTimeoutId.set(gitDir, timeoutId);
+    void jobManager.offer(() => this.fetch(gitDir, ticket));
   }
 
   private async fetch(gitDir: string, ticket: Ticket): Promise<void> {
     // Fetch current changes.
     let changes: Change[];
     try {
+      this.sink.appendLine(`Fetching changes for ${gitDir}`);
       const cs = await this.fetchChangesOrThrow(gitDir, this.sink);
       if (!cs) {
         this.sink.appendLine('No changes found');
@@ -161,6 +160,7 @@ export class GerritComments implements vscode.Disposable {
       }
 
       // Fetch public comments
+      this.sink.appendLine(`Fetching public comments for ${changeId}`);
       const publicCommentInfosMap =
         await this.client.fetchPublicCommentsOrThrow(
           repoId,

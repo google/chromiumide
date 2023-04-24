@@ -7,10 +7,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as api from '../../../../features/gerrit/api';
 import * as gerrit from '../../../../features/gerrit/gerrit';
-import {
-  FETCH_THROTTLE_INTERVAL_MILLIS,
-  POLL_INTERVAL_MILLIS,
-} from '../../../../features/gerrit/model/gerrit_comments';
+import {POLL_INTERVAL_MILLIS} from '../../../../features/gerrit/model/gerrit_comments';
 import * as metrics from '../../../../features/metrics/metrics';
 import {GitDirsWatcher} from '../../../../services';
 import {underDevelopment} from '../../../../services/config';
@@ -142,7 +139,7 @@ describe('Gerrit', () => {
       fileName: cryptohomeFilePath,
     } as vscode.TextDocument);
 
-    await completeShowChangeEvents.poll(FETCH_THROTTLE_INTERVAL_MILLIS);
+    await completeShowChangeEvents.read();
 
     const threads = state.commentController.threads;
     expect(threads.length).toEqual(1);
@@ -235,7 +232,7 @@ describe('Gerrit', () => {
       fileName: cryptohomeFilePath,
     } as vscode.TextDocument);
 
-    await completeShowChangeEvents.poll(FETCH_THROTTLE_INTERVAL_MILLIS);
+    await completeShowChangeEvents.read();
 
     const threads = state.commentController.threads;
     expect(threads.length).toEqual(1);
@@ -353,7 +350,7 @@ describe('Gerrit', () => {
       fileName: cryptohomeFilePath,
     } as vscode.TextDocument);
 
-    await completeShowChangeEvents.poll(FETCH_THROTTLE_INTERVAL_MILLIS);
+    await completeShowChangeEvents.read();
 
     const threads = threadsSortedByFirstCommentBody(state.commentController);
     expect(threads.length).toEqual(4);
@@ -495,7 +492,7 @@ describe('Gerrit', () => {
       fileName: cryptohomeFilePath,
     } as vscode.TextDocument);
 
-    await completeShowChangeEvents.poll(FETCH_THROTTLE_INTERVAL_MILLIS);
+    await completeShowChangeEvents.read();
 
     const threads = threadsSortedByFirstCommentBody(state.commentController);
     expect(threads.length).toEqual(2);
@@ -584,7 +581,7 @@ describe('Gerrit', () => {
       fileName: fooFilePath,
     } as vscode.TextDocument);
 
-    await completeShowChangeEvents.poll(FETCH_THROTTLE_INTERVAL_MILLIS);
+    await completeShowChangeEvents.read();
 
     expect(state.commentController.threads[0].range.start.line).toEqual(1);
 
@@ -651,7 +648,7 @@ describe('Gerrit', () => {
       fileName: fooFilePath,
     } as vscode.TextDocument);
 
-    await completeShowChangeEvents.poll(FETCH_THROTTLE_INTERVAL_MILLIS);
+    await completeShowChangeEvents.read();
 
     expect(state.commentController.threads.length).toEqual(0);
 
@@ -775,7 +772,7 @@ describe('Gerrit', () => {
       fileName: cryptohomeFilePath,
     } as vscode.TextDocument);
 
-    await completeShowChangeEvents.poll(FETCH_THROTTLE_INTERVAL_MILLIS);
+    await completeShowChangeEvents.read();
 
     const threads = threadsSortedByFirstCommentBody(state.commentController);
     expect(threads.length).toEqual(2);
@@ -867,7 +864,7 @@ describe('Gerrit', () => {
       fileName: cryptohomeFilePath,
     } as vscode.TextDocument);
 
-    await completeShowChangeEvents.poll(FETCH_THROTTLE_INTERVAL_MILLIS);
+    await completeShowChangeEvents.read();
 
     const threads = threadsSortedByFirstCommentBody(state.commentController);
     expect(threads.length).toEqual(1);
@@ -917,7 +914,7 @@ describe('Gerrit', () => {
       fileName: cryptohomeFilePath,
     } as vscode.TextDocument);
 
-    await completeShowChangeEvents.poll(FETCH_THROTTLE_INTERVAL_MILLIS);
+    await completeShowChangeEvents.read();
 
     expect(state.commentController.threads.length).toEqual(0);
 
@@ -984,7 +981,7 @@ describe('Gerrit', () => {
       fileName: cryptohomeFilePath,
     } as vscode.TextDocument);
 
-    await completeShowChangeEvents.poll(FETCH_THROTTLE_INTERVAL_MILLIS);
+    await completeShowChangeEvents.read();
 
     const threads = threadsSortedByFirstCommentBody(state.commentController);
     expect(threads.length).toEqual(1);
@@ -1085,7 +1082,7 @@ describe('Gerrit', () => {
       fileName: cryptohomeFilePath,
     } as vscode.TextDocument);
 
-    await completeShowChangeEvents.poll(FETCH_THROTTLE_INTERVAL_MILLIS);
+    await completeShowChangeEvents.read();
 
     const threads = threadsSortedByFirstCommentBody(state.commentController);
     expect(threads.length).toEqual(2);
@@ -1386,7 +1383,7 @@ ADD
       fileName: fooFilePath,
     } as vscode.TextDocument);
 
-    await completeShowChangeEvents.poll(FETCH_THROTTLE_INTERVAL_MILLIS);
+    await completeShowChangeEvents.read();
 
     const threads = threadsSortedByFirstCommentBody(state.commentController);
 
@@ -1477,7 +1474,7 @@ ADD
       fileName: fooFilePath,
     } as vscode.TextDocument);
 
-    await completeShowChangeEvents.poll(FETCH_THROTTLE_INTERVAL_MILLIS);
+    await completeShowChangeEvents.read();
 
     const threads = threadsSortedByFirstCommentBody(state.commentController);
 
