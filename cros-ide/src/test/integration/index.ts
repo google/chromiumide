@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as path from 'path';
-import * as glob from 'glob';
+import glob = require('glob');
 
 const Jasmine = require('jasmine');
 

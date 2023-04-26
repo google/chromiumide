@@ -5,7 +5,7 @@
 import * as fs from 'fs';
 import * as util from 'util';
 import * as vscode from 'vscode';
-import * as glob from 'glob';
+import glob = require('glob');
 import * as services from '../../../services';
 import * as config from '../../../services/config';
 import {StatusManager, TaskStatus} from '../../../ui/bg_task_status';

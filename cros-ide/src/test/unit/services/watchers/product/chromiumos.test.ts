@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as mockFs from 'mock-fs';
+import mockFs = require('mock-fs');
 import * as chromiumos from '../../../../../services/watchers/product/chromiumos';
 
 describe('Chromiumos product detection', () => {

@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as fs from 'fs/promises';
-import * as mockFs from 'mock-fs';
+import mockFs = require('mock-fs');
 import {createOrUpdateSymLinkToDirectory} from '../../../../features/chromium/output_directories';
 
 describe('createOrUpdateSymLinkToDirectory', () => {

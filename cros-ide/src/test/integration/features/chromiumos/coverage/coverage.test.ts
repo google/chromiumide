@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as assert from 'assert';
+import assert from 'assert';
 import {Coverage} from '../../../../../features/chromiumos/coverage';
 import * as services from '../../../../../services';
 import * as config from '../../../../../services/config';

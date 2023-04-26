@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as assert from 'assert';
+import assert from 'assert';
 import {FakeCancellationToken} from '../../testing/fakes';
 import * as commonUtil from '../../../common/common_util';
 import * as extensionTesting from '../extension_testing';

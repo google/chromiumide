@@ -8,7 +8,7 @@ import * as path from 'path';
 import * as util from 'util';
 import * as vscode from 'vscode';
 import * as commander from 'commander';
-import * as glob from 'glob';
+import glob = require('glob');
 import * as services from '../../../services';
 import * as testing from '../../testing';
 import {CompilationDatabase} from '../../../features/chromiumos/cpp_code_completion/compdb_service/compilation_database_type';
