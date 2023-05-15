@@ -25,7 +25,7 @@ export class LazyTestController implements vscode.Disposable {
     if (!this.controller) {
       this.controller = vscode.tests.createTestController(
         'cros-ide.tastTest',
-        'Tast (CrOS IDE)'
+        'Tast (ChromiumIDE)'
       );
       this.runProfile = new RunProfile(this.controller);
     }

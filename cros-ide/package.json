@@ -1,7 +1,7 @@
 {
   "name": "cros-ide",
-  "displayName": "CrOS IDE",
-  "description": "ChromiumOS Development",
+  "displayName": "ChromiumIDE",
+  "description": "Chromium(OS) Development",
   "version": "0.13.0",
   "publisher": "Google",
   "author": {
@@ -315,7 +315,7 @@
       },
       {
         "command": "cros-ide.showHelpForGerrit",
-        "title": "CrOS IDE Help",
+        "title": "ChromiumIDE Help",
         "icon": "$(question)"
       },
       {
@@ -325,7 +325,7 @@
       },
       {
         "command": "cros-ide.showHelpForLint",
-        "title": "CrOS IDE Help",
+        "title": "ChromiumIDE Help",
         "icon": "$(question)"
       },
       {
@@ -642,12 +642,12 @@
       },
       {
         "view": "boards-packages",
-        "contents": "You have not yet opened a folder with ChromeOS sources (for example, platform2).\n[Open Folder](command:vscode.openFolder)\nCrOS IDE uses source location to detect the chroot and show [initialized boards](https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md#Select-a-board).",
+        "contents": "You have not yet opened a folder with ChromeOS sources (for example, platform2).\n[Open Folder](command:vscode.openFolder)\nChromiumIDE uses source location to detect the chroot and show [initialized boards](https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md#Select-a-board).",
         "when": "!config.cros-ide.boardsAndPackages.showWelcomeMessage && !cros-ide.chrootPath"
       }
     ],
     "configuration": {
-      "title": "CrOS IDE",
+      "title": "ChromiumIDE",
       "properties": {
         "cros-ide.board": {
           "type": "string",
@@ -825,7 +825,7 @@
         },
         "cros-ide.paths.depotTools": {
           "type": "string",
-          "markdownDescription": "Path to depot tools. By default we search for depot tools in the `$PATH` and then in `~/depot_tools`. When set, the path specified here will be searched first. Use it to point CrOS IDE to commands such as `cipd`."
+          "markdownDescription": "Path to depot tools. By default we search for depot tools in the `$PATH` and then in `~/depot_tools`. When set, the path specified here will be searched first. Use it to point ChromiumIDE to commands such as `cipd`."
         }
       }
     },

@@ -8,7 +8,7 @@ export function activate(_context: vscode.ExtensionContext) {
   vscode.languages.registerDocumentSymbolProvider(
     {language: 'upstart'},
     new UpstartSymbolProvider(),
-    {label: 'CrOS IDE Upstart'}
+    {label: 'ChromiumIDE Upstart'}
   );
 }
 

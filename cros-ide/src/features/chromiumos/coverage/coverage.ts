@@ -35,7 +35,9 @@ export class Coverage {
     private readonly chrootService: services.chromiumos.ChrootService,
     private readonly statusManager: StatusManager
   ) {
-    this.output = vscode.window.createOutputChannel('CrOS IDE: Code Coverage');
+    this.output = vscode.window.createOutputChannel(
+      'ChromiumIDE: Code Coverage'
+    );
   }
 
   activate(context: vscode.ExtensionContext) {

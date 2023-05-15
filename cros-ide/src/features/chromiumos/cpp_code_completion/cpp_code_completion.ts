@@ -34,7 +34,9 @@ type GeneratorFactory = (
 ) => compdbGenerator.CompdbGenerator;
 
 export class CppCodeCompletion implements vscode.Disposable {
-  readonly output = vscode.window.createOutputChannel('CrOS IDE: C++ Support');
+  readonly output = vscode.window.createOutputChannel(
+    'ChromiumIDE: C++ Support'
+  );
 
   private readonly onDidMaybeGenerateEmitter = new vscode.EventEmitter<void>();
   readonly onDidMaybeGenerate = this.onDidMaybeGenerateEmitter.event;

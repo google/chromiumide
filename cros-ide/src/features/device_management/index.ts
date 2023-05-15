@@ -27,7 +27,7 @@ export function activate(
   rsaKeyFixPermission(context.extensionUri);
 
   const output = vscode.window.createOutputChannel(
-    'CrOS IDE: Device Management'
+    'ChromiumIDE: Device Management'
   );
   const crosfleetRunner = new crosfleet.CrosfleetRunner(cipdRepository, output);
   const abandonedDuts = new abandonedDevices.AbandonedDevices(

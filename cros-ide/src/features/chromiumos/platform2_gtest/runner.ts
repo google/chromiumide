@@ -419,7 +419,7 @@ export class Runner {
     };
 
     this.output.appendLine(
-      `CrOS IDE running debugger with the following config: ${JSON.stringify(
+      `ChromiumIDE running debugger with the following config: ${JSON.stringify(
         debugConfiguration
       )}`
     );

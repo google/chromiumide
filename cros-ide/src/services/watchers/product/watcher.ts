@@ -116,7 +116,7 @@ export class ProductWatcher implements vscode.Disposable {
       this.shownMultipleRootsError = true;
 
       void vscode.window.showErrorMessage(
-        `CrOS IDE does not support multiple ${
+        `ChromiumIDE does not support multiple ${
           this.product
         } repositories, but found: [${[this.root, root].join(
           ', '
@@ -185,7 +185,7 @@ export class ProductWatcher implements vscode.Disposable {
     buttons.push(openOtherFolder);
 
     const selection = await vscode.window.showErrorMessage(
-      `CrOS IDE expects a workspace folder with ${this.product} sources`,
+      `ChromiumIDE expects a workspace folder with ${this.product} sources`,
       ...buttons
     );
 

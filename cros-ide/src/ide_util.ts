@@ -14,7 +14,7 @@ import * as cros from './common/cros';
 import * as config from './services/config';
 
 const loggerInstance = vscode.window.createOutputChannel(
-  'CrOS IDE: UI Actions'
+  'ChromiumIDE: UI Actions'
 );
 
 /**

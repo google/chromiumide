@@ -122,7 +122,7 @@ sys.stdout.write(sock.makefile().read())
       const password = await vscode.window.showInputBox({
         password: true,
         title: `sudo password for ${os.userInfo().username}`,
-        prompt: `CrOS IDE needs your password ${this.options.sudoReason}`,
+        prompt: `ChromiumIDE needs your password ${this.options.sudoReason}`,
         ignoreFocusOut: true,
       });
 

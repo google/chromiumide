@@ -16,7 +16,7 @@ export function createLinterLoggingBundle(
 ): LoggingBundle {
   return createLoggingBundle(
     context,
-    'CrOS IDE: Linter',
+    'ChromiumIDE: Linter',
     'cros-ide.showLintLog',
     'Show linter log',
     'Linter'

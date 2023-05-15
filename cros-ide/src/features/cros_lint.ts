@@ -358,7 +358,7 @@ async function updateDiagnostics(
       const diagnostics = lintConfig.parse(stdout, stderr, document);
       if (res.exitStatus !== 0 && diagnostics.length === 0) {
         log.channel.append(
-          `lint command returned ${res.exitStatus}, but no diagnostics were parsed by CrOS IDE\n`
+          `lint command returned ${res.exitStatus}, but no diagnostics were parsed by ChromiumIDE\n`
         );
         if (!lintConfig.ignoreEmptyDiagnostics) {
           statusManager.setTask(log.taskId, {

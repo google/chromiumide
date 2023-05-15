@@ -179,7 +179,7 @@ class Gerrit implements vscode.Disposable {
 
   private readonly commentController = vscode.comments.createCommentController(
     'cros-ide-gerrit',
-    'CrOS IDE Gerrit'
+    'ChromiumIDE Gerrit'
   );
 
   // Throttles `showChanges` requests.

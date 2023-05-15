@@ -17,7 +17,7 @@ export function activate(
   statusManager: StatusManager
 ) {
   const outputChannel = vscode.window.createOutputChannel(
-    'CrOS IDE: Formatter'
+    'ChromiumIDE: Formatter'
   );
   statusManager.setTask(FORMATTER, {
     status: TaskStatus.OK,

@@ -53,7 +53,7 @@ export function activate(
   const srcPath = path.join(rootPath, 'src');
 
   const outputChannel = vscode.window.createOutputChannel(
-    'CrOS IDE: Chromium Output Directories'
+    'ChromiumIDE: Chromium Output Directories'
   );
   statusManager.setTask(STATUS_BAR_TASK_ID, {
     status: bgTaskStatus.TaskStatus.OK,

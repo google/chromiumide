@@ -18,7 +18,7 @@ type DeviceCache = [string, number][];
  * be listed as leased for some time.
  *
  * In order to have a good UI experience, we need to remember which devices
- * were returned and persist this data when CrOS IDE restarts.
+ * were returned and persist this data when ChromiumIDE restarts.
  */
 export class AbandonedDevices {
   constructor(private readonly globalState: vscode.Memento) {}

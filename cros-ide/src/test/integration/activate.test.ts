@@ -5,7 +5,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 
-describe('CrOS IDE', () => {
+describe('ChromiumIDE', () => {
   /**
    * The test will fail if activating the extension is not possible,
    * for example, if the main function, extension.activate(), throws an Error.

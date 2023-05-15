@@ -14,8 +14,9 @@ const GERRIT = 'Gerrit';
  * Represents the means to report logs or errors.
  */
 export class Sink implements vscode.Disposable {
-  private readonly output =
-    vscode.window.createOutputChannel('CrOS IDE: Gerrit');
+  private readonly output = vscode.window.createOutputChannel(
+    'ChromiumIDE: Gerrit'
+  );
 
   constructor(
     private readonly statusManager: bgTaskStatus.StatusManager,

@@ -169,7 +169,7 @@ describe('Chromiumos product watcher', () => {
     });
 
     expect(vscodeSpy.window.showErrorMessage.calls.argsFor(0)).toEqual([
-      'CrOS IDE expects a workspace folder with chromiumos sources',
+      'ChromiumIDE expects a workspace folder with chromiumos sources',
       'Open chromite',
       'Open Other',
     ]);

@@ -22,7 +22,7 @@ describe('Background Task Status', () => {
   ) {
     expect(statusBarItem).toEqual(
       jasmine.objectContaining({
-        text: '$(error) CrOS IDE',
+        text: '$(error) ChromiumIDE',
         tooltip: tooltip,
         backgroundColor: errorBgColor,
       })
@@ -32,7 +32,7 @@ describe('Background Task Status', () => {
   function assertShowsOk(statusBarItem: vscode.StatusBarItem) {
     expect(statusBarItem).toEqual(
       jasmine.objectContaining({
-        text: '$(check) CrOS IDE',
+        text: '$(check) ChromiumIDE',
         tooltip: 'No Problems',
         backgroundColor: undefined,
       })
@@ -100,7 +100,7 @@ describe('Background Task Status', () => {
     statusManager.setTask('error', {status: TaskStatus.ERROR});
     expect(statusBarItem).toEqual(
       jasmine.objectContaining({
-        text: '$(error) CrOS IDE',
+        text: '$(error) ChromiumIDE',
         backgroundColor: errorBgColor,
         tooltip: 'Errors: error',
       })
@@ -112,7 +112,7 @@ describe('Background Task Status', () => {
     statusManager.deleteTask('running');
     expect(statusBarItem).toEqual(
       jasmine.objectContaining({
-        text: '$(error) CrOS IDE',
+        text: '$(error) ChromiumIDE',
         backgroundColor: errorBgColor,
         tooltip: 'Errors: error',
       })
@@ -122,7 +122,7 @@ describe('Background Task Status', () => {
     statusManager.deleteTask('error');
     expect(statusBarItem).toEqual(
       jasmine.objectContaining({
-        text: '$(check) CrOS IDE',
+        text: '$(check) ChromiumIDE',
         backgroundColor: undefined,
         tooltip: 'No Problems',
       })
@@ -132,7 +132,7 @@ describe('Background Task Status', () => {
     statusManager.deleteTask('ok');
     expect(statusBarItem).toEqual(
       jasmine.objectContaining({
-        text: '$(check) CrOS IDE',
+        text: '$(check) ChromiumIDE',
         backgroundColor: undefined,
         tooltip: 'No Problems',
       })

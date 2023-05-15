@@ -19,6 +19,6 @@ export function activate(context: vscode.ExtensionContext) {
   );
   feedbackStatusBarItem.command = 'cros-ide.fileIdeBug';
   feedbackStatusBarItem.text = '$(feedback) Feedback';
-  feedbackStatusBarItem.tooltip = 'File a CrOS IDE bug on Buganizer';
+  feedbackStatusBarItem.tooltip = 'File a ChromiumIDE bug on Buganizer';
   feedbackStatusBarItem.show();
 }

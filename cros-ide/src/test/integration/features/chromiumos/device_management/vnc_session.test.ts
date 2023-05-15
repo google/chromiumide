@@ -28,7 +28,7 @@ describe('VNC session', () => {
   const state = testing.cleanState(() => {
     const subscriptions: vscode.Disposable[] = [];
     const output = vscode.window.createOutputChannel(
-      'CrOS IDE: Device Management (testing)'
+      'ChromiumIDE: Device Management (testing)'
     );
     subscriptions.push(output);
     return {subscriptions, output};

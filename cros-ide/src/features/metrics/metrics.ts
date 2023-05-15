@@ -12,7 +12,7 @@ import * as metricsConfig from './metrics_config';
 import * as metricsUtils from './metrics_util';
 
 const informationMessageTitle =
-  'CrOS IDE team would like to collect metrics to have a better understanding and improve on ' +
+  'ChromiumIDE team would like to collect metrics to have a better understanding and improve on ' +
   'your experience!';
 
 const informationMessageDetail =
@@ -24,13 +24,13 @@ const informationMessageDetail =
   'The data is pseudonymous. i.e. it is associated with a randomly generated unique user ID ' +
   'which resets every 180 days automatically, and you can also reset it from the Command ' +
   'Palette.\n' +
-  'Raw data is only accessible by the CrOS IDE team. However, aggregated data (e.g. trend ' +
+  'Raw data is only accessible by the ChromiumIDE team. However, aggregated data (e.g. trend ' +
   'of number of users against time) might be shared with a broader audience for retrospective or ' +
   'advertising purposes.\n' +
-  'You can opt-in or out of metrics collection anytime in settings (> extension > CrOS IDE).\n' +
+  'You can opt-in or out of metrics collection anytime in settings (> extension > ChromiumIDE).\n' +
   'Metrics from external (non-googler) users will not be collected.' +
   '\n' +
-  'Would you like to assist us by turning on metrics collection for CrOS IDE extension?';
+  'Would you like to assist us by turning on metrics collection for ChromiumIDE extension?';
 
 // This variable is set by activate() to make the extension mode available globally.
 let extensionMode: vscode.ExtensionMode | undefined = undefined;

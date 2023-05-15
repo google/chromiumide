@@ -77,7 +77,7 @@ export class Watcher implements vscode.Disposable {
     }
     Watcher.gitCommandErrorReported = true;
     void vscode.window.showErrorMessage(
-      `CrOS IDE failed to read HEAD to spellcheck commit message, etc. (${this.root}): ${e}`
+      `ChromiumIDE failed to read HEAD to spellcheck commit message, etc. (${this.root}): ${e}`
     );
   }
 }

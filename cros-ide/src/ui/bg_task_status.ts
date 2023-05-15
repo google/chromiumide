@@ -206,13 +206,13 @@ class StatusBarHandler {
   refresh(statusManagerImpl: StatusManagerImpl) {
     const errorTasks = statusManagerImpl.getErrorTasks();
     if (errorTasks.length) {
-      this.statusBarItem.text = `$(${getIcon(TaskStatus.ERROR)}) CrOS IDE`;
+      this.statusBarItem.text = `$(${getIcon(TaskStatus.ERROR)}) ChromiumIDE`;
       this.statusBarItem.backgroundColor = new vscode.ThemeColor(
         'statusBarItem.errorBackground'
       );
       this.statusBarItem.tooltip = `Errors: ${errorTasks.sort().join(', ')}`;
     } else {
-      this.statusBarItem.text = `$(${getIcon(TaskStatus.OK)}) CrOS IDE`;
+      this.statusBarItem.text = `$(${getIcon(TaskStatus.OK)}) ChromiumIDE`;
       this.statusBarItem.backgroundColor = undefined;
       this.statusBarItem.tooltip = 'No Problems';
     }
