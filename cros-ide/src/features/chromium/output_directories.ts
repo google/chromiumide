@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import assert from 'assert';
+import * as assert from 'assert';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type {Stats} from 'fs';

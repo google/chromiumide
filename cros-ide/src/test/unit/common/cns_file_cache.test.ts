@@ -3,7 +3,8 @@
 // found in the LICENSE file.
 
 import * as path from 'path';
-import mockFs = require('mock-fs');
+import * as mockFs from 'mock-fs';
+import mock = require('mock-fs');
 import {VoidOutputChannel} from './../../testing/fakes/output_channel';
 import {CnsFileCache} from './../../../common/cns_file_cache';
 import * as commonUtil from './../../../common/common_util';
@@ -25,7 +26,7 @@ describe('CnsFileCache', () => {
 
     it('does not re-download the file when it is already cached recently enough', async () => {
       mockFs({
-        [FAKE_CACHED_FILE]: mockFs.file({
+        [FAKE_CACHED_FILE]: mock.file({
           content: 'content1',
           mtime: new Date(10000),
         }),
@@ -42,7 +43,7 @@ describe('CnsFileCache', () => {
 
     it('re-downloads the file when it is already cached but time to refresh', async () => {
       mockFs({
-        [FAKE_CACHED_FILE]: mockFs.file({
+        [FAKE_CACHED_FILE]: mock.file({
           content: 'content1',
           mtime: new Date(10000),
         }),

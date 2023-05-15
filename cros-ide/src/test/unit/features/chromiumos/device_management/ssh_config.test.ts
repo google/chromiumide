@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as fs from 'fs';
-import mockFs = require('mock-fs');
+import * as mockFs from 'mock-fs';
 import 'jasmine';
 import * as sshConfig from '../../../../../features/device_management/ssh_config';
 import {SshConfigHostEntry} from '../../../../../features/device_management/ssh_util';

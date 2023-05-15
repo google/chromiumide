@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as fs from 'fs';
-import mockFs = require('mock-fs');
+import * as mockFs from 'mock-fs';
 import {OwnedDeviceRepository} from '../../../../../../features/device_management/device_repository';
 import {
   DutNetworkType,
