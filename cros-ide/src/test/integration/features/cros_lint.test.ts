@@ -291,7 +291,7 @@ describe('Lint Integration', () => {
   it('parses GN errors', async () => {
     const uri = vscode.Uri.from({scheme: scheme, path: gnFileName});
     const textDocument = await vscode.workspace.openTextDocument(uri);
-    const actual = crosLint.parseCrosLintGn('', gnLintOutput, textDocument);
+    const actual = crosLint.parseCrosLintGn(gnLintOutput, '', textDocument);
     await extensionTesting.closeDocument(textDocument);
     const expected = [
       warning(
