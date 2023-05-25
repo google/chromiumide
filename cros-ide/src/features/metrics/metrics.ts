@@ -145,20 +145,21 @@ export class Analytics {
     };
 
     const queries: string[] = [];
+
+    const description = event.description ?? event.action;
+
     if (event.category === 'error') {
       const data = Object.assign(baseData(), {
         t: 'exception',
-        exd: `${event.group}: ${event.description}`,
+        exd: `${event.group}: ${description}`,
       });
       queries.push(queryString.stringify(data));
     }
+
     // For an error, we send an event not only an exception. If we only send
     // exception hits we cannot see how many users are impacted per exception
     // description because exception hits are not associated with sessions or
     // users (b/25110142).
-
-    const description =
-      event.category === 'error' ? event.description : event.action;
 
     const data = baseData();
     Object.assign(data, {
@@ -173,7 +174,6 @@ export class Analytics {
       data.ev = event.value;
     }
     queries.push(queryString.stringify(data));
-
     return queries.join('\n');
   }
 
