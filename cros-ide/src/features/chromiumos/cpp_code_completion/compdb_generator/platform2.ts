@@ -18,13 +18,15 @@ import {
 import {Atom, Packages} from '../../../../services/chromiumos';
 import {CompdbGenerator, ErrorDetails} from '.';
 
+type GenerationState = 'generating' | 'generated' | 'failed';
+
 export class Platform2 implements CompdbGenerator {
   readonly name = 'platform2';
 
   private readonly subscriptions: vscode.Disposable[] = [];
   private readonly packages: Packages;
-  // Packages for which compdb has been generated in this session.
-  private readonly generated = new Set<Atom>();
+  // Packages for which compdb has been or being generated in this session.
+  private readonly generationStates = new Map<Atom, GenerationState>();
 
   constructor(
     private readonly chrootService: services.chromiumos.ChrootService,
@@ -70,16 +72,25 @@ export class Platform2 implements CompdbGenerator {
       return false;
     }
 
-    if (!this.generated.has(packageInfo.atom)) {
-      return true;
+    switch (this.generationStates.get(packageInfo.atom)) {
+      case undefined:
+        return true;
+      case 'generated': {
+        const source = this.chrootService.source;
+        if (!fs.existsSync(destination(source.root, packageInfo))) {
+          // Corner case: compdb was generated but then manually removed. In
+          // this case we can safely rerun the same command and regenerate it.
+          return true;
+        }
+        return false;
+      }
+      case 'generating':
+      case 'failed':
+        // We don't retry the generation if it fails. Instead we instruct the
+        // user to manually fix the problem and then reload the IDE through the
+        // error message.
+        return false;
     }
-
-    const source = this.chrootService.source;
-    if (!fs.existsSync(destination(source.root, packageInfo))) {
-      return true;
-    }
-
-    return false;
   }
 
   async generate(
@@ -96,11 +107,16 @@ export class Platform2 implements CompdbGenerator {
     }
     const packageInfo = (await this.packages.fromFilepath(document.fileName))!;
 
+    this.generationStates.set(packageInfo.atom, 'generating');
+
     try {
       // TODO(oka): use token to cancel the operation.
       await this.compdbService!.generate(board, packageInfo);
-      this.generated.add(packageInfo.atom);
+
+      this.generationStates.set(packageInfo.atom, 'generated');
     } catch (e) {
+      this.generationStates.set(packageInfo.atom, 'failed');
+
       const error = e as CompdbError;
       switch (error.details.kind) {
         case CompdbErrorKind.RemoveCache:

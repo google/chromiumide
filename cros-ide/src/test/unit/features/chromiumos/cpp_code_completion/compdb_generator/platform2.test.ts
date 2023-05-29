@@ -7,6 +7,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../../../common/common_util';
 import {Platform2} from '../../../../../../features/chromiumos/cpp_code_completion/compdb_generator/platform2';
+import * as compdbService from '../../../../../../features/chromiumos/cpp_code_completion/compdb_service';
 import * as services from '../../../../../../services';
 import * as config from '../../../../../../services/config';
 import {SpiedFakeCompdbService} from '../../../../../integration/features/cpp_code_completion/spied_fake_compdb_service';
@@ -91,6 +92,27 @@ inherit cros-workon platform user
     } as vscode.TextDocument;
 
     await state.compdbGenerator.generate(document, state.cancellation.token);
+
+    expect(await state.compdbGenerator.shouldGenerate(document)).toBeFalse();
+  });
+
+  it('does not rerun on C++ file if generation fails', async () => {
+    const document = {
+      fileName: path.join(state.source, 'src/platform2/cros-disks/disks.cc'),
+      languageId: 'cpp',
+    } as vscode.TextDocument;
+
+    spyOn(state.spiedFakeCompdbService, 'generate').and.rejectWith(
+      new compdbService.CompdbError({
+        kind: compdbService.CompdbErrorKind.RunEbuild,
+      })
+    );
+
+    expect(await state.compdbGenerator.shouldGenerate(document)).toBeTrue();
+
+    await expectAsync(
+      state.compdbGenerator.generate(document, state.cancellation.token)
+    ).toBeRejected();
 
     expect(await state.compdbGenerator.shouldGenerate(document)).toBeFalse();
   });
