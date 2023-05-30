@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import * as semver from 'semver';
 import * as config from '../../services/config';
 import * as metricsConfig from './metrics_config';
+import * as metricsEvent from './metrics_event';
 import * as metricsUtils from './metrics_util';
 
 const informationMessageTitle =
@@ -80,64 +81,6 @@ const optionsGA = {
   },
 };
 
-// Exhaustive list of feature groups.
-type FeatureGroup =
-  | 'chromium.outputDirectories'
-  | 'codesearch'
-  | 'coverage'
-  | 'cppxrefs'
-  | 'debugging'
-  | 'device'
-  | 'format'
-  | 'gerrit'
-  | 'idestatus'
-  | 'lint'
-  | 'misc'
-  | 'owners'
-  | 'package'
-  | 'spellchecker'
-  | 'tast'
-  // 'virtualdocument' should be used in features that rely on virtual documents,
-  // such as Gerrit and spellchecker, when the user interacts with such a document.
-  // Event label should be chosen carefully to simplify building a dashboard
-  // in Google Analytics
-  | 'virtualdocument';
-
-// Fields common to InteractiveEvent and BackgroundEvent.
-interface EventBase {
-  // Describes the feature group this event belongs to.
-  group: FeatureGroup;
-  // Describes an operation the extension has just run.
-  // You can optional add a prefix with a colon to group actions in the same feature set.
-  // Examples:
-  //   "select target board"
-  //   "device: connect to device via VNC"
-  action: string;
-  // Label is an optional string that describes the operation.
-  label?: string;
-  // Value is an optional number that describes the operation.
-  value?: number;
-}
-
-// Describes an event triggered by an explicit user action, such as VSCode command invocation.
-interface InteractiveEvent extends EventBase {
-  category: 'interactive';
-}
-
-// Describes an event triggered implicitly in the background, such as lint computation.
-interface BackgroundEvent extends EventBase {
-  category: 'background';
-}
-
-// Describes an error event.
-interface ErrorEvent {
-  category: 'error';
-  group: FeatureGroup;
-  description: string;
-}
-
-type Event = InteractiveEvent | BackgroundEvent | ErrorEvent;
-
 function chooseTrackingId(): string {
   // Use the testing property if the extension was launched for development
   // or running for unit tests.
@@ -177,7 +120,10 @@ export class Analytics {
    *
    * See go/cros-ide-metrics for the memo on what values are assigned to GA parameters.
    */
-  private eventToQuery(event: Event, gitRepo: string | undefined): string {
+  private eventToQuery(
+    event: metricsEvent.Event,
+    gitRepo: string | undefined
+  ): string {
     const baseData = () => {
       return {
         v: '1',
@@ -262,7 +208,7 @@ export class Analytics {
   /**
    * Send event as query. Does not wait for its response.
    */
-  send(event: Event, options = optionsGA) {
+  send(event: metricsEvent.Event, options = optionsGA) {
     if (!this.shouldSend()) {
       return;
     }
@@ -298,7 +244,7 @@ export class Analytics {
 }
 
 let analytics: Promise<Analytics> | null;
-export function send(event: Event) {
+export function send(event: metricsEvent.Event) {
   if (!analytics) {
     analytics = Analytics.create();
   }
