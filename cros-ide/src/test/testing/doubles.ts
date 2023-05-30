@@ -364,20 +364,26 @@ export function installFakeConfigs(
   const subscriptions: vscode.Disposable[] = [];
 
   beforeEach(() => {
-    const fakeConfig = new fakes.FakeWorkspaceConfiguration(
-      path.join(__dirname, '../../../package.json'),
-      config.TEST_ONLY.CROS_IDE_PREFIX
-    );
-    subscriptions.push(fakeConfig);
+    for (const prefix of [
+      config.TEST_ONLY.CHROMIUMIDE_PREFIX,
+      config.TEST_ONLY.CROS_IDE_PREFIX,
+    ]) {
+      const fakeConfig = new fakes.FakeWorkspaceConfiguration(
+        path.join(__dirname, '../../../package.json'),
+        prefix
+      );
+      subscriptions.push(fakeConfig);
 
-    vscodeSpy.workspace.getConfiguration
-      .withArgs(config.TEST_ONLY.CROS_IDE_PREFIX)
-      .and.returnValue(fakeConfig as vscode.WorkspaceConfiguration);
-    subscriptions.push(
-      fakeConfig.onDidChange(ev =>
-        vscodeEmitters.workspace.onDidChangeConfiguration.fire(ev)
-      )
-    );
+      vscodeSpy.workspace.getConfiguration
+        .withArgs(prefix)
+        .and.returnValue(fakeConfig as vscode.WorkspaceConfiguration);
+
+      subscriptions.push(
+        fakeConfig.onDidChange(ev =>
+          vscodeEmitters.workspace.onDidChangeConfiguration.fire(ev)
+        )
+      );
+    }
   });
 
   afterEach(() => {

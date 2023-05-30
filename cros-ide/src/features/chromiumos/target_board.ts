@@ -12,7 +12,7 @@ import * as services from '../../services';
 import * as config from '../../services/config';
 import * as metrics from '../metrics/metrics';
 
-const BOARD_CONFIG = 'cros-ide.board';
+const BOARD_CONFIG = 'chromiumide.board';
 
 export function activate(
   context: vscode.ExtensionContext,

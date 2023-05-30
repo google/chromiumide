@@ -28,6 +28,7 @@ import * as suggestExtension from './features/suggest_extension';
 import * as upstart from './features/upstart';
 import * as ideUtil from './ide_util';
 import * as logs from './logs';
+import * as migrate from './migrate';
 import * as services from './services';
 import * as config from './services/config';
 import * as gitDocument from './services/git_document';
@@ -48,7 +49,10 @@ export interface ExtensionApi {
 export async function activate(
   context: vscode.ExtensionContext
 ): Promise<ExtensionApi> {
-  // Activate metrics first so that other components can emit metrics on activation.
+  // Migrate user configs if needed before anything else.
+  await migrate.migrate();
+
+  // Activate metrics so that other components can emit metrics on activation.
   await metrics.activate(context);
 
   try {

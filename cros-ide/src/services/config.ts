@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 // Prefixes to be added to all config sections.
 // The Go extension, which the user can have, requires a different prefix.
 const CROS_IDE_PREFIX = 'cros-ide';
+const CHROMIUMIDE_PREFIX = 'chromiumide';
 const GO_PREFIX = 'go';
 
 // Wraps vscode API for safer configuration access.
@@ -35,6 +36,16 @@ class ConfigValue<T> {
     return value;
   }
 
+  inspectOldConfig(prefix = CROS_IDE_PREFIX):
+    | {
+        globalValue?: T;
+        workspaceValue?: T;
+        workspaceFolderValue?: T;
+      }
+    | undefined {
+    return vscode.workspace.getConfiguration(prefix).inspect(this.section);
+  }
+
   /**
    * Returns true if the setting has the same value as the default in package.json.
    */
@@ -53,14 +64,29 @@ class ConfigValue<T> {
     return value === values.defaultValue;
   }
 
-  async update(value: T | undefined): Promise<void> {
+  async update(
+    value: T | undefined,
+    target = this.configurationTarget
+  ): Promise<void> {
     await vscode.workspace
       .getConfiguration(this.prefix)
-      .update(this.section, value, this.configurationTarget);
+      .update(this.section, value, target);
+  }
+
+  async updateOldConfig(
+    value: T | undefined,
+    target = this.configurationTarget,
+    prefix = CROS_IDE_PREFIX
+  ): Promise<void> {
+    await vscode.workspace
+      .getConfiguration(prefix)
+      .update(this.section, value, target);
   }
 }
 
-export const board = new ConfigValue<string>('board');
+export type {ConfigValue};
+
+export const board = new ConfigValue<string>('board', CHROMIUMIDE_PREFIX);
 
 export const boardsAndPackages = {
   showWelcomeMessage: new ConfigValue<boolean>(
@@ -155,4 +181,5 @@ export const testCoverage = {
 
 export const TEST_ONLY = {
   CROS_IDE_PREFIX,
+  CHROMIUMIDE_PREFIX,
 };

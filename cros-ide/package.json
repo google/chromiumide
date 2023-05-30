@@ -621,7 +621,7 @@
     "configuration": {
       "title": "ChromiumIDE",
       "properties": {
-        "cros-ide.board": {
+        "chromiumide.board": {
           "type": "string",
           "description": "The board to use for generating C++ cross references and autocompletion"
         },

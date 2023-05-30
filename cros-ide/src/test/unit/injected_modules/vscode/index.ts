@@ -20,6 +20,8 @@ export {FileType} from './file_type';
 export {LogLevel} from './log_level';
 export {MarkdownString} from './markdown_string';
 export {Position} from './position';
+export {Progress} from './progress';
+export {ProgressLocation} from './progress_location';
 export {Range} from './range';
 export {StatusBarAlignment, StatusBarItem} from './status_bar';
 export {TestRunProfileKind} from './test_run_profile_kind';

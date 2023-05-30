@@ -57,7 +57,7 @@ export async function activate(
   subscriptions.push(
     vscode.workspace.onDidChangeConfiguration(
       (e: vscode.ConfigurationChangeEvent) => {
-        if (e.affectsConfiguration('cros-ide.board')) {
+        if (e.affectsConfiguration('chromiumide.board')) {
           boardPackageProvider.refresh();
         }
       }
@@ -288,7 +288,7 @@ class BoardItem extends ChrootItem implements Board {
 
     // Three values are possible:
     // 1) 'board-default' for at most one hardware board if it is selected
-    //    via cros-ide.board setting
+    //    via chromiumide.board setting
     // 2) 'board' for hardware boards that are not selected
     // 3) 'board-host' for one virtual board for host packages
     //
