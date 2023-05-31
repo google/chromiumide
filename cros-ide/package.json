@@ -745,6 +745,11 @@
           "description": "Enable Experimental Code Coverage Features",
           "default": false
         },
+        "cros-ide.underDevelopment.metricsGA4": {
+          "type": "boolean",
+          "description": "Send metrics to GA4 instead of UA",
+          "default": false
+        },
         "cros-ide.deviceManagement.devices": {
           "type": "array",
           "scope": "machine-overridable",

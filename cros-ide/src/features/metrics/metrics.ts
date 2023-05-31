@@ -69,65 +69,89 @@ export async function activate(
   );
 }
 
+enum MetricsMode {
+  Testing,
+  Real,
+}
+
 const trackingIdTesting = 'UA-221509619-1';
 const trackingIdReal = 'UA-221509619-2';
 
-const optionsGA = {
-  hostname: 'www.google-analytics.com',
-  path: '/batch',
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-};
+const apiSecretTesting = 'FxaCE5c2RnKdPWB_t_LnfQ';
+const apiSecretReal = 'my_879bLQCq-hgEMGvyBBg';
 
-function chooseTrackingId(): string {
+const measurementIdTesting = 'G-FNW9LF4YWH';
+const measurementIdReal = 'G-HZ6QXLP8Y1';
+
+function chooseMode(): MetricsMode {
   // Use the testing property if the extension was launched for development
   // or running for unit tests.
   if (extensionMode !== vscode.ExtensionMode.Production) {
-    return trackingIdTesting;
+    return MetricsMode.Testing;
   }
   // Use the testing property even if the extension was normally installed
   // if the extension version has prerelease suffix (e.g. "-dev.0"), which
   // means that this extension version hasn't been officially released yet.
   if (new semver.SemVer(extensionVersion!).prerelease.length > 0) {
-    return trackingIdTesting;
+    return MetricsMode.Testing;
   }
   // Otherwise use the real property.
-  return trackingIdReal;
+  return MetricsMode.Real;
 }
 
 export class Analytics {
+  private readonly options: https.RequestOptions;
+
   private constructor(
-    private readonly trackingId: string,
+    private readonly mode: MetricsMode,
     private readonly userId: string,
     private readonly isGoogler: boolean
-  ) {}
+  ) {
+    this.options = {
+      hostname: 'www.google-analytics.com',
+      path: config.underDevelopment.metricsGA4.get()
+        ? `/mp/collect?api_secret=${
+            mode === MetricsMode.Testing ? apiSecretTesting : apiSecretReal
+          }&measurement_id=${
+            mode === MetricsMode.Testing
+              ? measurementIdTesting
+              : measurementIdReal
+          }`
+        : '/batch',
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+  }
 
   // Constructor cannot be async.
   static async create(): Promise<Analytics> {
     // Send metrics to testing-purpose Google Analytics property to avoid polluting
     // user data when debugging the extension for development.
-    const trackingId = chooseTrackingId();
+    const mode = chooseMode();
     const userId = await metricsConfig.getOrGenerateValidUserId();
     const isGoogler = await metricsUtils.isGoogler();
-    return new Analytics(trackingId, userId, isGoogler);
+    return new Analytics(mode, userId, isGoogler);
   }
 
   /**
-   * Creates a batch query from event for Google Analytics measurement protocol, see
+   * Creates a batch query from event for Google Analytics UA measurement protocol, see
    * https://developers.google.com/analytics/devguides/collection/protocol/v1/devguide
    *
    * See go/cros-ide-metrics for the memo on what values are assigned to GA parameters.
    */
-  private eventToQuery(
+  private eventToRequestBodyUA(
     event: metricsEvent.Event,
     gitRepo: string | undefined
   ): string {
     const baseData = () => {
       return {
         v: '1',
-        tid: this.trackingId,
+        tid:
+          this.mode === MetricsMode.Testing
+            ? trackingIdTesting
+            : trackingIdReal,
         cid: this.userId,
         // Document: Git repository info.
         dh: 'cros',
@@ -217,7 +241,7 @@ export class Analytics {
   /**
    * Send event as query. Does not wait for its response.
    */
-  send(event: metricsEvent.Event, options = optionsGA) {
+  send(event: metricsEvent.Event, options = this.options) {
     if (!this.shouldSend()) {
       return;
     }
@@ -226,9 +250,20 @@ export class Analytics {
     const gitRepo = filePath
       ? metricsUtils.getGitRepoName(filePath)
       : undefined;
-    const query = this.eventToQuery(event, gitRepo);
+    const query = config.underDevelopment.metricsGA4.get()
+      ? metricsUtils.eventToRequestBodyGA4(
+          event,
+          gitRepo,
+          this.userId,
+          vscode.env.appName,
+          vscode.version,
+          extensionVersion
+        )
+      : this.eventToRequestBodyUA(event, gitRepo);
     console.debug(
-      `sending query ${query} to GA ${this.trackingId} property with uid ${this.userId}`
+      `sending query ${query} to ${
+        config.underDevelopment.metricsGA4.get() ? 'GA4' : 'UA'
+      } with uid ${this.userId}`
     );
 
     const req = https.request(options, res => {
