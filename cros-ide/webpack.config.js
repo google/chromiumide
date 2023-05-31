@@ -93,12 +93,6 @@ const viewsConfig = {
   entry: {
     vnc: './views/src/vnc.ts',
     syslog_view: './views/src/features/device_management/syslog/view.tsx',
-    add_owned_device_view:
-      './views/src/features/device_management/owned/add_owned_device_view.tsx',
-    flash_device_view:
-      './views/src/features/device_management/flash_device_view.tsx',
-    builds_browser_view:
-      './views/src/features/device_management/builds_browser_view.tsx',
   },
   output: {
     path: path.resolve(__dirname, 'dist', 'views'),

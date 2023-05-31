@@ -45,13 +45,6 @@
         "enablement": "config.cros-ide.underDevelopment.chromiumBuild"
       },
       {
-        "command": "cros-ide.deviceManagement.browseChromeOsBuilds",
-        "category": "CrOS",
-        "title": "Browse ChromeOS Builds",
-        "icon": "$(list-flat)",
-        "enablement": "config.cros-ide.underDevelopment.deviceManagementV2"
-      },
-      {
         "command": "cros-ide.deviceManagement.connectToDeviceForScreen",
         "category": "CrOS",
         "title": "Connect to Device (VNC)",
@@ -403,11 +396,6 @@
       ],
       "view/title": [
         {
-          "command": "cros-ide.deviceManagement.browseChromeOsBuilds",
-          "when": "view == devices && config.cros-ide.underDevelopment.deviceManagementV2",
-          "group": "navigation"
-        },
-        {
           "command": "cros-ide.refreshBoardsPackages",
           "when": "view == boards-packages",
           "group": "navigation"
@@ -720,16 +708,6 @@
         "cros-ide.underDevelopment.crosFormat": {
           "type": "boolean",
           "description": "Format files with 'cros format' (under development)",
-          "default": false
-        },
-        "cros-ide.underDevelopment.deviceManagementV2": {
-          "type": "boolean",
-          "description": "Enable experimental Enhanced Device Management features, such as a more complete UX for DUT setup, and auto ssh configuration.",
-          "default": false
-        },
-        "cros-ide.underDevelopment.deviceManagementFlashV2": {
-          "type": "boolean",
-          "description": "Enable experimental Enhanced Device Flashing features.",
           "default": false
         },
         "cros-ide.underDevelopment.deviceManagement": {

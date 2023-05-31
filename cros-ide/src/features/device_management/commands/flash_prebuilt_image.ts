@@ -4,16 +4,11 @@
 
 import * as vscode from 'vscode';
 import * as services from '../../../services';
-import {underDevelopment} from '../../../services/config';
 import * as metrics from '../../metrics/metrics';
 import * as deviceClient from '../device_client';
 import * as provider from '../device_tree_data_provider';
 import * as prebuiltUtil from '../prebuilt_util';
 import * as sshUtil from '../ssh_util';
-import {CnsFileCache, getDefaultCacheDir} from '../../../common/cns_file_cache';
-import {BuildInfoService} from '../builds/build_info_service';
-import {FlashDeviceService} from '../flash/flash_device_service';
-import {FlashDevicePanel} from '../flash/flash_device_panel';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
 
 // Path to the private credentials needed to access prebuilts, relative to
@@ -59,17 +54,6 @@ export async function flashPrebuiltImage(
   );
 
   const defaultBoard = await retrieveBoardWithProgress(client);
-
-  if (underDevelopment.deviceManagementFlashV2.get()) {
-    // Extract board name before suffix, since current builds data source (live builds) doesn't have
-    // the suffixes.
-    // TODO(joelbecker): ensure correct handling of board suffixes like '-arc-r'
-    const matches = defaultBoard.match(/([^-]+)/gm);
-    const baseBoardName = matches ? matches[0] : defaultBoard;
-
-    await flashDeviceV2(context, chrootService, hostname, baseBoardName);
-    return;
-  }
 
   const board = await vscode.window.showInputBox({
     title: 'Board Name to Flash',
@@ -147,31 +131,5 @@ async function retrieveBoardWithProgress(
       const lsbRelease = await client.readLsbRelease();
       return lsbRelease.chromeosReleaseBoard;
     }
-  );
-}
-
-async function flashDeviceV2(
-  context: CommandContext,
-  chrootService: services.chromiumos.ChrootService,
-  hostname: string,
-  board: string
-) {
-  const service = new FlashDeviceService(
-    chrootService,
-    context.output,
-    context.extensionContext
-  );
-  const buildInfoService = new BuildInfoService(
-    new CnsFileCache(
-      context.output,
-      await getDefaultCacheDir(context.extensionContext)
-    )
-  );
-  new FlashDevicePanel(
-    context.extensionContext.extensionUri,
-    hostname,
-    board,
-    service,
-    buildInfoService
   );
 }

@@ -24,7 +24,6 @@ import {addLease} from './lease_add';
 import {refreshLeases} from './lease_refresh';
 import {runTastTests} from './run_tast_tests';
 import {openSystemLogViewer} from './syslog_viewer';
-import {browseChromeOsBuilds} from './browse_chromeos_builds';
 
 /**
  * Registers VSCode commands for device management features.
@@ -57,10 +56,6 @@ export function registerCommands(
     vscode.commands.registerCommand(
       'cros-ide.deviceManagement.addExistingHosts',
       () => addExistingHostsCommand(context)
-    ),
-    vscode.commands.registerCommand(
-      'cros-ide.deviceManagement.browseChromeOsBuilds',
-      () => browseChromeOsBuilds(context)
     ),
     vscode.commands.registerCommand(
       'cros-ide.deviceManagement.deleteDevice',

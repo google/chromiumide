@@ -96,12 +96,6 @@ export const underDevelopment = {
   deviceManagement: new ConfigValue<boolean>(
     'underDevelopment.deviceManagement'
   ),
-  deviceManagementV2: new ConfigValue<boolean>(
-    'underDevelopment.deviceManagementV2'
-  ),
-  deviceManagementFlashV2: new ConfigValue<boolean>(
-    'underDevelopment.deviceManagementFlashV2'
-  ),
   gerrit: new ConfigValue<boolean>('underDevelopment.gerrit'),
   platform2GtestDebugging: new ConfigValue<boolean>(
     'underDevelopment.platform2GtestDebugging'
