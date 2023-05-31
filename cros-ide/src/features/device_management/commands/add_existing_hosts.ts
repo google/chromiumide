@@ -16,7 +16,7 @@ export async function addExistingHostsCommand(
   await addExistingHosts(context.deviceRepository.owned);
 }
 
-export async function addExistingHosts(
+async function addExistingHosts(
   deviceRepository: OwnedDeviceRepository,
   sshConfigPath: string = sshConfig.defaultConfigPath
 ): Promise<void> {
