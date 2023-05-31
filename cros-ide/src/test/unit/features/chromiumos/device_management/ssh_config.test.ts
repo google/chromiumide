@@ -6,7 +6,6 @@ import * as fs from 'fs';
 import * as mockFs from 'mock-fs';
 import 'jasmine';
 import * as sshConfig from '../../../../../features/device_management/ssh_config';
-import {SshConfigHostEntry} from '../../../../../features/device_management/ssh_util';
 import {FakeDeviceRepository} from './fake_device_repository';
 
 const TEST_CONFIG_FILE = `
@@ -94,10 +93,6 @@ describe('SSH config parser', () => {
       Hostname 127.0.0.1
       Port 4242
     `;
-    const entry: SshConfigHostEntry = {
-      Host: hostname,
-      Hostname: '1.2.3.4',
-    };
     const startingTime = new Date(2022, 0, 2, 3, 4, 5);
     const backupFilename = 'config.cros-ide-bak.2022-Jan-02--03-04-05';
 
@@ -109,22 +104,6 @@ describe('SSH config parser', () => {
     afterEach(() => {
       jasmine.clock().uninstall();
       mockFs.restore();
-    });
-
-    it('backs up the .ssh config and adds the new entry, preserving previous entries', async () => {
-      mockFs({
-        '/test/.ssh/config': configContentsWithoutHost1,
-      });
-      await sshConfig.addSshConfigEntry(entry, '/test/.ssh/config');
-
-      const files = await fs.promises.readdir('/test/.ssh');
-      expect(files).toEqual(['config', backupFilename]);
-      const backupContents = fs
-        .readFileSync(`/test/.ssh/${backupFilename}`)
-        .toString();
-      const newContents = fs.readFileSync('/test/.ssh/config').toString();
-      expect(newContents).toBe(configContentsWithHost1);
-      expect(backupContents).toBe(configContentsWithoutHost1);
     });
 
     it('backs up the .ssh config and removes the entry for the given host', async () => {

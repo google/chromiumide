@@ -5,36 +5,6 @@
 import * as vscode from 'vscode';
 
 /**
- * Options of an entry in an OpenSSH config file.
- *
- * Not all available OpenSSH options are here; they can be added as needed.
- */
-export type SshConfigHost = {
-  readonly Hostname?: string;
-  readonly Port?: number;
-  readonly CheckHostIP?: string;
-  readonly ControlMaster?: string;
-  readonly ControlPath?: string;
-  readonly ControlPersist?: string;
-  readonly IdentitiesOnly?: string;
-  readonly IdentityFile?: string;
-  readonly StrictHostKeyChecking?: string;
-  readonly User?: string;
-  readonly UserKnownHostsFile?: string;
-  readonly VerifyHostKeyDNS?: string;
-  readonly ProxyCommand?: string;
-  readonly HostKeyAlias?: string;
-};
-
-/**
- * An entry in an OpenSSH config file (with a single host), including the Host part at the top.
- * Currently this is designed for use with the ssh-config lib.
- */
-export type SshConfigHostEntry = SshConfigHost & {
-  readonly Host?: string;
-};
-
-/**
  * Returns the path to the testing_rsa file bundled in the extension.
  *
  * The activation function of the device management feature ensures that the file

@@ -7,7 +7,6 @@ import * as os from 'os';
 import * as path from 'path';
 import * as dateFns from 'date-fns';
 import {Device, IDeviceRepository} from './device_repository';
-import * as sshUtil from './ssh_util';
 
 // TODO(joelbecker): import normally once tsconfig esModuleInterop=true doesn't break a lot of
 // other things.
@@ -74,22 +73,6 @@ export async function readUnaddedSshHosts<TDevice extends Device>(
   );
   const knownHostSet = new Set(knownHosts);
   return sshHosts.filter(hostname => !knownHostSet.has(hostname));
-}
-
-/**
- * Adds an ssh config entry, first backing up the file.
- *
- * @throws Error if unable to modify the config.
- */
-export async function addSshConfigEntry(
-  entry: sshUtil.SshConfigHostEntry,
-  sshConfigPath: string = defaultConfigPath
-): Promise<void> {
-  await backupAndModifySshConfig(sshConfig => {
-    sshConfig.prepend(
-      Object.assign({}, ...Object.entries(entry).map(x => ({[x[0]]: x[1]})))
-    );
-  }, sshConfigPath);
 }
 
 /**
