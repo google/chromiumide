@@ -35,14 +35,14 @@
         "category": "CrOS",
         "title": "Build + Deploy Ash + Lacros to DUT",
         "icon": "$(window)",
-        "enablement": "config.cros-ide.underDevelopment.chromiumBuild"
+        "enablement": "config.chromiumide.underDevelopment.chromiumBuild"
       },
       {
         "command": "cros-ide.chrome.watchBuild",
         "category": "CrOS",
         "title": "Build + Deploy Ash + Lacros to DUT, restarts build on save of any file",
         "icon": "$(window)",
-        "enablement": "config.cros-ide.underDevelopment.chromiumBuild"
+        "enablement": "config.chromiumide.underDevelopment.chromiumBuild"
       },
       {
         "command": "cros-ide.deviceManagement.connectToDeviceForScreen",
@@ -190,14 +190,14 @@
         "command": "cros-ide.coverage.showReport",
         "category": "CrOS",
         "title": "Show Coverage Report",
-        "enablement": "config.cros-ide.underDevelopment.testCoverage"
+        "enablement": "config.chromiumide.underDevelopment.testCoverage"
       },
       {
         "command": "cros-ide.gerrit.internal.testAuth",
         "category": "CrOS",
         "title": "[Internal] Test Gerrit Auth",
         "icon": "$(bug)",
-        "enablement": "config.cros-ide.underDevelopment.gerrit"
+        "enablement": "config.chromiumide.underDevelopment.gerrit"
       },
       {
         "command": "cros-ide.gerrit.refreshComments",
@@ -497,7 +497,7 @@
         },
         {
           "command": "cros-ide.deviceManagement.openSystemLogViewer",
-          "when": "view == devices && viewItem =~ /^device-/ && config.cros-ide.underDevelopment.systemLogViewer",
+          "when": "view == devices && viewItem =~ /^device-/ && config.chromiumide.underDevelopment.systemLogViewer",
           "group": "2_operation@2"
         },
         {
@@ -560,7 +560,7 @@
         },
         {
           "command": "cros-ide.coverage.showReport",
-          "when": "view == boards-packages && viewItem == package && config.cros-ide.underDevelopment.testCoverage"
+          "when": "view == boards-packages && viewItem == package && config.chromiumide.underDevelopment.testCoverage"
         },
         {
           "command": "cros-ide.chromium.outputDirectories.editArgs",
@@ -717,57 +717,57 @@
           "markdownDescription": "Show Code Coverage ([go/cros-ide-doc-boards-pkgs#code-coverage](http://go/cros-ide-doc-boards-pkgs#code-coverage)). Requires a reload to take effect.",
           "default": true
         },
-        "cros-ide.underDevelopment.chromiumBuild": {
+        "chromiumide.underDevelopment.chromiumBuild": {
           "type": "boolean",
           "description": "Enable build + deploy for chromium code (incomplete)",
           "default": false
         },
-        "cros-ide.underDevelopment.crosFormat": {
+        "chromiumide.underDevelopment.crosFormat": {
           "type": "boolean",
           "description": "Format files with 'cros format' (under development)",
           "default": false
         },
-        "cros-ide.underDevelopment.deviceManagement": {
+        "chromiumide.underDevelopment.deviceManagement": {
           "type": "boolean",
           "description": "Enable experimental Device Management features.",
           "default": false
         },
-        "cros-ide.underDevelopment.gerrit": {
+        "chromiumide.underDevelopment.gerrit": {
           "type": "boolean",
           "description": "Enable new features for Gerrit (under development)",
           "default": false
         },
-        "cros-ide.underDevelopment.platform2GtestDebugging": {
+        "chromiumide.underDevelopment.platform2GtestDebugging": {
           "type": "boolean",
           "description": "Enable platform2 gtest debugging support",
           "default": true
         },
-        "cros-ide.underDevelopment.platformEC": {
+        "chromiumide.underDevelopment.platformEC": {
           "type": "boolean",
           "description": "Enable Platform EC support (under development)",
           "default": false
         },
-        "cros-ide.underDevelopment.relatedFiles": {
+        "chromiumide.underDevelopment.relatedFiles": {
           "type": "boolean",
           "description": "Enable buttons at the top of each C++ file to create/open related files, such as test and header files (under development, and Chromium-only for now)",
           "default": false
         },
-        "cros-ide.underDevelopment.systemLogViewer": {
+        "chromiumide.underDevelopment.systemLogViewer": {
           "type": "boolean",
           "description": "Enable system log viewer",
           "default": true
         },
-        "cros-ide.underDevelopment.tast": {
+        "chromiumide.underDevelopment.tast": {
           "type": "boolean",
           "description": "Enable Tast Support",
           "default": true
         },
-        "cros-ide.underDevelopment.testCoverage": {
+        "chromiumide.underDevelopment.testCoverage": {
           "type": "boolean",
           "description": "Enable Experimental Code Coverage Features",
           "default": false
         },
-        "cros-ide.underDevelopment.metricsGA4": {
+        "chromiumide.underDevelopment.metricsGA4": {
           "type": "boolean",
           "description": "Send metrics to GA4 instead of UA",
           "default": false
@@ -928,7 +928,7 @@
             "description": "Test target to run"
           }
         },
-        "when": "config.cros-ide.underDevelopment.platformEC"
+        "when": "config.chromiumide.underDevelopment.platformEC"
       }
     ],
     "problemMatchers": [

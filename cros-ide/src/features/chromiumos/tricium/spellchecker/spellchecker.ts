@@ -15,10 +15,6 @@ import * as executor from './executor';
 
 // Spellchecker demonstrates integration between Tricium's functions
 // and ChromiumIDE.
-//
-// If cros-ide.underDevelopment.triciumSpellchecker is not empty,
-// then we use it as the path to the spellchecker and surface its findings
-// in the IDE.
 
 const STATUS_BAR_TASK_ID = 'Tricium';
 

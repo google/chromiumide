@@ -36,6 +36,17 @@ async function migrateConfiguration(): Promise<void> {
     config.platformEc.build,
     config.spellchecker,
     config.testCoverage.enabled,
+    config.underDevelopment.chromiumBuild,
+    config.underDevelopment.crosFormat,
+    config.underDevelopment.deviceManagement,
+    config.underDevelopment.gerrit,
+    config.underDevelopment.platform2GtestDebugging,
+    config.underDevelopment.platformEc,
+    config.underDevelopment.relatedFiles,
+    config.underDevelopment.systemLogViewer,
+    config.underDevelopment.tast,
+    config.underDevelopment.testCoverage,
+    config.underDevelopment.metricsGA4,
   ];
 
   let shouldMigrate = false;

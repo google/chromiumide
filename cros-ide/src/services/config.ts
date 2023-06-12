@@ -121,21 +121,47 @@ export const gerrit = {
 };
 
 export const underDevelopment = {
-  chromiumBuild: new ConfigValue<boolean>('underDevelopment.chromiumBuild'),
-  crosFormat: new ConfigValue<boolean>('underDevelopment.crosFormat'),
+  chromiumBuild: new ConfigValue<boolean>(
+    'underDevelopment.chromiumBuild',
+    CHROMIUMIDE_PREFIX
+  ),
+  crosFormat: new ConfigValue<boolean>(
+    'underDevelopment.crosFormat',
+    CHROMIUMIDE_PREFIX
+  ),
   deviceManagement: new ConfigValue<boolean>(
-    'underDevelopment.deviceManagement'
+    'underDevelopment.deviceManagement',
+    CHROMIUMIDE_PREFIX
   ),
-  gerrit: new ConfigValue<boolean>('underDevelopment.gerrit'),
+  gerrit: new ConfigValue<boolean>(
+    'underDevelopment.gerrit',
+    CHROMIUMIDE_PREFIX
+  ),
   platform2GtestDebugging: new ConfigValue<boolean>(
-    'underDevelopment.platform2GtestDebugging'
+    'underDevelopment.platform2GtestDebugging',
+    CHROMIUMIDE_PREFIX
   ),
-  platformEc: new ConfigValue<boolean>('underDevelopment.platformEC'),
-  relatedFiles: new ConfigValue<boolean>('underDevelopment.relatedFiles'),
-  systemLogViewer: new ConfigValue<boolean>('underDevelopment.systemLogViewer'),
-  tast: new ConfigValue<boolean>('underDevelopment.tast'),
-  testCoverage: new ConfigValue<boolean>('underDevelopment.testCoverage'),
-  metricsGA4: new ConfigValue<boolean>('underDevelopment.metricsGA4'),
+  platformEc: new ConfigValue<boolean>(
+    'underDevelopment.platformEC',
+    CHROMIUMIDE_PREFIX
+  ),
+  relatedFiles: new ConfigValue<boolean>(
+    'underDevelopment.relatedFiles',
+    CHROMIUMIDE_PREFIX
+  ),
+  systemLogViewer: new ConfigValue<boolean>(
+    'underDevelopment.systemLogViewer',
+    CHROMIUMIDE_PREFIX
+  ),
+  tast: new ConfigValue<boolean>('underDevelopment.tast', CHROMIUMIDE_PREFIX),
+  testCoverage: new ConfigValue<boolean>(
+    'underDevelopment.testCoverage',
+    CHROMIUMIDE_PREFIX
+  ),
+  metricsGA4: new ConfigValue<boolean>(
+    'underDevelopment.metricsGA4',
+    CHROMIUMIDE_PREFIX
+  ),
 };
 
 export const deviceManagement = {
