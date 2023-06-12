@@ -3,7 +3,11 @@
 // found in the LICENSE file.
 
 import * as fs from 'fs';
-import {EbuildFilepath, EbuildPackage, ebuildDefinedVariables} from './ebuild';
+import {
+  ParsedEbuildFilepath,
+  EbuildPackage,
+  ebuildDefinedVariables,
+} from './ebuild';
 import {EbuildValue, parseEbuildOrThrow} from './parse';
 
 export type Platform2Package = EbuildPackage & {
@@ -48,7 +52,7 @@ function asArray(x: string | string[]): string[] {
 export async function parsePlatform2EbuildOrThrow(
   ebuildFilepath: string
 ): Promise<Platform2Package> {
-  const {pkg} = EbuildFilepath.parseOrThrow(ebuildFilepath);
+  const {pkg} = ParsedEbuildFilepath.parseOrThrow(ebuildFilepath);
 
   const content = await fs.promises.readFile(ebuildFilepath, 'utf8');
 
