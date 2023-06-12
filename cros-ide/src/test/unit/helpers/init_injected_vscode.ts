@@ -34,12 +34,12 @@ function initFakeConfigs(): void {
 
   setConfigurationProviderForTesting({
     getConfiguration,
-    onDidChangeConfiguration: fakeOldConfig.onDidChange,
+    onDidChangeConfiguration: fakeConfig.onDidChange,
   });
 
   // Clear configuration before each test case.
   beforeEach(() => {
-    fakeOldConfig.clear();
+    fakeConfig.clear();
   });
 }
 

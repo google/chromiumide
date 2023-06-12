@@ -772,7 +772,7 @@
           "description": "Send metrics to GA4 instead of UA",
           "default": false
         },
-        "cros-ide.deviceManagement.devices": {
+        "chromiumide.deviceManagement.devices": {
           "type": "array",
           "scope": "machine-overridable",
           "description": "List of developer-owned device hostnames",

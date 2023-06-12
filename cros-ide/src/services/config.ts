@@ -165,7 +165,10 @@ export const underDevelopment = {
 };
 
 export const deviceManagement = {
-  devices: new ConfigValue<string[]>('deviceManagement.devices'),
+  devices: new ConfigValue<string[]>(
+    'deviceManagement.devices',
+    CHROMIUMIDE_PREFIX
+  ),
 };
 
 export const metrics = {

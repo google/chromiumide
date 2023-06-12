@@ -47,6 +47,7 @@ async function migrateConfiguration(): Promise<void> {
     config.underDevelopment.tast,
     config.underDevelopment.testCoverage,
     config.underDevelopment.metricsGA4,
+    config.deviceManagement.devices,
   ];
 
   let shouldMigrate = false;
