@@ -249,7 +249,7 @@ export class DeviceRepository {
   }
 
   async getDevices(): Promise<(OwnedDevice | LeasedDevice)[]> {
-    const ownedDevices = await this.owned.getDevices();
+    const ownedDevices = this.owned.getDevices();
     const leasedDevices = await this.leased.getDevices();
     return [...ownedDevices, ...leasedDevices];
   }
