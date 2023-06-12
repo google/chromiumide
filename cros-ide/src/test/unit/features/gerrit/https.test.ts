@@ -55,7 +55,9 @@ describe('http request', () => {
 
     await expectAsync(
       gerritHttps.getOrThrow(`https://localhost:${port}/`, requestOptions)
-    ).toBeRejectedWith(new Error('status code: 403'));
+    ).toBeRejectedWith(
+      new Error(`GET https://localhost:${port}/: status code: 403`)
+    );
   });
 
   it('returns undefined on 404 (not found)', async () => {
