@@ -19,7 +19,7 @@ const GO_PREFIX = 'go';
 class ConfigValue<T> {
   constructor(
     private readonly section: string,
-    private readonly prefix = CROS_IDE_PREFIX,
+    private readonly prefix: string,
     private readonly configurationTarget = vscode.ConfigurationTarget.Global
   ) {}
 
