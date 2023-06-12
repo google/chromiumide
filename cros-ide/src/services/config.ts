@@ -90,7 +90,8 @@ export const board = new ConfigValue<string>('board', CHROMIUMIDE_PREFIX);
 
 export const boardsAndPackages = {
   showWelcomeMessage: new ConfigValue<boolean>(
-    'boardsAndPackages.showWelcomeMessage'
+    'boardsAndPackages.showWelcomeMessage',
+    CHROMIUMIDE_PREFIX
   ),
 };
 
