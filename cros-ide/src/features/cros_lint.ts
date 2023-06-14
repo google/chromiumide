@@ -287,6 +287,7 @@ async function updateDiagnosticsWrapper(
       category: 'error',
       group: 'lint',
       description: 'error was thrown',
+      name: 'lint_update_diagnostic_error',
     });
   }
 }
@@ -306,7 +307,8 @@ async function updateDiagnostics(
         category: 'background',
         group: 'lint',
         description: 'skip',
-        label: document.languageId,
+        name: 'lint_skip',
+        language_id: document.languageId,
       });
       return;
     }
@@ -359,6 +361,7 @@ async function updateDiagnostics(
             category: 'error',
             group: 'lint',
             description: `non-zero linter exit, but no diagnostics (${document.languageId})`,
+            name: 'lint_missing_diagnostics',
           });
           return;
         }
@@ -375,8 +378,9 @@ async function updateDiagnostics(
       category: 'background',
       group: 'lint',
       description: 'update',
-      label: document.languageId,
-      value: diagnosticsCollection.length,
+      name: 'lint_update',
+      language_id: document.languageId,
+      length: diagnosticsCollection.length,
     });
   }
 }

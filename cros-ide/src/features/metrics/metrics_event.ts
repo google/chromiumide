@@ -146,6 +146,29 @@ interface VirtualdocumentOpenDocumentEvent extends GA4EventBase {
   document: string;
 }
 
+interface LintErrorEvent extends GA4EventBase {
+  category: 'error';
+  group: 'lint';
+  name: 'lint_update_diagnostic_error' | 'lint_missing_diagnostics';
+
+}
+
+interface LintBackgroundEvent extends GA4EventBase {
+  category: 'background';
+  group: 'lint';
+}
+
+interface LintUpdateEvent extends LintBackgroundEvent {
+  name: 'lint_update';
+  language_id: string;
+  length: number;
+}
+
+interface LintSkipEvent extends LintBackgroundEvent {
+  name: 'lint_skip';
+  language_id: string;
+}
+
 // Add new Event interfaces to UAEventDeprecated (joint by or |).
 export type Event =
   | UAEventDeprecated
@@ -156,7 +179,10 @@ export type Event =
   | GerritInteractiveEvent
   | GerritErrorEvent
   | GerritUpdateCommentsEvent
-  | VirtualdocumentOpenDocumentEvent;
+  | VirtualdocumentOpenDocumentEvent
+  | LintErrorEvent
+  | LintSkipEvent
+  | LintUpdateEvent;
 
 /**
  * Manipulate given string to make sure it satisfies constraints imposed by GA4.
