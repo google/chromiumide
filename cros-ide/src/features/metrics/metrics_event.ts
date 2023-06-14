@@ -150,7 +150,6 @@ interface LintErrorEvent extends GA4EventBase {
   category: 'error';
   group: 'lint';
   name: 'lint_update_diagnostic_error' | 'lint_missing_diagnostics';
-
 }
 
 interface LintBackgroundEvent extends GA4EventBase {
@@ -220,6 +219,20 @@ interface chromiumOutputDirectoriesInteractiveEvent extends GA4EventBase {
     | 'chromium_outputDirectories_change_output_directory';
 }
 
+interface PackageCrosWorkonEvent extends GA4EventBase {
+  category: 'interactive';
+  group: 'package';
+  name: 'package_cros_workon_start' | 'package_cros_workon_stop';
+  package: string;
+  board: string;
+}
+
+interface PackageOpenEbuildEvent extends GA4EventBase {
+  category: 'interactive';
+  group: 'package';
+  name: 'package_open_ebuild';
+}
+
 // Add new Event interfaces to UAEventDeprecated (joint by or |).
 export type Event =
   | UAEventDeprecated
@@ -239,7 +252,9 @@ export type Event =
   | chromiumOutputDirectoriesErrorEvent
   | chromiumOutputDirectoriesInteractiveEvent
   | ExtensionSuggestedEvent
-  | ExtensionInstalledEvent;
+  | ExtensionInstalledEvent
+  | PackageCrosWorkonEvent
+  | PackageOpenEbuildEvent;
 
 /**
  * Manipulate given string to make sure it satisfies constraints imposed by GA4.
