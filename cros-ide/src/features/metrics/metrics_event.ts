@@ -273,6 +273,38 @@ type CoverageEvent = GA4EventBase &
       }
   );
 
+type CppCodeCompletionEvent = GA4EventBase &
+  (
+    | {
+        // TODO(b:281925148): Move this event to IdeStatusEvent.
+        category: 'interactive';
+        group: 'idestatus';
+        name: 'cppxrefs_show_cpp_log';
+      }
+    | {
+        category: 'background';
+        group: 'cppxrefs';
+        name: 'cppxrefs_generate_compdb';
+        action: string;
+      }
+    | {
+        category: 'background';
+        group: 'cppxrefs';
+        name: 'cppxrefs_interact_with_platform2_cpp';
+      }
+    | {
+        category: 'error';
+        group: 'cppxrefs';
+        name: 'cppxrefs_generate_compdb_error';
+        error: string;
+      }
+    | {
+        category: 'background';
+        group: 'cppxrefs';
+        name: 'cppxrefs_no_chroot';
+      }
+  );
+
 // Add new Event interfaces to UAEventDeprecated (joint by or |).
 export type Event =
   | UAEventDeprecated
@@ -298,7 +330,8 @@ export type Event =
   | CrosFormatEvent
   | PackageCrosWorkonEvent
   | PackageOpenEbuildEvent
-  | TargetBoardEvent;
+  | TargetBoardEvent
+  | CppCodeCompletionEvent;
 
 /**
  * Manipulate given string to make sure it satisfies constraints imposed by GA4.

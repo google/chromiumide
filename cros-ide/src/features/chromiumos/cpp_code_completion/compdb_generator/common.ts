@@ -13,6 +13,7 @@ export function throwForNoChroot(fileName: string): never {
   metrics.send({
     category: 'background',
     group: 'misc',
+    name: 'cppxrefs_no_chroot',
     description: 'cpp xrefs generation without chroot',
   });
 

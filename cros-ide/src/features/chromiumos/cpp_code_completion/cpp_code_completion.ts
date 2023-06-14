@@ -48,6 +48,7 @@ export class CppCodeCompletion implements vscode.Disposable {
       metrics.send({
         category: 'interactive',
         group: 'idestatus',
+        name: 'cppxrefs_show_cpp_log',
         description: 'show cpp log',
       });
     }),
@@ -152,7 +153,9 @@ export class CppCodeCompletion implements vscode.Disposable {
         metrics.send({
           category: 'background',
           group: 'cppxrefs',
+          name: 'cppxrefs_generate_compdb',
           description: action,
+          action,
         });
         // TODO(oka): Make the operation cancellable.
         await generator.generate(document, canceller.token);
@@ -175,7 +178,9 @@ export class CppCodeCompletion implements vscode.Disposable {
         metrics.send({
           category: 'error',
           group: 'cppxrefs',
+          name: 'cppxrefs_generate_compdb_error',
           description: error.kind,
+          error: error.kind,
         });
         this.output.appendLine(error.message);
         this.showErrorMessage(error);
