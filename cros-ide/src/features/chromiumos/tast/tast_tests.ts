@@ -153,6 +153,7 @@ export class TastTests implements vscode.Disposable {
       metrics.send({
         category: 'interactive',
         group: 'tast',
+        name: 'tast_setup_dev_environment',
         description: 'set up dev environment',
       });
       // It will restart VSCode.

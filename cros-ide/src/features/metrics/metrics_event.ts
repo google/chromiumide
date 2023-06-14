@@ -319,6 +319,12 @@ interface PlatformEcEvent extends GA4EventBase {
   name: 'platform_ec_show_log';
 }
 
+interface TastEvent extends GA4EventBase {
+  category: 'interactive';
+  group: 'tast';
+  name: 'tast_setup_dev_environment';
+}
+
 // Add new Event interfaces to UAEventDeprecated (joint by or |).
 export type Event =
   | UAEventDeprecated
@@ -347,7 +353,8 @@ export type Event =
   | TargetBoardEvent
   | CppCodeCompletionEvent
   | DebuggingEvent
-  | PlatformEcEvent;
+  | PlatformEcEvent
+  | TastEvent;
 
 /**
  * Manipulate given string to make sure it satisfies constraints imposed by GA4.
