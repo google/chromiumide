@@ -169,6 +169,43 @@ interface LintSkipEvent extends LintBackgroundEvent {
   language_id: string;
 }
 
+interface MiscErrorEvent extends GA4EventBase {
+  category: 'error';
+  group: 'misc';
+  name: 'misc_error_active_chromium_feature';
+}
+
+interface ActivateChromiumFeatureError extends MiscErrorEvent {
+  name: 'misc_error_active_chromium_feature';
+  feature: string;
+}
+
+interface chromiumOutputDirectoriesBackgroundEvent extends GA4EventBase {
+  category: 'background';
+  group: 'chromium.outputDirectories';
+  name: 'chromium_outputDirectories_built_node_cache';
+  output_directories_count: number;
+}
+
+interface chromiumOutputDirectoriesErrorEvent extends GA4EventBase {
+  category: 'error';
+  group: 'chromium.outputDirectories';
+  name:
+    | 'chromium_outputDirectories_not_a_symlink'
+    | 'chromium_outputDirectories_symlink_not_linked'
+    | 'chromium_outputDirectories_invalid_directory_name'
+    | 'chromium_outputDirectories_race_condition_at_rebuild';
+}
+
+interface chromiumOutputDirectoriesInteractiveEvent extends GA4EventBase {
+  category: 'interactive';
+  group: 'chromium.outputDirectories';
+  name:
+    | 'chromium_outputDirectories_edit_args_gn'
+    | 'chromium_outputDirectories_refresh'
+    | 'chromium_outputDirectories_change_output_directory';
+}
+
 // Add new Event interfaces to UAEventDeprecated (joint by or |).
 export type Event =
   | UAEventDeprecated
@@ -182,7 +219,11 @@ export type Event =
   | VirtualdocumentOpenDocumentEvent
   | LintErrorEvent
   | LintSkipEvent
-  | LintUpdateEvent;
+  | LintUpdateEvent
+  | ActivateChromiumFeatureError
+  | chromiumOutputDirectoriesBackgroundEvent
+  | chromiumOutputDirectoriesErrorEvent
+  | chromiumOutputDirectoriesInteractiveEvent;
 
 /**
  * Manipulate given string to make sure it satisfies constraints imposed by GA4.

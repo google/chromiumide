@@ -37,6 +37,7 @@ export async function createOrUpdateSymLinkToDirectory(
         category: 'error',
         group: 'chromium.outputDirectories',
         description: 'unable to update symlink: is not a symlink',
+        name: 'chromium_outputDirectories_not_a_symlink',
       });
       return false;
     }
@@ -108,6 +109,7 @@ export function activate(
             category: 'interactive',
             group: 'chromium.outputDirectories',
             description: 'edit args.gn',
+            name: 'chromium_outputDirectories_edit_args_gn',
           });
         }
       }
@@ -124,6 +126,7 @@ export function activate(
           category: 'interactive',
           group: 'chromium.outputDirectories',
           description: 'refresh',
+          name: 'chromium_outputDirectories_refresh',
         });
       }
     )
@@ -147,6 +150,7 @@ export function activate(
             group: 'chromium.outputDirectories',
             description:
               'change output directory: invalid output directory name',
+            name: 'chromium_outputDirectories_invalid_directory_name',
           });
 
           return vscode.window.showErrorMessage(
@@ -177,6 +181,7 @@ export function activate(
           category: 'interactive',
           group: 'chromium.outputDirectories',
           description: 'change output directory',
+          name: 'chromium_outputDirectories_change_output_directory',
         });
       }
     )
@@ -407,6 +412,7 @@ export class OutputDirectoriesDataProvider
           category: 'error',
           group: 'chromium.outputDirectories',
           description: 'race condition while rebuilding node cache',
+          name: 'chromium_outputDirectories_race_condition_at_rebuild',
         });
       }
       this.nodeCache = newNodeCache;
@@ -499,7 +505,8 @@ export class OutputDirectoriesDataProvider
       category: 'background',
       group: 'chromium.outputDirectories',
       description: 'number of output directories',
-      value: nodes.length,
+      name: 'chromium_outputDirectories_built_node_cache',
+      output_directories_count: nodes.length,
     });
 
     return {nodes, tokenSource, gnArgsPromise};
@@ -577,6 +584,7 @@ export class OutputDirectoriesDataProvider
                 group: 'chromium.outputDirectories',
                 description:
                   'Found symlink that does not link to any output directory',
+                name: 'chromium_outputDirectories_symlink_not_linked',
               });
             }
 

@@ -56,6 +56,8 @@ export class Chromium implements vscode.Disposable {
           category: 'error',
           group: 'misc',
           description: `failed to activte chromium feature ${this.featureName}`,
+          name: 'misc_error_active_chromium_feature',
+          feature: this.featureName,
         });
       }
     })();
