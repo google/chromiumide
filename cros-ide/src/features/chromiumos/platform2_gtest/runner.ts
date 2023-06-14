@@ -50,17 +50,23 @@ export class Runner {
   async run() {
     const atomToTests = await this.atomToTests();
 
+    const name =
+      this.request.profile?.kind === vscode.TestRunProfileKind.Run
+        ? ('debugging_run_gtest' as const)
+        : ('debugging_debug_gtest' as const);
+
     metrics.send({
       category: 'interactive',
       group: 'debugging',
+      name: name,
       description:
         this.request.profile?.kind === vscode.TestRunProfileKind.Run
           ? 'run platform2 gtests'
           : 'debug platform2 gtests',
       // Package names.
-      label: [...atomToTests.keys()].sort().join(' '),
+      package_names: [...atomToTests.keys()].sort().join(' '),
       // Number of tests to run.
-      value: [...atomToTests.values()]
+      tests_count: [...atomToTests.values()]
         .map(x => x.length)
         .reduce((x, y) => x + y),
     });

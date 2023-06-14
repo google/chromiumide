@@ -305,6 +305,14 @@ type CppCodeCompletionEvent = GA4EventBase &
       }
   );
 
+interface DebuggingEvent extends GA4EventBase {
+  category: 'interactive';
+  group: 'debugging';
+  name: 'debugging_run_gtest' | 'debugging_debug_gtest';
+  package_names: string;
+  tests_count: number;
+}
+
 // Add new Event interfaces to UAEventDeprecated (joint by or |).
 export type Event =
   | UAEventDeprecated
@@ -331,7 +339,8 @@ export type Event =
   | PackageCrosWorkonEvent
   | PackageOpenEbuildEvent
   | TargetBoardEvent
-  | CppCodeCompletionEvent;
+  | CppCodeCompletionEvent
+  | DebuggingEvent;
 
 /**
  * Manipulate given string to make sure it satisfies constraints imposed by GA4.
