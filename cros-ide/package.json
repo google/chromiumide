@@ -31,14 +31,14 @@
   "contributes": {
     "commands": [
       {
-        "command": "cros-ide.chrome.build",
+        "command": "chromiumide.chrome.build",
         "category": "CrOS",
         "title": "Build + Deploy Ash + Lacros to DUT",
         "icon": "$(window)",
         "enablement": "config.chromiumide.underDevelopment.chromiumBuild"
       },
       {
-        "command": "cros-ide.chrome.watchBuild",
+        "command": "chromiumide.chrome.watchBuild",
         "category": "CrOS",
         "title": "Build + Deploy Ash + Lacros to DUT, restarts build on save of any file",
         "icon": "$(window)",

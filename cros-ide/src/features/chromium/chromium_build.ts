@@ -41,7 +41,7 @@ const deployToDut = (
   statusManager.setTask(taskName, {
     status: TaskStatus.RUNNING,
     command: {
-      command: 'cros-ide.chrome.build',
+      command: 'chromiumide.chrome.build',
       title: taskName,
     },
   });
@@ -87,7 +87,7 @@ const deployToDut = (
     statusManager.setTask(taskName, {
       status: TaskStatus.OK,
       command: {
-        command: 'cros-ide.chrome.build',
+        command: 'chromiumide.chrome.build',
         title: taskName,
       },
     });
@@ -114,7 +114,7 @@ const buildChromeDir = (
   statusManager.setTask(taskName, {
     status: TaskStatus.RUNNING,
     command: {
-      command: 'cros-ide.chrome.build',
+      command: 'chromiumide.chrome.build',
       title: taskName,
     },
   });
@@ -162,7 +162,7 @@ const buildChromeDir = (
       statusManager.setTask(taskName, {
         status: TaskStatus.OK,
         command: {
-          command: 'cros-ide.chrome.build',
+          command: 'chromiumide.chrome.build',
           title: taskName,
         },
       });
@@ -179,7 +179,7 @@ const buildChromeDir = (
       statusManager.setTask(taskName, {
         status: TaskStatus.ERROR,
         command: {
-          command: 'cros-ide.chrome.build',
+          command: 'chromiumide.chrome.build',
           title: taskName,
         },
       });
@@ -191,8 +191,8 @@ const buildChromeDir = (
  *
  * Currently guarded via underdevelopment.chromiumBuild flag.
  * Provides 2 functions:
- *  cros-ide.chrome.build: Builds + deploys Ash+Lacros to a DUT
- *  cros-ide.chrome.watchBuild: Builds + deploys Ash+Lacros to a DUT and re-runs on every save.
+ *  chromiumide.chrome.build: Builds + deploys Ash+Lacros to a DUT
+ *  chromiumide.chrome.watchBuild: Builds + deploys Ash+Lacros to a DUT and re-runs on every save.
  *
  * Works when in a Chromium (rather than ChromeOS) checkout, requires appropriate out* directories
  * to be set up and relevant config values (board, DUT name, ash build directory)
@@ -204,14 +204,14 @@ export function activate(
   statusManager.setTask('Ash build', {
     status: TaskStatus.OK,
     command: {
-      command: 'cros-ide.chrome.build',
+      command: 'chromiumide.chrome.build',
       title: 'Ash build',
     },
   });
   statusManager.setTask('Lacros build', {
     status: TaskStatus.OK,
     command: {
-      command: 'cros-ide.chrome.build',
+      command: 'chromiumide.chrome.build',
       title: 'Lacros build',
     },
   });
@@ -219,14 +219,14 @@ export function activate(
   statusManager.setTask('Ash deploy', {
     status: TaskStatus.OK,
     command: {
-      command: 'cros-ide.chrome.build',
+      command: 'chromiumide.chrome.build',
       title: 'Ash deploy',
     },
   });
   statusManager.setTask('Lacros deploy', {
     status: TaskStatus.OK,
     command: {
-      command: 'cros-ide.chrome.build',
+      command: 'chromiumide.chrome.build',
       title: 'Lacros deploy',
     },
   });
@@ -237,7 +237,7 @@ export function activate(
   });
 
   const buildCommand = vscode.commands.registerCommand(
-    'cros-ide.chrome.build',
+    'chromiumide.chrome.build',
     () => {
       buildChromeDir(
         config.chrome.ashBuildDir.get(),
@@ -259,7 +259,7 @@ export function activate(
   context.subscriptions.push(buildCommand);
 
   const watchBuildCommand = vscode.commands.registerCommand(
-    'cros-ide.chrome.watchBuild',
+    'chromiumide.chrome.watchBuild',
     () => {
       // In order to determine if we need to immediately kick off a new build after an old one has
       // finished, have a variable which tracks if a save was made while a build was running.
