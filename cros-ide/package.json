@@ -363,17 +363,17 @@
         {
           "command": "chromiumide.gerrit.reply",
           "group": "inline@a",
-          "when": "commentController == cros-ide-gerrit"
+          "when": "commentController == chromiumide-gerrit"
         },
         {
           "command": "chromiumide.gerrit.replyAndResolve",
           "group": "inline@b",
-          "when": "commentController == cros-ide-gerrit && commentThread =~ /<unresolved>/"
+          "when": "commentController == chromiumide-gerrit && commentThread =~ /<unresolved>/"
         },
         {
           "command": "chromiumide.gerrit.replyAndUnresolve",
           "group": "inline@b",
-          "when": "commentController == cros-ide-gerrit && commentThread =~ /<resolved>/"
+          "when": "commentController == chromiumide-gerrit && commentThread =~ /<resolved>/"
         }
       ],
       "comments/comment/title": [

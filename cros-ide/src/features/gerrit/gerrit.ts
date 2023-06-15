@@ -180,7 +180,7 @@ class Gerrit implements vscode.Disposable {
   >();
 
   private readonly commentController = vscode.comments.createCommentController(
-    'cros-ide-gerrit',
+    'chromiumide-gerrit',
     'ChromiumIDE Gerrit'
   );
 
