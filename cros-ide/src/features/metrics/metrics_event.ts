@@ -276,12 +276,6 @@ type CoverageEvent = GA4EventBase &
 type CppCodeCompletionEvent = GA4EventBase &
   (
     | {
-        // TODO(b:281925148): Move this event to IdeStatusEvent.
-        category: 'interactive';
-        group: 'idestatus';
-        name: 'cppxrefs_show_cpp_log';
-      }
-    | {
         category: 'background';
         group: 'cppxrefs';
         name: 'cppxrefs_generate_compdb';
@@ -313,12 +307,6 @@ interface DebuggingEvent extends GA4EventBase {
   tests_count: number;
 }
 
-interface PlatformEcEvent extends GA4EventBase {
-  category: 'interactive';
-  group: 'idestatus';
-  name: 'platform_ec_show_log';
-}
-
 interface TastEvent extends GA4EventBase {
   category: 'interactive';
   group: 'tast';
@@ -337,6 +325,23 @@ type SpellcheckerEvent = GA4EventBase &
         group: 'spellchecker';
         name: 'spellchecker_diagnostics';
         diagnostics_count: number;
+      }
+  );
+
+type IdeStatusEvent = GA4EventBase & {
+  category: 'interactive';
+  group: 'idestatus';
+} & (
+    | {
+        name:
+          | 'idestatus_show_ide_status'
+          | 'idestatus_show_linter_log'
+          | 'cppxrefs_show_cpp_log'
+          | 'platform_ec_show_log';
+      }
+    | {
+        name: 'idestatus_show_task_log';
+        task_status: string;
       }
   );
 
@@ -368,9 +373,9 @@ export type Event =
   | TargetBoardEvent
   | CppCodeCompletionEvent
   | DebuggingEvent
-  | PlatformEcEvent
   | TastEvent
-  | SpellcheckerEvent;
+  | SpellcheckerEvent
+  | IdeStatusEvent;
 
 /**
  * Manipulate given string to make sure it satisfies constraints imposed by GA4.

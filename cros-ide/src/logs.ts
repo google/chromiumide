@@ -43,6 +43,7 @@ function createLoggingBundle(
         category: 'interactive',
         group: 'idestatus',
         description: 'show linter log',
+        name: 'idestatus_show_linter_log',
       });
     })
   );
