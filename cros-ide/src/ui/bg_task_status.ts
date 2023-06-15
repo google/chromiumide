@@ -11,7 +11,7 @@ import * as metrics from '../features/metrics/metrics';
  *   `taskStatus` - enum describing the status of the task
  *   `outputChannel` - output channel that will be focused in the UI
  */
-const STATUS_TREE_ITEM_CLICKED = 'cros-ide.status-tree-item-clicked';
+const STATUS_TREE_ITEM_CLICKED = 'chromiumide.status-tree-item-clicked';
 
 /**
  * Manages UI elements showing task status: two status bar items, which are created here,
@@ -20,7 +20,7 @@ const STATUS_TREE_ITEM_CLICKED = 'cros-ide.status-tree-item-clicked';
  * @returns `StatusManager` which allows other packages to create tasks with a status.
  */
 export function activate(context: vscode.ExtensionContext): StatusManager {
-  const showIdeStatusCommand = 'cros-ide.showIdeStatus';
+  const showIdeStatusCommand = 'chromiumide.showIdeStatus';
   context.subscriptions.push(
     vscode.commands.registerCommand(showIdeStatusCommand, () => {
       void vscode.commands.executeCommand('chromiumide-status.focus');
