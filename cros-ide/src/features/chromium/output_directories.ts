@@ -97,7 +97,7 @@ export function activate(
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      'cros-ide.chromium.outputDirectories.editArgs',
+      'chromiumide.chromium.outputDirectories.editArgs',
       async (node?: unknown) => {
         if (node instanceof DirNode || node instanceof LinkNode) {
           await vscode.commands.executeCommand(
@@ -118,7 +118,7 @@ export function activate(
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      'cros-ide.chromium.outputDirectories.refresh',
+      'chromiumide.chromium.outputDirectories.refresh',
       async () => {
         await treeDataProvider.refresh();
 
@@ -134,7 +134,7 @@ export function activate(
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      'cros-ide.chromium.outputDirectories.setCurrentLink',
+      'chromiumide.chromium.outputDirectories.setCurrentLink',
       async (node?: unknown) => {
         if (!(node instanceof DirNode)) {
           return;
@@ -267,7 +267,7 @@ export class DirNode extends BaseNode {
       contextValue: this.treeNodeContextValue,
       iconPath: icon,
       command: {
-        command: 'cros-ide.chromium.outputDirectories.setCurrentLink',
+        command: 'chromiumide.chromium.outputDirectories.setCurrentLink',
         title: 'Set as output directory',
         arguments: [this],
       },

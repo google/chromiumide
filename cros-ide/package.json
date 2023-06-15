@@ -289,23 +289,23 @@
         "icon": "$(question)"
       },
       {
-        "command": "cros-ide.chromium.outputDirectories.editArgs",
+        "command": "chromiumide.chromium.outputDirectories.editArgs",
         "title": "Edit args.gn",
         "category": "Chromium"
       },
       {
-        "command": "cros-ide.chromium.outputDirectories.setCurrentLink",
+        "command": "chromiumide.chromium.outputDirectories.setCurrentLink",
         "title": "Set as output directory",
         "category": "Chromium"
       },
       {
-        "command": "cros-ide.chromium.outputDirectories.refresh",
+        "command": "chromiumide.chromium.outputDirectories.refresh",
         "title": "Refresh output directories",
         "icon": "$(refresh)",
         "category": "Chromium"
       },
       {
-        "command": "cros-ide.chromium.gitcl.format",
+        "command": "chromiumide.chromium.gitcl.format",
         "title": "git cl format",
         "icon": "$(whitespace)",
         "category": "Chromium"
@@ -407,7 +407,7 @@
       ],
       "scm/title": [
         {
-          "command": "cros-ide.chromium.gitcl.format",
+          "command": "chromiumide.chromium.gitcl.format",
           "when": "scmProvider == git && scmProviderRootUri in cros-ide.chromium.src-uris",
           "group": "navigation@-3"
         }
@@ -449,7 +449,7 @@
           "group": "navigation"
         },
         {
-          "command": "cros-ide.chromium.outputDirectories.refresh",
+          "command": "chromiumide.chromium.outputDirectories.refresh",
           "when": "view == cros-ide.chromium.outputDirectories",
           "group": "navigation"
         }
@@ -563,11 +563,11 @@
           "when": "view == boards-packages && viewItem == package && config.chromiumide.underDevelopment.testCoverage"
         },
         {
-          "command": "cros-ide.chromium.outputDirectories.editArgs",
+          "command": "chromiumide.chromium.outputDirectories.editArgs",
           "when": "view == cros-ide.chromium.outputDirectories"
         },
         {
-          "command": "cros-ide.chromium.outputDirectories.setCurrentLink",
+          "command": "chromiumide.chromium.outputDirectories.setCurrentLink",
           "when": "view == cros-ide.chromium.outputDirectories && viewItem == directory"
         }
       ],
@@ -577,15 +577,15 @@
           "when": "false"
         },
         {
-          "command": "cros-ide.chromium.outputDirectories.editArgs",
+          "command": "chromiumide.chromium.outputDirectories.editArgs",
           "when": "false"
         },
         {
-          "command": "cros-ide.chromium.outputDirectories.setCurrentLink",
+          "command": "chromiumide.chromium.outputDirectories.setCurrentLink",
           "when": "false"
         },
         {
-          "command": "cros-ide.chromium.outputDirectories.refresh",
+          "command": "chromiumide.chromium.outputDirectories.refresh",
           "when": "false"
         },
         {

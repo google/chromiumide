@@ -9,7 +9,7 @@ import * as common_util from '../../common/common_util';
 export function activate(context: vscode.ExtensionContext, rootPath: string) {
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      'cros-ide.chromium.gitcl.format',
+      'chromiumide.chromium.gitcl.format',
       async (sourceControl: unknown) => {
         await vscode.window.withProgress(
           {
