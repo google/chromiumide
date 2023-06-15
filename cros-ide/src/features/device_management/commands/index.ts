@@ -57,50 +57,52 @@ export function registerCommands(
   };
 
   return vscode.Disposable.from(
-    vscode.commands.registerCommand('cros-ide.deviceManagement.addDevice', () =>
-      addDevice(context)
+    vscode.commands.registerCommand(
+      'chromiumide.deviceManagement.addDevice',
+      () => addDevice(context)
     ),
     vscode.commands.registerCommand(
-      'cros-ide.deviceManagement.addExistingHosts',
+      'chromiumide.deviceManagement.addExistingHosts',
       () => addExistingHostsCommand(context)
     ),
     vscode.commands.registerCommand(
-      'cros-ide.deviceManagement.deleteDevice',
+      'chromiumide.deviceManagement.deleteDevice',
       (item?: provider.DeviceItem) => deleteDevice(context, item)
     ),
     vscode.commands.registerCommand(
-      'cros-ide.deviceManagement.connectToDeviceForScreen',
+      'chromiumide.deviceManagement.connectToDeviceForScreen',
       (item?: provider.DeviceItem) => connectToDeviceForScreen(context, item)
     ),
     vscode.commands.registerCommand(
-      'cros-ide.deviceManagement.connectToDeviceForShell',
+      'chromiumide.deviceManagement.connectToDeviceForShell',
       (item?: provider.DeviceItem) => connectToDeviceForShell(context, item)
     ),
     vscode.commands.registerCommand(
-      'cros-ide.deviceManagement.openSystemLogViewer',
+      'chromiumide.deviceManagement.openSystemLogViewer',
       (item?: provider.DeviceItem) => openSystemLogViewer(context, item)
     ),
     vscode.commands.registerCommand(
-      'cros-ide.deviceManagement.crosfleetLogin',
+      'chromiumide.deviceManagement.crosfleetLogin',
       () => crosfleetLogin(context)
     ),
     vscode.commands.registerCommand(
-      'cros-ide.deviceManagement.refreshLeases',
+      'chromiumide.deviceManagement.refreshLeases',
       () => refreshLeases(context)
     ),
-    vscode.commands.registerCommand('cros-ide.deviceManagement.addLease', () =>
-      addLease(context)
+    vscode.commands.registerCommand(
+      'chromiumide.deviceManagement.addLease',
+      () => addLease(context)
     ),
     vscode.commands.registerCommand(
-      'cros-ide.deviceManagement.abandonLease',
+      'chromiumide.deviceManagement.abandonLease',
       (item?: provider.DeviceItem) => abandonLease(context, item)
     ),
     vscode.commands.registerCommand(
-      'cros-ide.deviceManagement.copyHostname',
+      'chromiumide.deviceManagement.copyHostname',
       (item: provider.DeviceItem) => copyHostname(context, item)
     ),
     vscode.commands.registerCommand(
-      'cros-ide.deviceManagement.openLogs',
+      'chromiumide.deviceManagement.openLogs',
       () => {
         output.show();
       }
@@ -127,7 +129,7 @@ function registerChromiumosCommands(
 
     subscriptions.push(
       vscode.commands.registerCommand(
-        'cros-ide.deviceManagement.flashPrebuiltImage',
+        'chromiumide.deviceManagement.flashPrebuiltImage',
         (item?: provider.DeviceItem) =>
           flashPrebuiltImage(context, chrootService, item)
       )
@@ -136,7 +138,7 @@ function registerChromiumosCommands(
     if (chrootService) {
       subscriptions.push(
         vscode.commands.registerCommand(
-          'cros-ide.deviceManagement.runTastTests',
+          'chromiumide.deviceManagement.runTastTests',
           () => runTastTests(context, chrootService)
         )
       );

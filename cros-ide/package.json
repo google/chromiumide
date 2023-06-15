@@ -45,77 +45,77 @@
         "enablement": "config.chromiumide.underDevelopment.chromiumBuild"
       },
       {
-        "command": "cros-ide.deviceManagement.connectToDeviceForScreen",
+        "command": "chromiumide.deviceManagement.connectToDeviceForScreen",
         "category": "CrOS",
         "title": "Connect to Device (VNC)",
         "icon": "$(window)"
       },
       {
-        "command": "cros-ide.deviceManagement.connectToDeviceForShell",
+        "command": "chromiumide.deviceManagement.connectToDeviceForShell",
         "category": "CrOS",
         "title": "Connect to Device (Shell)",
         "icon": "$(terminal)"
       },
       {
-        "command": "cros-ide.deviceManagement.openSystemLogViewer",
+        "command": "chromiumide.deviceManagement.openSystemLogViewer",
         "category": "CrOS",
         "title": "Open System Log Viewer",
         "icon": "$(output)"
       },
       {
-        "command": "cros-ide.deviceManagement.addDevice",
+        "command": "chromiumide.deviceManagement.addDevice",
         "category": "CrOS",
         "title": "Add New Device",
         "icon": "$(add)"
       },
       {
-        "command": "cros-ide.deviceManagement.addExistingHosts",
+        "command": "chromiumide.deviceManagement.addExistingHosts",
         "category": "CrOS",
         "title": "Add Existing Device Host Names from the SSH Config File",
         "icon": "$(add)"
       },
       {
-        "command": "cros-ide.deviceManagement.deleteDevice",
+        "command": "chromiumide.deviceManagement.deleteDevice",
         "category": "CrOS",
         "title": "Delete Device",
         "icon": "$(remove)"
       },
       {
-        "command": "cros-ide.deviceManagement.flashPrebuiltImage",
+        "command": "chromiumide.deviceManagement.flashPrebuiltImage",
         "category": "CrOS",
         "title": "Flash Image to Device",
         "icon": "$(cloud-download)"
       },
       {
-        "command": "cros-ide.deviceManagement.crosfleetLogin",
+        "command": "chromiumide.deviceManagement.crosfleetLogin",
         "category": "CrOS",
         "title": "Log in to crosfleet"
       },
       {
-        "command": "cros-ide.deviceManagement.refreshLeases",
+        "command": "chromiumide.deviceManagement.refreshLeases",
         "category": "CrOS",
         "title": "Refresh Leased Device List",
         "icon": "$(refresh)"
       },
       {
-        "command": "cros-ide.deviceManagement.addLease",
+        "command": "chromiumide.deviceManagement.addLease",
         "category": "CrOS",
         "title": "Lease a Device",
         "icon": "$(add)"
       },
       {
-        "command": "cros-ide.deviceManagement.abandonLease",
+        "command": "chromiumide.deviceManagement.abandonLease",
         "category": "CrOS",
         "title": "Abandon the Device",
         "icon": "$(close)"
       },
       {
-        "command": "cros-ide.deviceManagement.copyHostname",
+        "command": "chromiumide.deviceManagement.copyHostname",
         "category": "CrOS",
         "title": "Copy Hostname"
       },
       {
-        "command": "cros-ide.deviceManagement.runTastTests",
+        "command": "chromiumide.deviceManagement.runTastTests",
         "category": "CrOS",
         "title": "Run tast tests",
         "icon": "$(play)"
@@ -400,7 +400,7 @@
       ],
       "editor/title": [
         {
-          "command": "cros-ide.deviceManagement.runTastTests",
+          "command": "chromiumide.deviceManagement.runTastTests",
           "when": "resourcePath =~ //src/platform/tast-tests[^/]*/src/chromiumos/tast/(local|remote)/bundles/[^/]+/[^/]+/[^/]+.go$/",
           "group": "navigation"
         }
@@ -456,82 +456,82 @@
       ],
       "view/item/context": [
         {
-          "command": "cros-ide.deviceManagement.addDevice",
+          "command": "chromiumide.deviceManagement.addDevice",
           "when": "view == devices && viewItem == category-owned",
           "group": "inline"
         },
         {
-          "command": "cros-ide.deviceManagement.connectToDeviceForScreen",
+          "command": "chromiumide.deviceManagement.connectToDeviceForScreen",
           "when": "view == devices && viewItem =~ /^device-/",
           "group": "inline@1"
         },
         {
-          "command": "cros-ide.deviceManagement.connectToDeviceForScreen",
+          "command": "chromiumide.deviceManagement.connectToDeviceForScreen",
           "when": "view == devices && viewItem =~ /^device-/",
           "group": "1_connect@1"
         },
         {
-          "command": "cros-ide.deviceManagement.connectToDeviceForShell",
+          "command": "chromiumide.deviceManagement.connectToDeviceForShell",
           "when": "view == devices && viewItem =~ /^device-/",
           "group": "inline@2"
         },
         {
-          "command": "cros-ide.deviceManagement.connectToDeviceForShell",
+          "command": "chromiumide.deviceManagement.connectToDeviceForShell",
           "when": "view == devices && viewItem =~ /^device-/",
           "group": "1_connect@2"
         },
         {
-          "command": "cros-ide.deviceManagement.flashPrebuiltImage",
+          "command": "chromiumide.deviceManagement.flashPrebuiltImage",
           "when": "view == devices && viewItem =~ /^device-/",
           "group": "inline@3"
         },
         {
-          "command": "cros-ide.deviceManagement.flashPrebuiltImage",
+          "command": "chromiumide.deviceManagement.flashPrebuiltImage",
           "when": "view == devices && viewItem =~ /^device-/",
           "group": "2_operation@1"
         },
         {
-          "command": "cros-ide.deviceManagement.openSystemLogViewer",
+          "command": "chromiumide.deviceManagement.openSystemLogViewer",
           "when": "view == devices && viewItem =~ /^device-/",
           "group": "inline@4"
         },
         {
-          "command": "cros-ide.deviceManagement.openSystemLogViewer",
+          "command": "chromiumide.deviceManagement.openSystemLogViewer",
           "when": "view == devices && viewItem =~ /^device-/ && config.chromiumide.underDevelopment.systemLogViewer",
           "group": "2_operation@2"
         },
         {
-          "command": "cros-ide.deviceManagement.copyHostname",
+          "command": "chromiumide.deviceManagement.copyHostname",
           "when": "view == devices && viewItem =~ /^device-/",
           "group": "8_copy"
         },
         {
-          "command": "cros-ide.deviceManagement.deleteDevice",
+          "command": "chromiumide.deviceManagement.deleteDevice",
           "when": "view == devices && viewItem == device-owned",
           "group": "inline@9"
         },
         {
-          "command": "cros-ide.deviceManagement.deleteDevice",
+          "command": "chromiumide.deviceManagement.deleteDevice",
           "when": "view == devices && viewItem == device-owned",
           "group": "9_delete"
         },
         {
-          "command": "cros-ide.deviceManagement.addLease",
+          "command": "chromiumide.deviceManagement.addLease",
           "when": "view == devices && viewItem == category-leased",
           "group": "inline@1"
         },
         {
-          "command": "cros-ide.deviceManagement.abandonLease",
+          "command": "chromiumide.deviceManagement.abandonLease",
           "when": "view == devices && viewItem == device-leased",
           "group": "inline@9"
         },
         {
-          "command": "cros-ide.deviceManagement.abandonLease",
+          "command": "chromiumide.deviceManagement.abandonLease",
           "when": "view == devices && viewItem == device-leased",
           "group": "9_delete"
         },
         {
-          "command": "cros-ide.deviceManagement.refreshLeases",
+          "command": "chromiumide.deviceManagement.refreshLeases",
           "when": "view == devices && viewItem == category-leased",
           "group": "inline@2"
         },
@@ -573,7 +573,7 @@
       ],
       "commandPalette": [
         {
-          "command": "cros-ide.deviceManagement.copyHostname",
+          "command": "chromiumide.deviceManagement.copyHostname",
           "when": "false"
         },
         {

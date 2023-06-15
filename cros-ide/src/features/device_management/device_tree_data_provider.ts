@@ -75,7 +75,7 @@ export class LoginItem extends vscode.TreeItem {
   readonly kind = ItemKind.LOGIN;
   readonly command: vscode.Command = {
     title: 'Log in to Crosfleet',
-    command: 'cros-ide.deviceManagement.crosfleetLogin',
+    command: 'chromiumide.deviceManagement.crosfleetLogin',
   };
 
   constructor() {

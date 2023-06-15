@@ -62,7 +62,7 @@ export function activate(
   statusManager.setTask('Device Management', {
     status: TaskStatus.OK,
     command: {
-      command: 'cros-ide.deviceManagement.openLogs',
+      command: 'chromiumide.deviceManagement.openLogs',
       title: 'Open Device Management Logs',
     },
   });

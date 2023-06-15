@@ -47,7 +47,7 @@ export class RunProfile implements vscode.Disposable {
       try {
         const runResult: RunTastTestsResult | null | Error =
           await vscode.commands.executeCommand(
-            'cros-ide.deviceManagement.runTastTests'
+            'chromiumide.deviceManagement.runTastTests'
           );
 
         if (runResult !== null) {
