@@ -10,17 +10,17 @@ import * as metrics from './metrics/metrics';
 
 export function activate(context: vscode.ExtensionContext) {
   const openFileCmd = vscode.commands.registerTextEditorCommand(
-    'cros-ide.codeSearchOpenCurrentFile',
+    'chromiumide.codeSearchOpenCurrentFile',
     (textEditor: vscode.TextEditor) => void openCurrentFile(textEditor)
   );
 
   const copyFileCmd = vscode.commands.registerTextEditorCommand(
-    'cros-ide.codeSearchCopyCurrentFile',
+    'chromiumide.codeSearchCopyCurrentFile',
     (textEditor: vscode.TextEditor) => void copyCurrentFile(textEditor)
   );
 
   const searchSelectionCmd = vscode.commands.registerTextEditorCommand(
-    'cros-ide.codeSearchSearchForSelection',
+    'chromiumide.codeSearchSearchForSelection',
     (textEditor: vscode.TextEditor) => searchSelection(textEditor)
   );
 

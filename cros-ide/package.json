@@ -128,17 +128,17 @@
         "enablement": "cros-ide.chrootPath"
       },
       {
-        "command": "cros-ide.codeSearchOpenCurrentFile",
+        "command": "chromiumide.codeSearchOpenCurrentFile",
         "category": "CrOS",
         "title": "Open in Code Search"
       },
       {
-        "command": "cros-ide.codeSearchCopyCurrentFile",
+        "command": "chromiumide.codeSearchCopyCurrentFile",
         "category": "CrOS",
         "title": "Copy Code Search URL to clipboard"
       },
       {
-        "command": "cros-ide.codeSearchSearchForSelection",
+        "command": "chromiumide.codeSearchSearchForSelection",
         "category": "CrOS",
         "title": "Search for selection in Code Search"
       },
@@ -389,13 +389,13 @@
       ],
       "editor/context": [
         {
-          "command": "cros-ide.codeSearchOpenCurrentFile"
+          "command": "chromiumide.codeSearchOpenCurrentFile"
         },
         {
-          "command": "cros-ide.codeSearchCopyCurrentFile"
+          "command": "chromiumide.codeSearchCopyCurrentFile"
         },
         {
-          "command": "cros-ide.codeSearchSearchForSelection"
+          "command": "chromiumide.codeSearchSearchForSelection"
         }
       ],
       "editor/title": [
