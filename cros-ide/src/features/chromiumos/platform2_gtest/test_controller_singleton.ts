@@ -32,7 +32,7 @@ export class TestControllerSingleton implements vscode.Disposable {
   getOrCreate(): vscode.TestController {
     if (!this.controller) {
       this.controller = vscode.tests.createTestController(
-        'cros-ide.platform2Gtest',
+        'chromiumide.platform2Gtest',
         'platform2 gtest'
       );
       this.onDidCreateEmitter.fire(this.controller);

@@ -17,7 +17,7 @@ export function createLinterLoggingBundle(
   return createLoggingBundle(
     context,
     'ChromiumIDE: Linter',
-    'cros-ide.showLintLog',
+    'chromiumide.showLintLog',
     'Show linter log',
     'Linter'
   );

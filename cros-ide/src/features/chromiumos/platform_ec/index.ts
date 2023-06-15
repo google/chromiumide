@@ -11,7 +11,7 @@ import * as tasks from './tasks';
 
 export const STATUS_TASK_NAME = 'Platform EC';
 export const SHOW_LOG_COMMAND: vscode.Command = {
-  command: 'cros-ide.showPlatformEcLog',
+  command: 'chromiumide.showPlatformEcLog',
   title: 'Show Platform EC Log',
 };
 

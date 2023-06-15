@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 export const MNT_HOST_SOURCE = '/mnt/host/source';
 
 export const SHOW_LOG_COMMAND: vscode.Command = {
-  command: 'cros-ide.showCppLog',
+  command: 'chromiumide.showCppLog',
   title: '',
 };
 

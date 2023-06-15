@@ -30,7 +30,7 @@ export function getUiLogger(): vscode.OutputChannel {
 }
 
 export const SHOW_UI_LOG: vscode.Command = {
-  command: 'cros-ide.showUiLog',
+  command: 'chromiumide.showUiLog',
   title: '',
 };
 
