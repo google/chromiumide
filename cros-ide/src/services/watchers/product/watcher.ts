@@ -127,6 +127,7 @@ export class ProductWatcher implements vscode.Disposable {
         category: 'background',
         group: 'misc',
         description: `multiple ${this.product} candidates (product watcher)`,
+        name: 'product_watcher_multiple_products',
       });
     }
 

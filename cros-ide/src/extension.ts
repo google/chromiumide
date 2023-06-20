@@ -150,7 +150,7 @@ async function postMetricsActivate(
   if (!config.gerrit.enabled.hasDefaultValue()) {
     metrics.send({
       category: 'background',
-      group: 'misc',
+      group: 'gerrit',
       description: 'gerrit enablement',
       name: 'gerrit_setting_toggled',
       flag: String(config.gerrit.enabled.get()),

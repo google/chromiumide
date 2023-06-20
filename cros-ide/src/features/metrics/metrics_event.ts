@@ -189,16 +189,24 @@ interface ExtensionInstalledEvent extends GA4EventBase {
   extension: string;
 }
 
-interface MiscErrorEvent extends GA4EventBase {
-  category: 'error';
+type MiscEvent = GA4EventBase & {
   group: 'misc';
-  name: 'misc_error_active_chromium_feature';
-}
-
-interface ActivateChromiumFeatureError extends MiscErrorEvent {
-  name: 'misc_error_active_chromium_feature';
-  feature: string;
-}
+} & (
+    | {
+        category: 'background';
+        name: 'product_watcher_multiple_products';
+      }
+    | {
+        category: 'interactive';
+        group: 'misc';
+        name: 'show_help';
+      }
+    | {
+        category: 'error';
+        name: 'misc_error_active_chromium_feature';
+        feature: string;
+      }
+  );
 
 interface chromiumOutputDirectoriesBackgroundEvent extends GA4EventBase {
   category: 'background';
@@ -359,6 +367,7 @@ interface CipdEvent extends GA4EventBase {
   name: 'cipd_init_failed' | 'cipd_install_failed';
 }
 
+<<<<<<< HEAD
 interface MiscInteractiveEvent extends GA4EventBase {
   category: 'interactive';
   group: 'misc';
@@ -366,6 +375,9 @@ interface MiscInteractiveEvent extends GA4EventBase {
 }
 
 type ChromiumIdeExtensionEvent = GA4EventBase & {
+=======
+type ChromiumIDEExtensionEvent = GA4EventBase & {
+>>>>>>> df37b0c27 (cros-ide: metrics: refactor misc events)
   group: 'misc';
 } & (
     | {
@@ -396,7 +408,6 @@ export type Event =
   | LintErrorEvent
   | LintSkipEvent
   | LintUpdateEvent
-  | ActivateChromiumFeatureError
   | chromiumOutputDirectoriesBackgroundEvent
   | chromiumOutputDirectoriesErrorEvent
   | chromiumOutputDirectoriesInteractiveEvent
@@ -413,7 +424,7 @@ export type Event =
   | SpellcheckerEvent
   | IdeStatusEvent
   | CipdEvent
-  | MiscInteractiveEvent
+  | MiscEvent
   | ChromiumIdeExtensionEvent;
 
 /**
