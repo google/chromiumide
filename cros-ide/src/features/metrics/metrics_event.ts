@@ -121,24 +121,30 @@ interface DeviceManagementEvent extends GA4EventBase {
     | 'device_management_syslog_viewer_open';
 }
 
-interface GerritErrorEvent extends GA4EventBase {
-  category: 'error';
+type GerritEvent = GA4EventBase & {
   group: 'gerrit';
-  name: 'gerrit_show_error';
-}
-
-interface GerritInteractiveEvent extends GA4EventBase {
-  category: 'interactive';
-  group: 'gerrit';
-  name: 'gerrit_focus_comments_panel' | 'gerrit_collapse_all_comment_threads';
-}
-
-interface GerritUpdateCommentsEvent extends GA4EventBase {
-  category: 'background';
-  group: 'gerrit';
-  name: 'gerrit_update_comments';
-  displayed_threads_count: number;
-}
+} & (
+    | {
+        category: 'background';
+        name: 'gerrit_setting_toggled';
+        flag: string;
+      }
+    | {
+        category: 'background';
+        name: 'gerrit_update_comments';
+        displayed_threads_count: number;
+      }
+    | {
+        category: 'error';
+        name: 'gerrit_show_error';
+      }
+    | {
+        category: 'interactive';
+        name:
+          | 'gerrit_focus_comments_panel'
+          | 'gerrit_collapse_all_comment_threads';
+      }
+  );
 
 interface VirtualdocumentOpenDocumentEvent extends GA4EventBase {
   category: 'interactive';
@@ -385,9 +391,7 @@ export type Event =
   | CodesearchInteractiveEvent
   | ActivateChromiumosEvent
   | CodesearchSearchSelectionEvent
-  | GerritInteractiveEvent
-  | GerritErrorEvent
-  | GerritUpdateCommentsEvent
+  | GerritEvent
   | VirtualdocumentOpenDocumentEvent
   | LintErrorEvent
   | LintSkipEvent

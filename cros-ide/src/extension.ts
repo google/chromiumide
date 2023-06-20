@@ -152,7 +152,8 @@ async function postMetricsActivate(
       category: 'background',
       group: 'misc',
       description: 'gerrit enablement',
-      label: String(config.gerrit.enabled.get()),
+      name: 'gerrit_setting_toggled',
+      flag: String(config.gerrit.enabled.get()),
     });
   }
 
