@@ -18,8 +18,13 @@ export async function readAuthCookie(
 ): Promise<string | undefined> {
   const filePath = await getGitcookiesPath(sink);
   try {
+    sink.appendLine(`Parsing ${filePath} to access ${repoId} Gerrit`);
     const str = await fs.promises.readFile(filePath, {encoding: 'utf8'});
-    return parseAuthGitcookies(repoId, str);
+    const res = parseAuthGitcookies(repoId, str);
+    if (res === undefined) {
+      sink.appendLine('Gerrit credential not found');
+    }
+    return res;
   } catch (err) {
     if ((err as {code?: unknown}).code === 'ENOENT') {
       const msg =
