@@ -79,20 +79,16 @@ export function eventToRequestBodyGA4(
   clientId: string,
   vscodeName: string,
   vscodeVersion: string,
-  extensionVersion: string | undefined,
+  extensionVersion: string | undefined
 ): string {
-  const eventGA4 = event as metricsEvent.GA4EventBase;
-
   // The unused variables are needed for object destruction of event and match customFields.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const {category, group, name, description, ...customFields} = eventGA4;
+  const {category, group, name, description, ...customFields} = event;
 
   // TODO(b/281925148): eventually name should be passed directly as value for event_name.
   // Temporary measure only before all callsites provide name (and Event.name becomes a required
   // field with static check for GA4 rules).
-  const sanitizedEventName = metricsEvent.sanitizeEventName(
-    name ?? description
-  );
+  const sanitizedEventName = metricsEvent.sanitizeEventName(name);
 
   const params = {
     git_repo: gitRepo ?? 'unknown',
@@ -100,6 +96,9 @@ export function eventToRequestBodyGA4(
     vscode_name: vscodeName,
     vscode_version: vscodeVersion,
     extension_version: extensionVersion ?? 'unknown',
+    category: category,
+    feature_group: group,
+    description: description,
     ...customFields,
   };
 

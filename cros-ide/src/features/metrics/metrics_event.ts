@@ -47,28 +47,6 @@ interface EventBase {
   //   "select target board"
   //   "device: connect to device via VNC"
   description: string;
-}
-
-// More events that extend EventBase with custom dimensions and values should be
-// added below.
-// IMPORTANT: custom parameters name should be in snake case and satisfying GA4 limitations,
-// namely,
-//   1. contains alphanumerical characters or underscore '_' only,
-//   2. starts with an alphabet,
-//   3. has at most 40 characters
-// see
-// https://developers.google.com/analytics/devguides/collection/protocol/ga4/sending-events?client_type=gtag#limitations
-
-export interface UAEventDeprecated extends EventBase {
-  // Label is an optional string that describes the operation.
-  label?: string;
-  // Value is an optional number that describes the operation.
-  value?: number;
-}
-
-// Temporary class to ensure new GA4 Event types have name and are catalogued in this file (avoid
-// implicitly using UAEventDeprecated type).
-export interface GA4EventBase extends EventBase {
   // Name of event to be sent to GA4.
   // TODO(b/281925148): name would be a required field with checks to ensure it satisfies GA4
   // limitations
@@ -81,13 +59,13 @@ export interface GA4EventBase extends EventBase {
   name: string;
 }
 
-interface CodesearchErrorEvent extends GA4EventBase {
+interface CodesearchErrorEvent extends EventBase {
   category: 'error';
   group: 'codesearch';
   name: 'codesearch_generate_cs_path_failed';
 }
 
-interface CodesearchInteractiveEvent extends GA4EventBase {
+interface CodesearchInteractiveEvent extends EventBase {
   category: 'interactive';
   group: 'codesearch';
   name:
@@ -101,7 +79,7 @@ interface CodesearchSearchSelectionEvent extends CodesearchInteractiveEvent {
   selected_text: string;
 }
 
-interface DeviceManagementEvent extends GA4EventBase {
+interface DeviceManagementEvent extends EventBase {
   category: 'interactive';
   group: 'device';
   name:
@@ -121,7 +99,7 @@ interface DeviceManagementEvent extends GA4EventBase {
     | 'device_management_syslog_viewer_open';
 }
 
-type GerritEvent = GA4EventBase & {
+type GerritEvent = EventBase & {
   group: 'gerrit';
 } & (
     | {
@@ -146,20 +124,20 @@ type GerritEvent = GA4EventBase & {
       }
   );
 
-interface VirtualdocumentOpenDocumentEvent extends GA4EventBase {
+interface VirtualdocumentOpenDocumentEvent extends EventBase {
   category: 'interactive';
   group: 'virtualdocument';
   name: 'virtualdocument_open_document';
   document: string;
 }
 
-interface LintErrorEvent extends GA4EventBase {
+interface LintErrorEvent extends EventBase {
   category: 'error';
   group: 'lint';
   name: 'lint_update_diagnostic_error' | 'lint_missing_diagnostics';
 }
 
-interface LintBackgroundEvent extends GA4EventBase {
+interface LintBackgroundEvent extends EventBase {
   category: 'background';
   group: 'lint';
 }
@@ -175,21 +153,21 @@ interface LintSkipEvent extends LintBackgroundEvent {
   language_id: string;
 }
 
-interface ExtensionSuggestedEvent extends GA4EventBase {
+interface ExtensionSuggestedEvent extends EventBase {
   category: 'background';
   group: 'misc';
   name: 'misc_suggested_extension';
   extension: string;
 }
 
-interface ExtensionInstalledEvent extends GA4EventBase {
+interface ExtensionInstalledEvent extends EventBase {
   category: 'interactive';
   group: 'misc';
   name: 'misc_installed_suggested_extension';
   extension: string;
 }
 
-type MiscEvent = GA4EventBase & {
+type MiscEvent = EventBase & {
   group: 'misc';
 } & (
     | {
@@ -208,14 +186,14 @@ type MiscEvent = GA4EventBase & {
       }
   );
 
-interface chromiumOutputDirectoriesBackgroundEvent extends GA4EventBase {
+interface chromiumOutputDirectoriesBackgroundEvent extends EventBase {
   category: 'background';
   group: 'chromium.outputDirectories';
   name: 'chromium_outputDirectories_built_node_cache';
   output_directories_count: number;
 }
 
-interface chromiumOutputDirectoriesErrorEvent extends GA4EventBase {
+interface chromiumOutputDirectoriesErrorEvent extends EventBase {
   category: 'error';
   group: 'chromium.outputDirectories';
   name:
@@ -225,7 +203,7 @@ interface chromiumOutputDirectoriesErrorEvent extends GA4EventBase {
     | 'chromium_outputDirectories_race_condition_at_rebuild';
 }
 
-interface chromiumOutputDirectoriesInteractiveEvent extends GA4EventBase {
+interface chromiumOutputDirectoriesInteractiveEvent extends EventBase {
   category: 'interactive';
   group: 'chromium.outputDirectories';
   name:
@@ -234,7 +212,7 @@ interface chromiumOutputDirectoriesInteractiveEvent extends GA4EventBase {
     | 'chromium_outputDirectories_change_output_directory';
 }
 
-interface PackageCrosWorkonEvent extends GA4EventBase {
+interface PackageCrosWorkonEvent extends EventBase {
   category: 'interactive';
   group: 'package';
   name: 'package_cros_workon_start' | 'package_cros_workon_stop';
@@ -242,19 +220,19 @@ interface PackageCrosWorkonEvent extends GA4EventBase {
   board: string;
 }
 
-interface PackageOpenEbuildEvent extends GA4EventBase {
+interface PackageOpenEbuildEvent extends EventBase {
   category: 'interactive';
   group: 'package';
   name: 'package_open_ebuild';
 }
 
-interface ActivateChromiumosEvent extends GA4EventBase {
+interface ActivateChromiumosEvent extends EventBase {
   category: 'error';
   group: 'misc';
   name: 'activate_chromiumos_error';
 }
 
-type CrosFormatEvent = GA4EventBase & {group: 'format'} & (
+type CrosFormatEvent = EventBase & {group: 'format'} & (
     | {
         category: 'error';
         name: 'cros_format_call_error' | 'cros_format_return_error';
@@ -265,14 +243,14 @@ type CrosFormatEvent = GA4EventBase & {group: 'format'} & (
       }
   );
 
-interface TargetBoardEvent extends GA4EventBase {
+interface TargetBoardEvent extends EventBase {
   category: 'interactive';
   group: 'misc';
   name: 'select_target_board';
   board: string;
 }
 
-type CoverageEvent = GA4EventBase &
+type CoverageEvent = EventBase &
   (
     | {
         category: 'interactive';
@@ -288,7 +266,7 @@ type CoverageEvent = GA4EventBase &
       }
   );
 
-type CppCodeCompletionEvent = GA4EventBase &
+type CppCodeCompletionEvent = EventBase &
   (
     | {
         category: 'background';
@@ -314,7 +292,7 @@ type CppCodeCompletionEvent = GA4EventBase &
       }
   );
 
-interface DebuggingEvent extends GA4EventBase {
+interface DebuggingEvent extends EventBase {
   category: 'interactive';
   group: 'debugging';
   name: 'debugging_run_gtest' | 'debugging_debug_gtest';
@@ -322,13 +300,13 @@ interface DebuggingEvent extends GA4EventBase {
   tests_count: number;
 }
 
-interface TastEvent extends GA4EventBase {
+interface TastEvent extends EventBase {
   category: 'interactive';
   group: 'tast';
   name: 'tast_setup_dev_environment';
 }
 
-type SpellcheckerEvent = GA4EventBase &
+type SpellcheckerEvent = EventBase &
   (
     | {
         category: 'error';
@@ -343,7 +321,7 @@ type SpellcheckerEvent = GA4EventBase &
       }
   );
 
-type IdeStatusEvent = GA4EventBase & {
+type IdeStatusEvent = EventBase & {
   category: 'interactive';
   group: 'idestatus';
 } & (
@@ -361,13 +339,13 @@ type IdeStatusEvent = GA4EventBase & {
       }
   );
 
-interface CipdEvent extends GA4EventBase {
+interface CipdEvent extends EventBase {
   category: 'error';
   group: 'cipd';
   name: 'cipd_init_failed' | 'cipd_install_failed';
 }
 
-type ChromiumIdeExtensionEvent = GA4EventBase & {
+type ChromiumIdeExtensionEvent = EventBase & {
   group: 'misc';
 } & (
     | {
@@ -385,7 +363,7 @@ type ChromiumIdeExtensionEvent = GA4EventBase & {
       }
   );
 
-interface OwnersEvent extends GA4EventBase {
+interface OwnersEvent extends EventBase {
   category: 'interactive';
   group: 'owners';
   name: 'owners_clicked_file_or_link';
@@ -393,7 +371,6 @@ interface OwnersEvent extends GA4EventBase {
 
 // Add new Event interfaces to UAEventDeprecated (joint by or |).
 export type Event =
-  // | UAEventDeprecated
   | DeviceManagementEvent
   | CodesearchErrorEvent
   | CodesearchInteractiveEvent

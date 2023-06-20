@@ -71,7 +71,7 @@ describe('Metrics util: construct GA4 request body from Event', () => {
         'mock vscode version',
         '0.12.0'
       ),
-      '{"client_id":"mock_client_id","events":[{"name":"codesearch_generate_cs_path_failed","params":{"git_repo":"mock git repo","os":"Linux","vscode_name":"mock vscode name","vscode_version":"mock vscode version","extension_version":"0.12.0"}}]}'
+      '{"client_id":"mock_client_id","events":[{"name":"codesearch_generate_cs_path_failed","params":{"git_repo":"mock git repo","os":"Linux","vscode_name":"mock vscode name","vscode_version":"mock vscode version","extension_version":"0.12.0","category":"error","feature_group":"codesearch","description":"test event"}}]}'
     );
   });
   it('Event with label', async () => {
@@ -90,7 +90,7 @@ describe('Metrics util: construct GA4 request body from Event', () => {
         'mock vscode version',
         '0.12.0'
       ),
-      '{"client_id":"mock_client_id","events":[{"name":"virtualdocument_open_document","params":{"git_repo":"mock git repo","os":"Linux","vscode_name":"mock vscode name","vscode_version":"mock vscode version","extension_version":"0.12.0","document":"mock label"}}]}'
+      '{"client_id":"mock_client_id","events":[{"name":"virtualdocument_open_document","params":{"git_repo":"mock git repo","os":"Linux","vscode_name":"mock vscode name","vscode_version":"mock vscode version","extension_version":"0.12.0","category":"interactive","feature_group":"virtualdocument","description":"test event","document":"mock label"}}]}'
     );
   });
   it('Event with value', async () => {
@@ -109,7 +109,7 @@ describe('Metrics util: construct GA4 request body from Event', () => {
         'mock vscode version',
         '0.12.0'
       ),
-      '{"client_id":"mock_client_id","events":[{"name":"gerrit_update_comments","params":{"git_repo":"mock git repo","os":"Linux","vscode_name":"mock vscode name","vscode_version":"mock vscode version","extension_version":"0.12.0","displayed_threads_count":10}}]}'
+      '{"client_id":"mock_client_id","events":[{"name":"gerrit_update_comments","params":{"git_repo":"mock git repo","os":"Linux","vscode_name":"mock vscode name","vscode_version":"mock vscode version","extension_version":"0.12.0","category":"background","feature_group":"gerrit","description":"test event","displayed_threads_count":10}}]}'
     );
   });
 });
