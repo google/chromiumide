@@ -17,6 +17,7 @@ import * as ebuild from '../cpp_code_completion/compdb_service/ebuild';
 import {GtestCase} from '../../gtest/gtest_case';
 import {GtestWorkspace} from '../../gtest/gtest_workspace';
 import {AbstractRunner} from '../../gtest/abstract_runner';
+import * as gtestTestListParser from '../../gtest/gtest_test_list_parser';
 
 const PLATFORM2_TEST_PY =
   '/mnt/host/source/src/platform2/common-mk/platform2_test.py';
@@ -352,7 +353,7 @@ export class Runner extends AbstractRunner {
     if (result instanceof Error) {
       return result;
     }
-    return parseTestList(result.stdout);
+    return gtestTestListParser.parse(result.stdout);
   }
 
   private async runTestOrThrow(
@@ -493,27 +494,3 @@ type GTestInfo = {
   // Possible platform2 directories relative to the executable.
   platform2Dirs: string[];
 };
-
-/**
- * Parses output from a gtest executable run with the --gtest_list_tests flag
- * and returns the strings in the form of "<suite>.<name>". The return value may
- * contain duplicate elements for parameterized tests.
- */
-function parseTestList(stdout: string): string[] {
-  const res = [];
-  let suite = '';
-  for (const line of stdout.trim().split('\n')) {
-    if (line.startsWith('  ')) {
-      res.push(suite + line.trim().split('/')[0]);
-    } else {
-      if (line.includes('/')) {
-        suite = line.split('/')[1];
-      } else {
-        suite = line;
-      }
-    }
-  }
-  return res;
-}
-
-export const TEST_ONLY = {parseTestList};
