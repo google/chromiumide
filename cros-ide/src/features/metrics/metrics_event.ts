@@ -367,17 +367,7 @@ interface CipdEvent extends GA4EventBase {
   name: 'cipd_init_failed' | 'cipd_install_failed';
 }
 
-<<<<<<< HEAD
-interface MiscInteractiveEvent extends GA4EventBase {
-  category: 'interactive';
-  group: 'misc';
-  name: 'show_help';
-}
-
 type ChromiumIdeExtensionEvent = GA4EventBase & {
-=======
-type ChromiumIDEExtensionEvent = GA4EventBase & {
->>>>>>> df37b0c27 (cros-ide: metrics: refactor misc events)
   group: 'misc';
 } & (
     | {
@@ -394,6 +384,12 @@ type ChromiumIDEExtensionEvent = GA4EventBase & {
         age: number;
       }
   );
+
+interface OwnersEvent extends GA4EventBase {
+  category: 'interactive';
+  group: 'owners';
+  name: 'owners_clicked_file_or_link';
+}
 
 // Add new Event interfaces to UAEventDeprecated (joint by or |).
 export type Event =
@@ -425,7 +421,8 @@ export type Event =
   | IdeStatusEvent
   | CipdEvent
   | MiscEvent
-  | ChromiumIdeExtensionEvent;
+  | ChromiumIdeExtensionEvent
+  | OwnersEvent;
 
 /**
  * Manipulate given string to make sure it satisfies constraints imposed by GA4.

@@ -30,6 +30,7 @@ export class OwnersLink extends vscode.DocumentLink {
       category: 'interactive',
       group: 'owners',
       description: 'clicked file: or include link',
+      name: 'owners_clicked_file_or_link',
     });
 
     if (this.relativeOrAbsolutePath.startsWith('/')) {
