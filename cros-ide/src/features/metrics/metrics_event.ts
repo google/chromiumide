@@ -16,6 +16,7 @@ type FeatureGroup =
   | 'chromium.outputDirectories'
   | 'codesearch'
   | 'coverage'
+  | 'cipd'
   | 'cppxrefs'
   | 'debugging'
   | 'device'
@@ -345,6 +346,12 @@ type IdeStatusEvent = GA4EventBase & {
       }
   );
 
+interface CipdEvent extends GA4EventBase {
+  category: 'error';
+  group: 'cipd';
+  name: 'cipd_init_failed' | 'cipd_install_failed';
+}
+
 // Add new Event interfaces to UAEventDeprecated (joint by or |).
 export type Event =
   | UAEventDeprecated
@@ -375,7 +382,8 @@ export type Event =
   | DebuggingEvent
   | TastEvent
   | SpellcheckerEvent
-  | IdeStatusEvent;
+  | IdeStatusEvent
+  | CipdEvent;
 
 /**
  * Manipulate given string to make sure it satisfies constraints imposed by GA4.

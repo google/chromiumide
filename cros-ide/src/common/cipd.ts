@@ -75,8 +75,9 @@ export class CipdRepository {
           const details = errorDetails(result);
           metrics.send({
             category: 'error',
-            group: 'misc',
+            group: 'cipd',
             description: `call to 'cipd init' failed, details: ${details}`,
+            name: 'cipd_init_failed',
           });
           throw result;
         }
@@ -95,8 +96,9 @@ export class CipdRepository {
         const details = errorDetails(result);
         metrics.send({
           category: 'error',
-          group: 'misc',
+          group: 'cipd',
           description: `call to 'cipd install' failed, details: ${details}`,
+          name: 'cipd_install_failed',
         });
         throw result;
       }
