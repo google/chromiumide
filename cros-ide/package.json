@@ -315,7 +315,7 @@
       "activitybar": [
         {
           "id": "cros-view",
-          "title": "CrOS Development",
+          "title": "Chromium(OS) Development",
           "icon": "media/cros-device.svg"
         }
       ]
