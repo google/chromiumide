@@ -1,5 +1,11 @@
 # Change Log
 
+## 0.16.0 (June 2023)
+
+- Migrate cros-ide* configs and commands to chromiumide* .
+- Migrate metrics to GA4.
+- Fix broken regex for the button to run tast tests.
+
 ## 0.14.1 (June 2023)
 
 - Bump the minimum VSCode version to 1.75.1.
