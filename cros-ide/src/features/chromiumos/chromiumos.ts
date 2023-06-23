@@ -135,7 +135,7 @@ export class Chromiumos implements vscode.Disposable {
         this.subscriptions.push(new Platform2Gtest(this.root, chrootService));
       }
 
-      if (config.underDevelopment.tast.get()) {
+      if (config.tast.enabled.get()) {
         this.subscriptions.push(new Tast(chrootService, gitDirsWatcher));
       }
     }

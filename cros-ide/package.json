@@ -712,6 +712,11 @@
           "description": "Enable Tricium spellchecker. Requires a reload to take effect.",
           "default": true
         },
+        "chromiumide.tast.enabled": {
+          "type": "boolean",
+          "description": "Enable Tast Support",
+          "default": true
+        },
         "chromiumide.testCoverage.enabled": {
           "type": "boolean",
           "markdownDescription": "Show Code Coverage ([go/cros-ide-doc-boards-pkgs#code-coverage](http://go/cros-ide-doc-boards-pkgs#code-coverage)). Requires a reload to take effect.",
@@ -755,11 +760,6 @@
         "chromiumide.underDevelopment.systemLogViewer": {
           "type": "boolean",
           "description": "Enable system log viewer",
-          "default": true
-        },
-        "chromiumide.underDevelopment.tast": {
-          "type": "boolean",
-          "description": "Enable Tast Support",
           "default": true
         },
         "chromiumide.underDevelopment.testCoverage": {

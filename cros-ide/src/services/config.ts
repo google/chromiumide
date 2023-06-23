@@ -125,7 +125,6 @@ export const underDevelopment = {
   platformEc: new ConfigValue<boolean>('underDevelopment.platformEC'),
   relatedFiles: new ConfigValue<boolean>('underDevelopment.relatedFiles'),
   systemLogViewer: new ConfigValue<boolean>('underDevelopment.systemLogViewer'),
-  tast: new ConfigValue<boolean>('underDevelopment.tast'),
   testCoverage: new ConfigValue<boolean>('underDevelopment.testCoverage'),
   metricsGA4: new ConfigValue<boolean>('underDevelopment.metricsGA4'),
 };
@@ -170,6 +169,10 @@ export const chrome = {
 };
 
 export const spellchecker = new ConfigValue<boolean>('spellchecker');
+
+export const tast = {
+  enabled: new ConfigValue<boolean>('tast.enabled'),
+};
 
 export const testCoverage = {
   enabled: new ConfigValue<boolean>('testCoverage.enabled'),
