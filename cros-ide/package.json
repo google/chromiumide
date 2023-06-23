@@ -717,6 +717,11 @@
           "description": "Enable Tast Support",
           "default": true
         },
+        "chromiumide.tast.extraArgs": {
+          "type": "array",
+          "description": "Extra args given to tast run, e.g. -var=foo=bar.",
+          "default": []
+        },
         "chromiumide.testCoverage.enabled": {
           "type": "boolean",
           "markdownDescription": "Show Code Coverage ([go/cros-ide-doc-boards-pkgs#code-coverage](http://go/cros-ide-doc-boards-pkgs#code-coverage)). Requires a reload to take effect.",

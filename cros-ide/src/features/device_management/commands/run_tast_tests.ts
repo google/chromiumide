@@ -6,11 +6,12 @@
 // features/chromiumos/tast component.
 
 import * as vscode from 'vscode';
-import * as ssh from '../ssh_session';
 import * as netUtil from '../../../common/net_util';
 import * as services from '../../../services';
-import * as metrics from '../../metrics/metrics';
+import * as config from '../../../services/config';
 import * as parser from '../../chromiumos/tast/parser';
+import * as metrics from '../../metrics/metrics';
+import * as ssh from '../ssh_session';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
 
 /**
@@ -230,6 +231,8 @@ async function runSelectedTests(
   target: string,
   testNames: string[]
 ): Promise<void | Error> {
+  const extraArgs = config.tast.extraArgs.get();
+
   context.output.show();
 
   // Show a progress notification as this is a long operation.
@@ -244,7 +247,7 @@ async function runSelectedTests(
       // the Tast command return an error status code on any test failure.
       const res = await chrootService.exec(
         'tast',
-        ['run', '-failfortests', target, ...testNames],
+        ['run', '-failfortests', ...extraArgs, target, ...testNames],
         {
           sudoReason: 'to run tast tests',
           logger: context.output,

@@ -172,6 +172,7 @@ export const spellchecker = new ConfigValue<boolean>('spellchecker');
 
 export const tast = {
   enabled: new ConfigValue<boolean>('tast.enabled'),
+  extraArgs: new ConfigValue<string[]>('tast.extraArgs'),
 };
 
 export const testCoverage = {
