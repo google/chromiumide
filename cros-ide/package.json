@@ -973,6 +973,7 @@
     "test": "npm run unit-test && npm run integration-test",
     "unit-test": "npm run build-tests && NODE_PATH=out/test/unit/injected_modules NODE_OPTIONS=$NODE_OPTIONS' -r source-map-support/register' jasmine --config=src/test/unit/jasmine.json",
     "integration-test": "npm run build-all && rm -rf .vscode-test/user-data && xvfb-run -a node ./out/test/integration/runTest.js",
+    "e2e-test": "npm run build-tests && NODE_PATH=out/test/unit/injected_modules NODE_OPTIONS=$NODE_OPTIONS' -r source-map-support/register' jasmine --config=src/test/e2e/jasmine.json",
     "manual-test:cpp_xrefs": "NODE_PATH=out/test/unit/injected_modules npx ts-node ./src/test/manual/cpp_xrefs/main.ts",
     "lint": "npm run lint-code && npm run lint-license",
     "lint-code": "gts lint",
