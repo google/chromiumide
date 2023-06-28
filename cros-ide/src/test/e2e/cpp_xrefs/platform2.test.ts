@@ -54,12 +54,11 @@ describe('C++ xrefs in platform2', () => {
  * Rather than listing up all the C++ files, list up all the directories
  * containing a C++ file, and pick one C++ file from each such a directory.
  */
-function listCppFileRepresentatives(
+function* listCppFileRepresentatives(
   dir: string,
-  dirsToIgnore: string[],
-  res: string[] = []
-): string[] {
-  if (dirsToIgnore.includes(dir)) return res;
+  dirsToIgnore: string[]
+): Generator<string> {
+  if (dirsToIgnore.includes(dir)) return;
 
   let cppFileChosen = false;
 
@@ -71,14 +70,12 @@ function listCppFileRepresentatives(
       continue;
     }
     if (stat.isDirectory()) {
-      listCppFileRepresentatives(file, dirsToIgnore, res);
+      yield* listCppFileRepresentatives(file, dirsToIgnore);
       continue;
     }
     if (!cppFileChosen && ['.c', '.cc', '.cpp'].includes(path.extname(file))) {
-      res.push(file);
+      yield file;
       cppFileChosen = true;
     }
   }
-
-  return res;
 }
