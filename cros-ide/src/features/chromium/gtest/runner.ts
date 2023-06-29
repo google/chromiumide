@@ -114,6 +114,13 @@ export class Runner extends AbstractRunner {
         cwd: this.srcPath,
         logger: this.output,
         logStdout: true,
+        env: {
+          ...process.env,
+          // Force ninja to use colored output for things like error messages.
+          // https://github.com/ninja-build/ninja/issues/2196#issuecomment-1262923451
+          // https://github.com/ninja-build/ninja/blob/36843d387cb0621c1a288179af223d4f1410be73/src/line_printer.cc#L60-L63
+          CLICOLOR_FORCE: '1',
+        },
       }
     );
     if (result instanceof Error) {
