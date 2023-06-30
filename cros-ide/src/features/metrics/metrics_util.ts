@@ -66,6 +66,21 @@ export function getGitRepoName(
   return undefined;
 }
 
+// Determine whether extension is a pre-release version.
+function extensionVersionIsPreRelease(version: string | undefined): string {
+  if (!version) {
+    return 'unknown';
+  }
+  const splitVersion = version.split('.');
+  if (splitVersion.length !== 3) {
+    return 'unknown';
+  }
+  const minorVersion = Number(splitVersion[1]);
+  // Minor version is even for release and odd for pre-release following
+  // https://code.visualstudio.com/api/working-with-extensions/publishing-extension#prerelease-extensions
+  return isNaN(minorVersion) ? 'unknown' : (minorVersion % 2 !== 0).toString();
+}
+
 /**
  * Creates a query from event for Google Analytics 4 measurement protocol, see
  * https://developers.google.com/analytics/devguides/collection/protocol/ga4
@@ -96,6 +111,7 @@ export function eventToRequestBodyGA4(
     vscode_name: vscodeName,
     vscode_version: vscodeVersion,
     extension_version: extensionVersion ?? 'unknown',
+    pre_release: extensionVersionIsPreRelease(extensionVersion),
     category: category,
     feature_group: group,
     description: description,

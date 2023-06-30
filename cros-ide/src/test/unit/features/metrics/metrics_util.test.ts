@@ -71,7 +71,25 @@ describe('Metrics util: construct GA4 request body from Event', () => {
         'mock vscode version',
         '0.12.0'
       ),
-      '{"client_id":"mock_client_id","events":[{"name":"codesearch_generate_cs_path_failed","params":{"git_repo":"mock git repo","os":"Linux","vscode_name":"mock vscode name","vscode_version":"mock vscode version","extension_version":"0.12.0","category":"error","feature_group":"codesearch","description":"test event"}}]}'
+      '{"client_id":"mock_client_id","events":[{"name":"codesearch_generate_cs_path_failed","params":{"git_repo":"mock git repo","os":"Linux","vscode_name":"mock vscode name","vscode_version":"mock vscode version","extension_version":"0.12.0","pre_release":"false","category":"error","feature_group":"codesearch","description":"test event"}}]}'
+    );
+  });
+  it('Simple event with pre-release version', async () => {
+    assert.strictEqual(
+      metricsUtil.eventToRequestBodyGA4(
+        {
+          category: 'error',
+          group: 'codesearch',
+          name: 'codesearch_generate_cs_path_failed',
+          description: 'test event',
+        },
+        'mock git repo',
+        'mock_client_id',
+        'mock vscode name',
+        'mock vscode version',
+        '0.1.0'
+      ),
+      '{"client_id":"mock_client_id","events":[{"name":"codesearch_generate_cs_path_failed","params":{"git_repo":"mock git repo","os":"Linux","vscode_name":"mock vscode name","vscode_version":"mock vscode version","extension_version":"0.1.0","pre_release":"true","category":"error","feature_group":"codesearch","description":"test event"}}]}'
     );
   });
   it('Event with label', async () => {
@@ -90,7 +108,7 @@ describe('Metrics util: construct GA4 request body from Event', () => {
         'mock vscode version',
         '0.12.0'
       ),
-      '{"client_id":"mock_client_id","events":[{"name":"virtualdocument_open_document","params":{"git_repo":"mock git repo","os":"Linux","vscode_name":"mock vscode name","vscode_version":"mock vscode version","extension_version":"0.12.0","category":"interactive","feature_group":"virtualdocument","description":"test event","document":"mock label"}}]}'
+      '{"client_id":"mock_client_id","events":[{"name":"virtualdocument_open_document","params":{"git_repo":"mock git repo","os":"Linux","vscode_name":"mock vscode name","vscode_version":"mock vscode version","extension_version":"0.12.0","pre_release":"false","category":"interactive","feature_group":"virtualdocument","description":"test event","document":"mock label"}}]}'
     );
   });
   it('Event with value', async () => {
@@ -109,7 +127,7 @@ describe('Metrics util: construct GA4 request body from Event', () => {
         'mock vscode version',
         '0.12.0'
       ),
-      '{"client_id":"mock_client_id","events":[{"name":"gerrit_update_comments","params":{"git_repo":"mock git repo","os":"Linux","vscode_name":"mock vscode name","vscode_version":"mock vscode version","extension_version":"0.12.0","category":"background","feature_group":"gerrit","description":"test event","displayed_threads_count":10}}]}'
+      '{"client_id":"mock_client_id","events":[{"name":"gerrit_update_comments","params":{"git_repo":"mock git repo","os":"Linux","vscode_name":"mock vscode name","vscode_version":"mock vscode version","extension_version":"0.12.0","pre_release":"false","category":"background","feature_group":"gerrit","description":"test event","displayed_threads_count":10}}]}'
     );
   });
 });
