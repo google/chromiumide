@@ -4,18 +4,26 @@
 
 import * as vscode from 'vscode';
 
-export type TestInstance = {
+type TestCaseInstance = {
   range: vscode.Range; // 0-based
-  suite: string;
-  name: string;
+};
+
+type TestSuiteInstance = {
+  range: vscode.Range; // 0-based
+  cases: TestCaseMap;
   isParametrized: boolean;
 };
 
+export type TestCaseMap = Map<string, TestCaseInstance>;
+export type TestSuiteMap = Map<string, TestSuiteInstance>;
+
 /**
  * Parse the given file content and finds gtest test cases.
+ *
+ * @returns A map from test suite names to the location and test cases of that suite.
  */
-export function parse(content: string): TestInstance[] {
-  const res: TestInstance[] = [];
+export function parse(content: string): TestSuiteMap {
+  const res: TestSuiteMap = new Map();
 
   // Match with strings like "TEST(foo, bar)".
   // https://google.github.io/googletest/reference/testing.html
@@ -47,12 +55,16 @@ export function parse(content: string): TestInstance[] {
 
     const range = new vscode.Range(start, end);
 
-    res.push({
-      range,
-      suite: m.groups!.suite,
-      name: m.groups!.name,
-      isParametrized: m.groups!.parametrized === '_P',
-    });
+    const {suite, name, parametrized} = m.groups!;
+    const isParametrized = parametrized === '_P';
+
+    if (!res.has(suite)) {
+      // TODO(cmfcmf): For `TEST_F` and `TEST_P`, we should consider using the location of the
+      // fixture class as the `range`, instead of using the location of the first test case.
+      res.set(suite, {range, cases: new Map(), isParametrized});
+    }
+    const suiteInstance = res.get(suite)!;
+    suiteInstance.cases.set(name, {range});
   }
 
   return res;

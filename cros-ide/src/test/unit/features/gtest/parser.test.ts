@@ -14,28 +14,48 @@ describe('gtest parser', () => {
       '// TEST(comment, out) {}',
       'TEST(A_b, c) {}', // Line 3
       //           ^ 12
+      'TEST(A_b, d) {}', // Line 4
+      //           ^ 12
     ].join('\n');
 
-    expect(parser.parse(content)).toEqual([
-      {
-        range: new vscode.Range(
-          new vscode.Position(0, 0),
-          new vscode.Position(0, 14)
-        ),
-        suite: 'foo',
-        name: 'bar',
-        isParametrized: false,
-      },
-      {
-        range: new vscode.Range(
-          new vscode.Position(3, 0),
-          new vscode.Position(3, 12)
-        ),
-        suite: 'A_b',
-        name: 'c',
-        isParametrized: false,
-      },
-    ]);
+    const fooBarRange = new vscode.Range(
+      new vscode.Position(0, 0),
+      new vscode.Position(0, 14)
+    );
+
+    const abcRange = new vscode.Range(
+      new vscode.Position(3, 0),
+      new vscode.Position(3, 12)
+    );
+
+    const abdRange = new vscode.Range(
+      new vscode.Position(4, 0),
+      new vscode.Position(4, 12)
+    );
+
+    expect(parser.parse(content)).toEqual(
+      new Map([
+        [
+          'foo',
+          {
+            range: fooBarRange,
+            cases: new Map([['bar', {range: fooBarRange}]]),
+            isParametrized: false,
+          },
+        ],
+        [
+          'A_b',
+          {
+            range: abcRange,
+            cases: new Map([
+              ['c', {range: abcRange}],
+              ['d', {range: abdRange}],
+            ]),
+            isParametrized: false,
+          },
+        ],
+      ])
+    );
   });
 
   it('parses complex gtest cases', async () => {
@@ -49,26 +69,35 @@ describe('gtest parser', () => {
       //       ^ 8
     ].join('\n');
 
-    expect(parser.parse(content)).toEqual([
-      {
-        range: new vscode.Range(
-          new vscode.Position(0, 0),
-          new vscode.Position(0, 31)
-        ),
-        suite: 'foo',
-        name: 'bar',
-        isParametrized: false,
-      },
-      {
-        range: new vscode.Range(
-          new vscode.Position(3, 0),
-          new vscode.Position(4, 8)
-        ),
-        suite: 'multiple',
-        name: 'lines',
-        isParametrized: true,
-      },
-    ]);
+    const fooBarRange = new vscode.Range(
+      new vscode.Position(0, 0),
+      new vscode.Position(0, 31)
+    );
+    const multipleLinesRange = new vscode.Range(
+      new vscode.Position(3, 0),
+      new vscode.Position(4, 8)
+    );
+
+    expect(parser.parse(content)).toEqual(
+      new Map([
+        [
+          'foo',
+          {
+            range: fooBarRange,
+            cases: new Map([['bar', {range: fooBarRange}]]),
+            isParametrized: false,
+          },
+        ],
+        [
+          'multiple',
+          {
+            range: multipleLinesRange,
+            cases: new Map([['lines', {range: multipleLinesRange}]]),
+            isParametrized: true,
+          },
+        ],
+      ])
+    );
   });
 
   it('parses Chromium browser tests and typed tests', async () => {
@@ -80,34 +109,49 @@ describe('gtest parser', () => {
       //                                        v 41
       'TYPED_IN_PROC_BROWSER_TEST_P(suite, name) {}',
     ].join('\n');
-    expect(parser.parse(content)).toEqual([
-      {
-        range: new vscode.Range(
-          new vscode.Position(0, 0),
-          new vscode.Position(0, 32)
-        ),
-        suite: 'foo',
-        name: 'bar',
-        isParametrized: false,
-      },
-      {
-        range: new vscode.Range(
-          new vscode.Position(1, 0),
-          new vscode.Position(1, 24)
-        ),
-        suite: 'hello',
-        name: 'world',
-        isParametrized: false,
-      },
-      {
-        range: new vscode.Range(
-          new vscode.Position(2, 0),
-          new vscode.Position(2, 41)
-        ),
-        suite: 'suite',
-        name: 'name',
-        isParametrized: true,
-      },
-    ]);
+
+    const fooRange = new vscode.Range(
+      new vscode.Position(0, 0),
+      new vscode.Position(0, 32)
+    );
+
+    const helloRange = new vscode.Range(
+      new vscode.Position(1, 0),
+      new vscode.Position(1, 24)
+    );
+
+    const suiteRange = new vscode.Range(
+      new vscode.Position(2, 0),
+      new vscode.Position(2, 41)
+    );
+
+    expect(parser.parse(content)).toEqual(
+      new Map([
+        [
+          'foo',
+          {
+            range: fooRange,
+            cases: new Map([['bar', {range: fooRange}]]),
+            isParametrized: false,
+          },
+        ],
+        [
+          'hello',
+          {
+            range: helloRange,
+            cases: new Map([['world', {range: helloRange}]]),
+            isParametrized: false,
+          },
+        ],
+        [
+          'suite',
+          {
+            range: suiteRange,
+            cases: new Map([['name', {range: suiteRange}]]),
+            isParametrized: true,
+          },
+        ],
+      ])
+    );
   });
 });

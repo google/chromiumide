@@ -16,10 +16,10 @@ export class GtestFile implements vscode.Disposable {
   private constructor(
     private readonly controller: vscode.TestController,
     uri: vscode.Uri,
-    instances: parser.TestInstance[]
+    testSuiteMap: parser.TestSuiteMap
   ) {
-    if (instances.length === 0) {
-      throw new Error('Internal error: instances must not be empty');
+    if (testSuiteMap.size === 0) {
+      throw new Error('Internal error: testSuiteMap must not be empty');
     }
 
     this.item = this.controller.createTestItem(
@@ -29,17 +29,19 @@ export class GtestFile implements vscode.Disposable {
     );
     this.controller.items.add(this.item);
 
-    for (const {range, suite, name, isParametrized} of instances) {
-      const testCase = new GtestCase(
-        this.controller,
-        this.item,
-        uri,
-        range,
-        suite,
-        name,
-        isParametrized
-      );
-      this.cases.push(testCase);
+    for (const [suite, {cases, isParametrized}] of testSuiteMap.entries()) {
+      for (const [name, {range}] of cases.entries()) {
+        const testCase = new GtestCase(
+          this.controller,
+          this.item,
+          uri,
+          range,
+          suite,
+          name,
+          isParametrized
+        );
+        this.cases.push(testCase);
+      }
     }
   }
 
@@ -48,11 +50,11 @@ export class GtestFile implements vscode.Disposable {
     uri: vscode.Uri,
     content: string
   ): GtestFile | undefined {
-    const testInstances = parser.parse(content);
-    if (testInstances.length === 0) {
+    const testSuiteMap = parser.parse(content);
+    if (testSuiteMap.size === 0) {
       return undefined;
     }
-    return new GtestFile(getOrCreateController(), uri, testInstances);
+    return new GtestFile(getOrCreateController(), uri, testSuiteMap);
   }
 
   dispose() {
