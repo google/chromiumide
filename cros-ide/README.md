@@ -29,4 +29,4 @@ See [QuickStart Guide] for setup instructions.
 
 ## Contacting Us
 
-[g/cros-ide-users](http://g/cros-ide-users)
+[g/chromiumide-users](http://g/chromiumide-users)
