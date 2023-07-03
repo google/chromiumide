@@ -3,6 +3,10 @@
 ChromiumIDE (formerly known as CrOS IDE) is a VSCode Extension for Chromium and
 ChromiumOS development. We currently support only internal developers at Google.
 
+See [go/chromiumide] for our internal landing page.
+
+[go/chromiumide]: http://go/chromiumide
+
 ## Prerequisites (ChromiumOS)
 
 For developing ChromiumOS, you need a ChromiumOS chroot. If you are a new member
