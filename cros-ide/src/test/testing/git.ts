@@ -17,7 +17,9 @@ export class Git {
   /** Creates the root directory and runs `git init`. */
   async init(opts?: {repoId?: git.RepoId}) {
     await fs.promises.mkdir(this.root, {recursive: true});
-    await commonUtil.execOrThrow('git', ['init'], {cwd: this.root});
+    await commonUtil.execOrThrow('git', ['init', '--initial-branch=main'], {
+      cwd: this.root,
+    });
     const repoId = opts?.repoId ?? 'cros';
     const remoteUrl =
       repoId === 'cros'
