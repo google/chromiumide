@@ -5,6 +5,7 @@
 // Executable to build ChromiumIDE extension.
 
 import {build, BuildOptions} from 'esbuild';
+import * as commonUtil from '../src/common/common_util';
 
 const VIEW_ENTRY_POINTS = {
   vnc: './views/src/vnc.ts',
@@ -44,10 +45,30 @@ async function buildWebview(production: boolean) {
   await build(options);
 }
 
+/** Run plugins defined in webpack.config.js. */
+async function runWebpack(production: boolean) {
+  const args = ['npx', 'webpack'];
+  if (production) {
+    args.push('--mode', 'produciton');
+  }
+  await commonUtil.execOrThrow(args[0], args.slice(1), {
+    logger: {
+      append(value) {
+        process.stderr.write(value);
+      },
+    },
+    logStdout: true,
+  });
+}
+
 async function main() {
   const production = process.env.NODE_ENV === 'production';
 
-  await Promise.all([buildExtension(production), buildWebview(production)]);
+  await Promise.all([
+    buildExtension(production),
+    buildWebview(production),
+    runWebpack(production),
+  ]);
 }
 
 main().catch(e => {

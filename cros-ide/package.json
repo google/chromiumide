@@ -1002,8 +1002,8 @@
     ]
   },
   "scripts": {
-    "build": "rm -rf dist && webpack && npx ts-node tools/build.ts -p tools",
-    "build-release": "rm -rf dist && webpack --mode production --devtool hidden-source-map && NODE_ENV=production npx ts-node tools/build.ts -p tools",
+    "build": "rm -rf dist && npx ts-node tools/build.ts -p tools",
+    "build-release": "rm -rf dist && NODE_ENV=production npx ts-node tools/build.ts -p tools",
     "build-tests": "rm -rf out && tsc -p . --outDir out",
     "build-all": "npm run build && npm run build-tests",
     "test": "npm run unit-test && npm run integration-test",
