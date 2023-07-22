@@ -1004,7 +1004,7 @@
   "scripts": {
     "build": "rm -rf dist && npx ts-node --swc tools/build.ts -p tools",
     "build-release": "rm -rf dist && NODE_ENV=production npx ts-node tools/build.ts -p tools",
-    "build-tests": "rm -rf out && tsc -p . --outDir out",
+    "build-tests": "rm -rf out && NODE_ENV=test npx ts-node --swc tools/build.ts -p tools",
     "build-all": "npm run build && npm run build-tests",
     "test": "npm run unit-test && npm run integration-test",
     "unit-test": "npm run build-tests && NODE_PATH=out/test/unit/injected_modules NODE_OPTIONS=$NODE_OPTIONS' -r source-map-support/register' jasmine --config=src/test/unit/jasmine.json",
@@ -1041,7 +1041,10 @@
     "ws": "^8.6.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.19.3",
+    "@babel/plugin-transform-modules-commonjs": "^7.22.5",
     "@swc/core": "^1.3.69",
+    "@types/babel__core": "^7.20.1",
     "@types/glob": "^7.1.4",
     "@types/jasmine": "^4.0.0",
     "@types/mock-fs": "^4.13.1",

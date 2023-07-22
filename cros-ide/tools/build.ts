@@ -4,7 +4,12 @@
 
 // Executable to build ChromiumIDE extension.
 
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import * as babel from '@babel/core';
 import {build, BuildOptions} from 'esbuild';
+import glob from 'glob';
 import * as commonUtil from '../src/common/common_util';
 
 const VIEW_ENTRY_POINTS = {
@@ -17,13 +22,13 @@ function commonOptions(production: boolean): BuildOptions {
     sourcemap: !production,
     target: 'es2020',
     minify: production,
-    bundle: true,
   };
 }
 
 async function buildExtension(production: boolean) {
   const options: BuildOptions = {
     ...commonOptions(production),
+    bundle: true,
     format: 'cjs',
     platform: 'node',
     outdir: './dist',
@@ -38,6 +43,7 @@ async function buildWebview(production: boolean) {
   // Bundle files
   const options: BuildOptions = {
     ...commonOptions(production),
+    bundle: true,
     outdir: './dist/views',
     tsconfig: './views/tsconfig.json',
     entryPoints: VIEW_ENTRY_POINTS,
@@ -61,14 +67,108 @@ async function runWebpack(production: boolean) {
   });
 }
 
+/**
+ * Does the equivalent of `tsc -p . --outDir out` faster.
+ */
+async function buildTests() {
+  const entryPoints = glob.sync('./src/**/*.ts');
+  const options: BuildOptions = {
+    ...commonOptions(/* production = */ false),
+    format: 'cjs',
+    platform: 'node',
+    outbase: './src',
+    outdir: './out',
+    tsconfig: './tsconfig.json',
+    entryPoints,
+  };
+
+  await build(options);
+
+  // HACK: transform following files so that they can use mock. It's a bug of tsc that exported
+  // fields on modules are imported as mutable, which is fixed on esbuild, but we are currently
+  // heavily relying on it. Transformation is done by first compiling the file to ES module via
+  // esbuild and then transpiling it to CommonJS format via babel. There's no guarantee that the
+  // transpilaiton works as we want in future version of the tools, but that's the same for tsc.
+  // TODO: empty this allowlist.
+  const mockableModules = [
+    'common/common_util',
+    'features/chromiumos/cpp_code_completion/cpp_code_completion',
+    'features/chromiumos/tast/tast_tests',
+    'features/gerrit/api/client',
+    'features/gerrit/gerrit',
+    'features/gerrit/https',
+    'features/gerrit/model/gerrit_comments',
+    'features/gerrit/sink',
+    'features/metrics/metrics',
+    'features/suggest_extension',
+    'services/chromiumos/chroot',
+    'services/watchers/product/watcher',
+    'test/integration/features/owners_links.test',
+    'test/testing/doubles',
+    'test/unit/common/cns_file_cache.test',
+    'test/unit/features/chromiumos/boards_packages.test',
+    'test/unit/features/chromiumos/cpp_code_completion/cpp_code_completion.test',
+    'test/unit/features/chromiumos/cros_format.test',
+    'test/unit/features/gerrit/fake_env',
+    'test/unit/features/gerrit/gerrit.test',
+    'test/unit/features/gerrit/sink.test',
+    'test/unit/features/suggest_extension.test',
+    'test/unit/injected_modules/vscode/index',
+    'test/unit/services/chromiumos/module.test',
+    'test/unit/services/git_document.test',
+  ];
+
+  const tempDir = await fs.promises.mkdtemp(
+    path.join(os.tmpdir(), 'ide-build-tests-')
+  );
+
+  await build({
+    ...options,
+    format: 'esm',
+    outdir: tempDir,
+    entryPoints: mockableModules.map(x => `./src/${x}.ts`),
+  });
+
+  const transformPromises = [];
+
+  for (const module of mockableModules) {
+    const esmFile = `${tempDir}/${module}.js`;
+    const cjsFile = `./out/${module}.js`;
+
+    transformPromises.push(
+      (async () => {
+        const res = await babel.transformFileAsync(esmFile, {
+          plugins: ['@babel/plugin-transform-modules-commonjs'],
+        });
+        const content = res!.code!;
+        await fs.promises.mkdir(path.dirname(cjsFile), {recursive: true});
+        await fs.promises.writeFile(cjsFile, content);
+      })()
+    );
+  }
+
+  await Promise.all(transformPromises);
+
+  await fs.promises.rm(tempDir, {recursive: true});
+}
+
 async function main() {
   const production = process.env.NODE_ENV === 'production';
+  const test = process.env.NODE_ENV === 'test';
 
-  await Promise.all([
-    buildExtension(production),
-    buildWebview(production),
-    runWebpack(production),
-  ]);
+  const promises = [];
+
+  if (test) {
+    promises.push(buildTests());
+  } else {
+    promises.push(
+      buildExtension(production),
+      buildWebview(production),
+      runWebpack(production)
+    );
+  }
+
+  await Promise.all(promises);
 }
 
 main().catch(e => {
