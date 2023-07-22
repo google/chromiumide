@@ -11,16 +11,35 @@ const VIEW_ENTRY_POINTS = {
   syslog_view: './views/src/features/device_management/syslog/view.tsx',
 };
 
+function commonOptions(production: boolean): BuildOptions {
+  return {
+    sourcemap: !production,
+    target: 'es2020',
+    minify: production,
+    bundle: true,
+  };
+}
+
+async function buildExtension(production: boolean) {
+  const options: BuildOptions = {
+    ...commonOptions(production),
+    format: 'cjs',
+    platform: 'node',
+    outdir: './dist',
+    external: ['vscode'],
+    tsconfig: './tsconfig.json',
+    entryPoints: {extension: './src/extension.ts'},
+  };
+  await build(options);
+}
+
 async function buildWebview(production: boolean) {
   // Bundle files
   const options: BuildOptions = {
-    entryPoints: VIEW_ENTRY_POINTS,
-    bundle: true,
-    target: 'es2020',
+    ...commonOptions(production),
     outdir: './dist/views',
-    minify: production,
-    sourcemap: !production,
     tsconfig: './views/tsconfig.json',
+    entryPoints: VIEW_ENTRY_POINTS,
   };
   await build(options);
 }
@@ -28,8 +47,7 @@ async function buildWebview(production: boolean) {
 async function main() {
   const production = process.env.NODE_ENV === 'production';
 
-  // TODO(oka): build extension as well.
-  await buildWebview(production);
+  await Promise.all([buildExtension(production), buildWebview(production)]);
 }
 
 main().catch(e => {
