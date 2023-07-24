@@ -197,12 +197,24 @@ export class Analytics {
   }
 }
 
-let analytics: Promise<Analytics> | null;
+/**
+ * @deprecated Use Metrics.send instead.
+ */
 export function send(event: metricsEvent.Event) {
-  if (!analytics) {
-    analytics = Analytics.create();
+  Metrics.send(event);
+}
+
+/** The class to send metrics. */
+export class Metrics {
+  static analytics: Promise<Analytics> | null;
+
+  /** Sends event for collecting metrics. */
+  static send(event: metricsEvent.Event) {
+    if (!this.analytics) {
+      this.analytics = Analytics.create();
+    }
+    void (async () => {
+      (await this.analytics!).send(event);
+    })();
   }
-  void (async () => {
-    (await analytics).send(event);
-  })();
 }

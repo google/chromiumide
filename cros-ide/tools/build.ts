@@ -93,13 +93,7 @@ async function buildTests() {
   const mockableModules = [
     'features/gerrit/api/client',
     'features/gerrit/https',
-    'features/metrics/metrics',
-    'test/unit/features/chromiumos/cros_format.test',
     'test/unit/features/gerrit/fake_env',
-    'test/unit/features/gerrit/gerrit.test',
-    'test/unit/features/gerrit/sink.test',
-    'test/unit/features/suggest_extension.test',
-    'test/unit/services/git_document.test',
   ];
 
   const tempDir = await fs.promises.mkdtemp(

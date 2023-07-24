@@ -33,7 +33,7 @@ describe('Cros format', () => {
   });
 
   beforeEach(() => {
-    spyOn(metrics, 'send');
+    spyOn(metrics.Metrics, 'send');
   });
 
   it('shows error when the command fails (execution error)', async () => {
@@ -47,7 +47,7 @@ describe('Cros format', () => {
       'Formatter',
       TaskStatus.ERROR
     );
-    expect(metrics.send).toHaveBeenCalledOnceWith({
+    expect(metrics.Metrics.send).toHaveBeenCalledOnceWith({
       category: 'error',
       group: 'format',
       name: 'cros_format_call_error',
@@ -71,7 +71,7 @@ describe('Cros format', () => {
       'Formatter',
       TaskStatus.ERROR
     );
-    expect(metrics.send).toHaveBeenCalledOnceWith({
+    expect(metrics.Metrics.send).toHaveBeenCalledOnceWith({
       category: 'error',
       group: 'format',
       name: 'cros_format_return_error',
@@ -96,7 +96,7 @@ describe('Cros format', () => {
       'Formatter',
       TaskStatus.OK
     );
-    expect(metrics.send).not.toHaveBeenCalled();
+    expect(metrics.Metrics.send).not.toHaveBeenCalled();
   });
 
   it('formats code', async () => {
@@ -117,7 +117,7 @@ describe('Cros format', () => {
       'Formatter',
       TaskStatus.OK
     );
-    expect(metrics.send).toHaveBeenCalledOnceWith({
+    expect(metrics.Metrics.send).toHaveBeenCalledOnceWith({
       category: 'background',
       group: 'format',
       name: 'cros_format',
@@ -134,6 +134,6 @@ describe('Cros format', () => {
 
     expect(fakeExec.exec).not.toHaveBeenCalled();
     expect(edits).toBeUndefined();
-    expect(metrics.send).not.toHaveBeenCalled();
+    expect(metrics.Metrics.send).not.toHaveBeenCalled();
   });
 });

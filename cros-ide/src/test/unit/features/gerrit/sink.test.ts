@@ -31,7 +31,7 @@ describe('Sink', () => {
   });
 
   beforeEach(() => {
-    spyOn(metrics, 'send');
+    spyOn(metrics.Metrics, 'send');
   });
 
   it('shows a simple message', () => {
@@ -39,7 +39,7 @@ describe('Sink', () => {
     expect(state.outputChannel.appendLine).toHaveBeenCalledOnceWith(
       'simple message'
     );
-    expect(metrics.send).toHaveBeenCalledOnceWith({
+    expect(metrics.Metrics.send).toHaveBeenCalledOnceWith({
       category: 'error',
       group: 'gerrit',
       description: 'simple message',
@@ -59,7 +59,7 @@ describe('Sink', () => {
     expect(state.outputChannel.appendLine).toHaveBeenCalledOnceWith(
       'log message'
     );
-    expect(metrics.send).toHaveBeenCalledOnceWith({
+    expect(metrics.Metrics.send).toHaveBeenCalledOnceWith({
       category: 'error',
       group: 'gerrit',
       description: 'metrics message',
@@ -80,7 +80,7 @@ describe('Sink', () => {
     expect(state.outputChannel.appendLine).toHaveBeenCalledOnceWith(
       'log message'
     );
-    expect(metrics.send).toHaveBeenCalledOnceWith({
+    expect(metrics.Metrics.send).toHaveBeenCalledOnceWith({
       category: 'error',
       group: 'gerrit',
       description: 'metrics message',

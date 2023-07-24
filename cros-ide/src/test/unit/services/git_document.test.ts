@@ -17,7 +17,7 @@ describe('Git document provider', () => {
   });
 
   it('retrieves git commit messages (HEAD)', async () => {
-    spyOn(metrics, 'send');
+    spyOn(metrics.Metrics, 'send');
 
     const git = new testing.Git(tempDir.path);
     await git.init();
@@ -28,7 +28,7 @@ describe('Git document provider', () => {
     );
     const doc = await state.gitDocumentProvider.provideTextDocumentContent(uri);
     expect(doc).toContain('sample commit message');
-    expect(metrics.send).toHaveBeenCalledOnceWith({
+    expect(metrics.Metrics.send).toHaveBeenCalledOnceWith({
       category: 'interactive',
       group: 'virtualdocument',
       description: 'open git document',
@@ -38,7 +38,7 @@ describe('Git document provider', () => {
   });
 
   it('retrieves git commit messages (SHA)', async () => {
-    spyOn(metrics, 'send');
+    spyOn(metrics.Metrics, 'send');
 
     const git = new testing.Git(tempDir.path);
     await git.init();
@@ -50,7 +50,7 @@ describe('Git document provider', () => {
     );
     const doc = await state.gitDocumentProvider.provideTextDocumentContent(uri);
     expect(doc).toContain('first commit');
-    expect(metrics.send).toHaveBeenCalledOnceWith({
+    expect(metrics.Metrics.send).toHaveBeenCalledOnceWith({
       category: 'interactive',
       group: 'virtualdocument',
       description: 'open git document',

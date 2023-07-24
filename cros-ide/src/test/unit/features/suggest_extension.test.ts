@@ -21,7 +21,7 @@ describe('Suggest extension module', () => {
 
     vscode.Disposable.from(...subscriptions).dispose();
     subscriptions.splice(0);
-    spyOn(metrics, 'send');
+    spyOn(metrics.Metrics, 'send');
   });
 
   it('suggests an extension', async () => {
@@ -62,15 +62,15 @@ describe('Suggest extension module', () => {
       'workbench.extensions.installExtension',
       'foo'
     );
-    expect(metrics.send).toHaveBeenCalledTimes(2);
-    expect(metrics.send).toHaveBeenCalledWith({
+    expect(metrics.Metrics.send).toHaveBeenCalledTimes(2);
+    expect(metrics.Metrics.send).toHaveBeenCalledWith({
       category: 'background',
       group: 'misc',
       description: 'show suggestion',
       name: 'misc_suggested_extension',
       extension: 'foo',
     });
-    expect(metrics.send).toHaveBeenCalledWith({
+    expect(metrics.Metrics.send).toHaveBeenCalledWith({
       category: 'interactive',
       group: 'misc',
       description: 'install suggested',
