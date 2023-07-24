@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import * as commonUtil from '../../../../common/common_util';
 import * as services from '../../../../services';
 import * as config from '../../../../services/config';
-import {CompdbGenerator, ErrorDetails, ShouldGenerateResult} from '.';
+import {CompdbGenerator, ErrorDetails, ShouldGenerateResult} from './types';
 
 function getBoard() {
   return config.platformEc.board.get();

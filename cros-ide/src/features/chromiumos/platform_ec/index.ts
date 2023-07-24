@@ -6,14 +6,9 @@ import * as vscode from 'vscode';
 import * as metrics from '../../../features/metrics/metrics';
 import * as services from '../../../services';
 import * as bgTaskStatus from '../../../ui/bg_task_status';
+import {SHOW_LOG_COMMAND} from './constants';
 import * as statusBar from './status_bar';
 import * as tasks from './tasks';
-
-export const STATUS_TASK_NAME = 'Platform EC';
-export const SHOW_LOG_COMMAND: vscode.Command = {
-  command: 'chromiumide.showPlatformEcLog',
-  title: 'Show Platform EC Log',
-};
 
 export function activate(
   context: vscode.ExtensionContext,

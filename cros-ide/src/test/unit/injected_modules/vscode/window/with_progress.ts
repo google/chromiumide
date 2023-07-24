@@ -2,7 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import {CancellationTokenSource, Progress} from '..';
+import {CancellationTokenSource} from '../cancellation_token';
+import {Progress} from '../progress';
 import type * as vscode from 'vscode';
 
 export function withProgress<R>(

@@ -5,7 +5,7 @@
 import * as vscode from 'vscode';
 import * as head from './head';
 import * as visible from './visible';
-import {VisibleGitDirsChangeEvent} from '.';
+import {VisibleGitDirsChangeEvent} from './visible';
 
 /**
  * Watches git directories under the given root and fires events on their

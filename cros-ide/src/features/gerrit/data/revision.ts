@@ -4,7 +4,7 @@
 
 import * as api from '../api';
 import * as git from '../git';
-import {CommentThread} from '.';
+import {CommentThread} from './comment_thread';
 
 /**
  * Revision (patchset) of Gerrit

@@ -3,14 +3,15 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as services from '../';
+import {ProductWatcher} from '../watchers';
+import {ChrootService} from './chroot';
 
 export type Services = {
   /**
    * Filepath to the chromiumos directory.
    */
   root: string;
-  chrootService?: services.chromiumos.ChrootService;
+  chrootService?: ChrootService;
 };
 
 /**
@@ -24,7 +25,7 @@ export type Services = {
  * constructed so that the subscriber can receive the first event.
  */
 export class ChromiumosServiceModule implements vscode.Disposable {
-  private readonly watcher = new services.ProductWatcher('chromiumos');
+  private readonly watcher = new ProductWatcher('chromiumos');
 
   private services?: Services;
 
@@ -61,7 +62,7 @@ export class ChromiumosServiceModule implements vscode.Disposable {
       this.disposeServices();
       return;
     }
-    const chrootService = services.chromiumos.ChrootService.maybeCreate(root);
+    const chrootService = ChrootService.maybeCreate(root);
     const event = {
       root,
       chrootService,

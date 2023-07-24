@@ -5,7 +5,7 @@
 import * as api from '../api';
 import * as git from '../git';
 import * as helpers from '../helpers';
-import {Revision} from '.';
+import {Revision} from './revision';
 
 /**
  * Gerrit change

@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as testing from '.';
+import {flushMicrotasks} from './tasks';
 
 /**
  * Buffers events, so they can be later retrieved with read().
@@ -73,7 +73,7 @@ export class EventReader<T> implements vscode.Disposable {
       }
       jasmine.clock().tick(intervalMillis);
 
-      await testing.flushMicrotasks();
+      await flushMicrotasks();
     }
   }
 }

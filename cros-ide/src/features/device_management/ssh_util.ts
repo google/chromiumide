@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {SshIdentity} from './ssh_identity';
+import type {SshIdentity} from './ssh_identity';
 
 /**
  * Returns the path to the testing_rsa file bundled in the extension.

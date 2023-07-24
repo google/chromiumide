@@ -5,6 +5,7 @@
 import * as git from '../git';
 import {Https} from '../https';
 import {Sink} from '../sink';
+import {parseResponse} from './client';
 
 // APIs Gerrit defines
 
@@ -137,8 +138,4 @@ export async function createDraftOrThrow(
 
   const res = await Https.putJsonOrThrow(url, req, options, sink);
   return parseResponse(res);
-}
-
-export function parseResponse<T>(res: string): T {
-  return JSON.parse(res.substring(')]}\n'.length));
 }

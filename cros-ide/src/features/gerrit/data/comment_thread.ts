@@ -8,8 +8,7 @@ import * as gitDocument from '../../../services/git_document';
 import * as api from '../api';
 import * as git from '../git';
 import * as virtualDocument from '../virtual_document';
-import {getCommentContextValue, toVscodeComment} from './comment';
-import {Comment} from '.';
+import {getCommentContextValue, toVscodeComment, Comment} from './comment';
 
 /**
  * Represents a Gerrit comment thread that belongs to a Gerrit CL.

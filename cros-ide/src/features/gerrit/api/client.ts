@@ -4,7 +4,6 @@
 
 import * as git from '../git';
 import {Https} from '../https';
-import {parseResponse} from '.';
 import type * as api from '.';
 
 /**
@@ -111,4 +110,8 @@ export class GerritClient {
     }
     return res;
   }
+}
+
+export function parseResponse<T>(res: string): T {
+  return JSON.parse(res.substring(')]}\n'.length));
 }

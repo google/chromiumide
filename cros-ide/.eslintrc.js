@@ -43,6 +43,7 @@ module.exports = {
     ],
 
     'import/first': 'error',
+    'import/no-cycle': 'error',
     'import/order': [
       'error',
       {

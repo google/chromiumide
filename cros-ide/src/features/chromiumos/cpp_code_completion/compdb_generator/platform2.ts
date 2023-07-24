@@ -16,7 +16,7 @@ import {
   CompdbServiceImpl,
   destination,
 } from '../compdb_service';
-import {CompdbGenerator, ErrorDetails, ShouldGenerateResult} from '.';
+import {CompdbGenerator, ErrorDetails, ShouldGenerateResult} from './types';
 
 type GenerationState = 'generating' | 'generated' | 'failed';
 
