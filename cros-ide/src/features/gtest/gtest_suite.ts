@@ -24,7 +24,8 @@ export class GtestSuite extends GtestRunnable {
     uri: vscode.Uri,
     range: vscode.Range,
     readonly suiteName: string,
-    readonly isParametrized: boolean,
+    readonly isParameterized: boolean,
+    readonly isTyped: boolean,
     cases: parser.TestCaseMap
   ) {
     const item = controller.createTestItem(
@@ -47,12 +48,13 @@ export class GtestSuite extends GtestRunnable {
   }
 
   override getGtestFilter(): string {
-    const suiteAndCaseFilter = `${this.suiteName}.*`;
-    if (this.isParametrized) {
-      // Parametrized tests may or may not have a prefix.
-      return `*/${suiteAndCaseFilter}/*:${suiteAndCaseFilter}/*`;
+    if (this.isParameterized) {
+      // Parameterized tests may or may not have a prefix.
+      return this.isTyped
+        ? `*/${this.suiteName}/*.*:${this.suiteName}/*.*`
+        : `*/${this.suiteName}.*/*:${this.suiteName}.*/*`;
     } else {
-      return suiteAndCaseFilter;
+      return this.isTyped ? `${this.suiteName}/*.*` : `${this.suiteName}.*`;
     }
   }
 

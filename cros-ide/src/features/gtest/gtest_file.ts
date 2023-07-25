@@ -39,7 +39,7 @@ export class GtestFile extends GtestRunnable {
 
     for (const [
       suite,
-      {range, cases, isParametrized},
+      {range, cases, isParameterized, isTyped},
     ] of testSuiteMap.entries()) {
       const testSuite = new GtestSuite(
         controller,
@@ -47,7 +47,8 @@ export class GtestFile extends GtestRunnable {
         uri,
         range,
         suite,
-        isParametrized,
+        isParameterized,
+        isTyped,
         cases
       );
       this.testSuites.push(testSuite);

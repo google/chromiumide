@@ -11,7 +11,8 @@ type TestCaseInstance = {
 type TestSuiteInstance = {
   range: vscode.Range; // 0-based
   cases: TestCaseMap;
-  isParametrized: boolean;
+  isParameterized: boolean;
+  isTyped: boolean;
 };
 
 export type TestCaseMap = Map<string, TestCaseInstance>;
@@ -28,7 +29,7 @@ export function parse(content: string): TestSuiteMap {
   // Match with strings like "TEST(foo, bar)".
   // https://google.github.io/googletest/reference/testing.html
   const re =
-    /^[^\S\n]*(?:TYPED_)?(?:IN_PROC_BROWSER_)?TEST(?<parametrized>_F|_P)?\s*\(\s*(?<suite>\w+)\s*,\s*(?<name>\w+)\s*\)/gm;
+    /^[^\S\n]*(?<typed>TYPED_)?(?:IN_PROC_BROWSER_)?TEST(?<parameterized>_F|_P)?\s*\(\s*(?<suite>\w+)\s*,\s*(?<name>\w+)\s*\)/gm;
   let m;
 
   let index = 0;
@@ -55,13 +56,14 @@ export function parse(content: string): TestSuiteMap {
 
     const range = new vscode.Range(start, end);
 
-    const {suite, name, parametrized} = m.groups!;
-    const isParametrized = parametrized === '_P';
+    const {suite, name, parameterized, typed} = m.groups!;
+    const isParameterized = parameterized === '_P';
+    const isTyped = typed === 'TYPED_';
 
     if (!res.has(suite)) {
       // TODO(cmfcmf): For `TEST_F` and `TEST_P`, we should consider using the location of the
       // fixture class as the `range`, instead of using the location of the first test case.
-      res.set(suite, {range, cases: new Map(), isParametrized});
+      res.set(suite, {range, cases: new Map(), isParameterized, isTyped});
     }
     const suiteInstance = res.get(suite)!;
     suiteInstance.cases.set(name, {range});

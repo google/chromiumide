@@ -37,12 +37,16 @@ export class GtestCase extends GtestRunnable {
   }
 
   override getGtestFilter(): string {
-    if (this.testSuite.isParametrized) {
+    const suiteName = this.testSuite.suiteName;
+    if (this.testSuite.isParameterized) {
       // Parameterized tests may or may not have a prefix.
-      // TODO(cmfcmf): This does not work for typed tests.
-      return `*/${this.suiteAndCaseName}/*:${this.suiteAndCaseName}/*`;
+      return this.testSuite.isTyped
+        ? `*/${suiteName}/*.${this.caseName}:${suiteName}/*.${this.caseName}`
+        : `*/${suiteName}.${this.caseName}/*:${suiteName}.${this.caseName}/*`;
     } else {
-      return this.suiteAndCaseName;
+      return this.testSuite.isTyped
+        ? `${suiteName}/*.${this.caseName}`
+        : `${suiteName}.${this.caseName}`;
     }
   }
 

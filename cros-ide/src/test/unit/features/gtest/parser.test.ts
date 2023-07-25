@@ -40,7 +40,8 @@ describe('gtest parser', () => {
           {
             range: fooBarRange,
             cases: new Map([['bar', {range: fooBarRange}]]),
-            isParametrized: false,
+            isParameterized: false,
+            isTyped: false,
           },
         ],
         [
@@ -51,7 +52,8 @@ describe('gtest parser', () => {
               ['c', {range: abcRange}],
               ['d', {range: abdRange}],
             ]),
-            isParametrized: false,
+            isParameterized: false,
+            isTyped: false,
           },
         ],
       ])
@@ -85,7 +87,8 @@ describe('gtest parser', () => {
           {
             range: fooBarRange,
             cases: new Map([['bar', {range: fooBarRange}]]),
-            isParametrized: false,
+            isParameterized: false,
+            isTyped: false,
           },
         ],
         [
@@ -93,7 +96,8 @@ describe('gtest parser', () => {
           {
             range: multipleLinesRange,
             cases: new Map([['lines', {range: multipleLinesRange}]]),
-            isParametrized: true,
+            isParameterized: true,
+            isTyped: false,
           },
         ],
       ])
@@ -106,6 +110,8 @@ describe('gtest parser', () => {
       'IN_PROC_BROWSER_TEST_F(foo, bar) {}',
       //                       v 24
       'TYPED_TEST(hello, world) {}',
+      //                          v 27
+      'TYPED_TEST_P(hello2, world) {}',
       //                                        v 41
       'TYPED_IN_PROC_BROWSER_TEST_P(suite, name) {}',
     ].join('\n');
@@ -120,9 +126,14 @@ describe('gtest parser', () => {
       new vscode.Position(1, 24)
     );
 
-    const suiteRange = new vscode.Range(
+    const hello2Range = new vscode.Range(
       new vscode.Position(2, 0),
-      new vscode.Position(2, 41)
+      new vscode.Position(2, 27)
+    );
+
+    const suiteRange = new vscode.Range(
+      new vscode.Position(3, 0),
+      new vscode.Position(3, 41)
     );
 
     expect(parser.parse(content)).toEqual(
@@ -132,7 +143,8 @@ describe('gtest parser', () => {
           {
             range: fooRange,
             cases: new Map([['bar', {range: fooRange}]]),
-            isParametrized: false,
+            isParameterized: false,
+            isTyped: false,
           },
         ],
         [
@@ -140,7 +152,17 @@ describe('gtest parser', () => {
           {
             range: helloRange,
             cases: new Map([['world', {range: helloRange}]]),
-            isParametrized: false,
+            isParameterized: false,
+            isTyped: true,
+          },
+        ],
+        [
+          'hello2',
+          {
+            range: hello2Range,
+            cases: new Map([['world', {range: hello2Range}]]),
+            isParameterized: true,
+            isTyped: true,
           },
         ],
         [
@@ -148,7 +170,8 @@ describe('gtest parser', () => {
           {
             range: suiteRange,
             cases: new Map([['name', {range: suiteRange}]]),
-            isParametrized: true,
+            isParameterized: true,
+            isTyped: true,
           },
         ],
       ])
