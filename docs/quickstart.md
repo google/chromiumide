@@ -51,11 +51,11 @@ Install [VSCode from the Software Center] or
 ChromiumIDE supports only platform-specific VSCode, which is not available for
 ChromeOS. There are two workarounds:
 
--   Check out [go/cros-ide-on-chromebooks] to learn more about [Code Server],
+-   Check out [go/chromiumide-on-chromebooks] to learn more about [Code Server],
     which is a Web IDE accessible in the browser.
 -   Use Chrome Remote Desktop.
 
-[go/cros-ide-on-chromebooks]: http://go/cros-ide-on-chromebooks
+[go/chromiumide-on-chromebooks]: http://go/chromiumide-on-chromebooks
 [code server]: https://github.com/coder/code-server
 
 ## 2. (Optional) Connect to your machine via VSCode
@@ -85,14 +85,14 @@ and you are good to go.
 
 # Using ChromiumIDE
 
-Check out **[go/cros-ide-features]** to learn more about features, known issues,
+Check out **[go/chromiumide-doc]** to learn more about features, known issues,
 and useful tips.
 
 ## Selected Features
 
-See [go/cros-ide-features] for all the features.
+See [go/chromiumide-doc] for all the features.
 
-[go/cros-ide-features]: http://go/cros-ide-features
+[go/chromiumide-doc]: http://go/chromiumide-doc
 
 ### [Code Completion and Navigation]
 
@@ -101,14 +101,14 @@ Code completion in C++ is available in platform2 packages which support
 Implementation, and so on.
 
 [go to definition]: https://code.visualstudio.com/docs/editor/editingevolved#_go-to-definition
-[Code Completion and Navigation]: http://go/cros-ide-doc-platform2-cpp
+[Code Completion and Navigation]: http://go/chromiumide-doc-platform2-cpp
 
 ### [Device Management]
 
 ChromiumIDE provides a view to manage your test devices. With the built-in VNC
 client, you can control a device remotely.
 
-[Device Management]: http://go/cros-ide-doc-device-management
+[Device Management]: http://go/chromiumide-doc-device-management
 
 ### [Linter Integration]
 
@@ -118,7 +118,7 @@ errors with squiggly lines in the editor and show them in the *Problems* box and
 on mouse hover. This feature brings to your attention errors which block `repo
 upload`.
 
-[Linter Integration]: http://go/cros-ide-doc-linting
+[Linter Integration]: http://go/chromiumide-doc-linting
 
 ### [Boards and Packages]
 
@@ -127,7 +127,7 @@ start/stop` directly from the UI. Access it by clicking on *CrOS Development*
 [activity bar] (Chrome icon). Use +/– buttons to start and stop working on packages.
 
 [activity bar]: https://code.visualstudio.com/docs/getstarted/userinterface
-[Boards and Packages]: http://go/cros-ide-doc-boards-pkgs
+[Boards and Packages]: http://go/chromiumide-doc-boards-pkgs
 
 ### [Code Search]
 
@@ -136,12 +136,12 @@ text editor. Go to [settings] to choose whether to chose which instance to use
 (public, internal, or Gitiles).
 
 [settings]: https://code.visualstudio.com/docs/getstarted/settings
-[Code Search]: http://go/cros-ide-doc-code-search
+[Code Search]: http://go/chromiumide-doc-code-search
 
 ### Filing bugs
 
 If you find issues or have feature requests, feel free to file bugs at
-[go/cros-ide-new-bug]. You can also do it by clicking the [feedback button].
+[go/chromiumide-new-bug]. You can also do it by clicking the [feedback button].
 
-[go/cros-ide-new-bug]: http://go/cros-ide-new-bug
-[feedback button]: http://go/cros-ide-doc-feedback-button
+[go/chromiumide-new-bug]: http://go/chromiumide-new-bug
+[feedback button]: http://go/chromiumide-doc-feedback-button
