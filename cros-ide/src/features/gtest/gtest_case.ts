@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import {GtestRunnable} from './gtest_runnable';
-import {GtestSuite} from './gtest_suite';
+import type {GtestSuite} from './gtest_suite';
 
 /**
  * Represents one gtest test case.

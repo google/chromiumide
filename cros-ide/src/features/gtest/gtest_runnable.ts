@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {GtestCase} from './gtest_case';
+import type {GtestCase} from './gtest_case';
 
 /**
  * Abstract base class for all Gtest item wrappers. It provides convenience methods to query all
