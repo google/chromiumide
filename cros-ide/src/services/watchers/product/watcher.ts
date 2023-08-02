@@ -4,9 +4,9 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
+import {chromiumRoot} from '../../../common/chromium/fs';
 import * as commonUtil from '../../../common/common_util';
 import * as metrics from '../../../features/metrics/metrics';
-import * as chromium from './chromium';
 import * as chromiumos from './chromiumos';
 
 /**
@@ -82,7 +82,7 @@ export class ProductWatcher implements vscode.Disposable {
   private async productRoot(uri: vscode.Uri): Promise<string | undefined> {
     switch (this.product) {
       case 'chromium':
-        return await chromium.root(uri.fsPath);
+        return await chromiumRoot(uri.fsPath);
       case 'chromiumos':
         return await chromiumos.root(uri.fsPath);
       default:

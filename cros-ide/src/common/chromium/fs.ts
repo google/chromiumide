@@ -1,4 +1,4 @@
-// Copyright 2022 The ChromiumOS Authors
+// Copyright 2023 The ChromiumOS Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -26,7 +26,7 @@ async function isChromiumRoot(dir: string): Promise<boolean> {
 /**
  * Returns chromium root containing the file or the directory.
  */
-export async function root(file: string): Promise<string | undefined> {
+export async function chromiumRoot(file: string): Promise<string | undefined> {
   while (file !== '/') {
     if (await isChromiumRoot(file)) {
       return file;
