@@ -9,12 +9,18 @@ import glob = require('glob');
 import {Source} from '../../../common/common_util';
 import {PackageInfo} from './types';
 
-export async function generate(source: Source): Promise<PackageInfo[]> {
-  let packages: PackageInfo[] = [];
-  for (const overlay of OVERLAYS) {
-    packages = packages.concat(await generateSub(path.join(source, overlay)));
+/**
+ * The class to generate the mapping between source code locations and package
+ * names.
+ */
+export class Mapping {
+  static async generate(source: Source): Promise<PackageInfo[]> {
+    let packages: PackageInfo[] = [];
+    for (const overlay of OVERLAYS) {
+      packages = packages.concat(await generateSub(path.join(source, overlay)));
+    }
+    return packages;
   }
-  return packages;
 }
 
 // Overlay directories we search for ebuild files.

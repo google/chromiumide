@@ -6,12 +6,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as services from '../..';
 import {findChroot, sourceDir} from '../../../common/common_util';
-import {generate} from './mapping';
+import {Mapping} from './mapping';
 import {SourceDir, PackageInfo} from './types';
 
 export class Packages {
   private mapping = new Map<SourceDir, PackageInfo>();
-  private generated = false;
 
   /**
    * If autoDetect is true, instead of using a hard-coded mapping, we lazily generate
@@ -39,18 +38,31 @@ export class Packages {
     return instance;
   }
 
-  private async ensureGenerated() {
-    if (this.generated) {
+  private ensureGeneratedWaiter: undefined | Promise<void>;
+
+  /**
+   * Ensure generation of `this.mapping`. After the function successfully
+   * finishes, it's guaranteed that the mapping has been populated. It's safe to
+   * call this function concurrently, and it's guaranteed that actual
+   * computation of the mapping happens only once.
+   */
+  private async ensureGenerated(): Promise<void> {
+    if (this.ensureGeneratedWaiter) {
+      await this.ensureGeneratedWaiter;
       return;
     }
-    const source = this.chrootService.source;
-    if (!source) {
-      return;
-    }
-    for (const packageInfo of await generate(source.root)) {
-      this.mapping.set(packageInfo.sourceDir, packageInfo);
-    }
-    this.generated = true;
+
+    this.ensureGeneratedWaiter = (async () => {
+      const source = this.chrootService.source;
+      if (!source) {
+        return;
+      }
+      for (const packageInfo of await Mapping.generate(source.root)) {
+        this.mapping.set(packageInfo.sourceDir, packageInfo);
+      }
+    })();
+
+    return await this.ensureGeneratedWaiter;
   }
 
   /**

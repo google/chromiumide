@@ -3,8 +3,10 @@
 // found in the LICENSE file.
 
 import * as path from 'path';
+import {Source} from '../../../../common/common_util';
 import * as services from '../../../../services';
 import {Packages} from '../../../../services/chromiumos';
+import {Mapping} from '../../../../services/chromiumos/packages/mapping';
 import * as testing from '../../../testing';
 
 describe('Packages', () => {
@@ -60,5 +62,40 @@ PLATFORM_SUBDIR="camera/common"
     expect(
       await packages.fromFilepath(path.join(tempDir.path, 'not_exist'))
     ).toBeNull();
+  });
+
+  it('fromFilepath can be called concurrently', async () => {
+    await testing.buildFakeChroot(tempDir.path);
+
+    const fooPackageInfo = {
+      sourceDir: 'foo',
+      name: 'chromeos-base/foo',
+    };
+
+    const blocker = await testing.BlockingPromise.new(undefined);
+
+    spyOn(Mapping, 'generate').and.callFake(async () => {
+      await blocker.promise;
+
+      return [fooPackageInfo];
+    });
+
+    const packages = Packages.getOrCreate(
+      services.chromiumos.ChrootService.maybeCreate(
+        tempDir.path,
+        /* setContext = */ false
+      )!
+    );
+
+    const promises = Promise.all([
+      packages.fromFilepath(path.join(tempDir.path, 'foo')),
+      packages.fromFilepath(path.join(tempDir.path, 'foo')),
+    ]);
+
+    blocker.unblock();
+
+    expect(await promises).toEqual([fooPackageInfo, fooPackageInfo]);
+
+    expect(Mapping.generate).toHaveBeenCalledOnceWith(tempDir.path as Source);
   });
 });
