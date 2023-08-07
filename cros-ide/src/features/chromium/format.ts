@@ -5,6 +5,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as common_util from '../../common/common_util';
+import * as depotTools from '../../common/depot_tools';
 
 export function activate(context: vscode.ExtensionContext, rootPath: string) {
   context.subscriptions.push(
@@ -64,11 +65,12 @@ export function activate(context: vscode.ExtensionContext, rootPath: string) {
               repoRoots.map(async repoRoot => {
                 const result = await common_util.exec('git', ['cl', 'format'], {
                   cwd: repoRoot.fsPath,
+                  env: depotTools.envForDepotTools(),
                   cancellationToken: token,
                 });
                 if (result instanceof Error) {
                   await vscode.window.showErrorMessage(
-                    `Unable to run 'git cl format' in ${repoRoot}.`
+                    `Unable to run 'git cl format' in ${repoRoot}: ${result}`
                   );
                 } else {
                   await vscode.commands.executeCommand('git.refresh', repoRoot);

@@ -7,6 +7,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as common_util from '../../common/common_util';
+import {envForDepotTools} from '../../common/depot_tools';
 import * as metrics from '../../features/metrics/metrics';
 import * as bgTaskStatus from '../../ui/bg_task_status';
 import type {Stats} from 'fs';
@@ -320,7 +321,11 @@ export class DirNode extends BaseNode {
         '--overrides-only',
         '--json',
       ],
-      {cwd: srcPath, cancellationToken: token}
+      {
+        cwd: srcPath,
+        env: envForDepotTools(),
+        cancellationToken: token,
+      }
     );
     if (result instanceof Error) {
       if (result instanceof common_util.CancelledError) {

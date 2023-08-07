@@ -9,6 +9,7 @@ import {
   LinkNode,
   OutputDirectoriesDataProvider,
 } from '../../../../features/chromium/output_directories';
+import * as config from '../../../../services/config';
 import * as testing from '../../../testing';
 import * as fakes from '../../../testing/fakes';
 
@@ -18,16 +19,22 @@ describe('OutputDirectoriesDataProvider', () => {
 
   const DEFAULT_ERROR = {
     type: 'error',
-    error: 'Unable to parse JSON output: ',
+    error: 'Unable to parse JSON output: invalid json here',
   } as const;
 
-  beforeEach(() => {
-    // By default, pretend that `gn args` errors.
+  beforeEach(async () => {
+    await config.paths.depotTools.update('/opt/custom_depot_tools');
+
+    // By default, pretend that `gn args` finishes, but returns invalid JSON.
     fakeExec.on(
       'gn',
       testing.prefixMatch(['args'], async (args, options) => {
         expect(options.cwd).toBe(tempDir.path);
-        return {exitStatus: 1, stderr: '', stdout: ''};
+        expect(options.env).toBeTruthy();
+        expect(options.env!.PATH).toEqual(
+          jasmine.stringMatching('^/opt/custom_depot_tools:.*/depot_tools')
+        );
+        return {exitStatus: 0, stdout: 'invalid json here', stderr: ''};
       })
     );
   });

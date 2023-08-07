@@ -180,7 +180,7 @@ export class AbnormalExitError extends Error {
   }
 
   messageWithStdoutAndStderr(): string {
-    return `${this.message}\nStdout:\n${this.stdout}\nStdErr:\n${this.stderr}`;
+    return `${this.message}\nStdout:\n${this.stdout}\nStderr:\n${this.stderr}`;
   }
 }
 
