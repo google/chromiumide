@@ -6,12 +6,13 @@ import * as vscode from 'vscode';
 
 type TestCaseInstance = {
   range: vscode.Range; // 0-based
+  // A single test suite can have both non-parameterized and parameterized tests
+  isParameterized: boolean;
 };
 
 type TestSuiteInstance = {
   range: vscode.Range; // 0-based
   cases: TestCaseMap;
-  isParameterized: boolean;
   isTyped: boolean;
 };
 
@@ -63,10 +64,10 @@ export function parse(content: string): TestSuiteMap {
     if (!res.has(suite)) {
       // TODO(cmfcmf): For `TEST_F` and `TEST_P`, we should consider using the location of the
       // fixture class as the `range`, instead of using the location of the first test case.
-      res.set(suite, {range, cases: new Map(), isParameterized, isTyped});
+      res.set(suite, {range, cases: new Map(), isTyped});
     }
     const suiteInstance = res.get(suite)!;
-    suiteInstance.cases.set(name, {range});
+    suiteInstance.cases.set(name, {range, isParameterized});
   }
 
   return res;

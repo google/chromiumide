@@ -39,8 +39,9 @@ describe('gtest parser', () => {
           'foo',
           {
             range: fooBarRange,
-            cases: new Map([['bar', {range: fooBarRange}]]),
-            isParameterized: false,
+            cases: new Map([
+              ['bar', {range: fooBarRange, isParameterized: false}],
+            ]),
             isTyped: false,
           },
         ],
@@ -49,10 +50,43 @@ describe('gtest parser', () => {
           {
             range: abcRange,
             cases: new Map([
-              ['c', {range: abcRange}],
-              ['d', {range: abdRange}],
+              ['c', {range: abcRange, isParameterized: false}],
+              ['d', {range: abdRange, isParameterized: false}],
             ]),
-            isParameterized: false,
+            isTyped: false,
+          },
+        ],
+      ])
+    );
+  });
+
+  it('parses gtest cases with mixed parameterization', async () => {
+    const content = [
+      //               v 16
+      'TEST_F(foo, bar) {}', // Line 0
+      'TEST_P(foo, baz) {}', // Line 1
+      //               ^ 16
+    ].join('\n');
+
+    const range1 = new vscode.Range(
+      new vscode.Position(0, 0),
+      new vscode.Position(0, 16)
+    );
+    const range2 = new vscode.Range(
+      new vscode.Position(1, 0),
+      new vscode.Position(1, 16)
+    );
+
+    expect(parser.parse(content)).toEqual(
+      new Map([
+        [
+          'foo',
+          {
+            range: range1,
+            cases: new Map([
+              ['bar', {range: range1, isParameterized: false}],
+              ['baz', {range: range2, isParameterized: true}],
+            ]),
             isTyped: false,
           },
         ],
@@ -86,8 +120,9 @@ describe('gtest parser', () => {
           'foo',
           {
             range: fooBarRange,
-            cases: new Map([['bar', {range: fooBarRange}]]),
-            isParameterized: false,
+            cases: new Map([
+              ['bar', {range: fooBarRange, isParameterized: false}],
+            ]),
             isTyped: false,
           },
         ],
@@ -95,8 +130,9 @@ describe('gtest parser', () => {
           'multiple',
           {
             range: multipleLinesRange,
-            cases: new Map([['lines', {range: multipleLinesRange}]]),
-            isParameterized: true,
+            cases: new Map([
+              ['lines', {range: multipleLinesRange, isParameterized: true}],
+            ]),
             isTyped: false,
           },
         ],
@@ -142,8 +178,9 @@ describe('gtest parser', () => {
           'foo',
           {
             range: fooRange,
-            cases: new Map([['bar', {range: fooRange}]]),
-            isParameterized: false,
+            cases: new Map([
+              ['bar', {range: fooRange, isParameterized: false}],
+            ]),
             isTyped: false,
           },
         ],
@@ -151,8 +188,9 @@ describe('gtest parser', () => {
           'hello',
           {
             range: helloRange,
-            cases: new Map([['world', {range: helloRange}]]),
-            isParameterized: false,
+            cases: new Map([
+              ['world', {range: helloRange, isParameterized: false}],
+            ]),
             isTyped: true,
           },
         ],
@@ -160,8 +198,9 @@ describe('gtest parser', () => {
           'hello2',
           {
             range: hello2Range,
-            cases: new Map([['world', {range: hello2Range}]]),
-            isParameterized: true,
+            cases: new Map([
+              ['world', {range: hello2Range, isParameterized: true}],
+            ]),
             isTyped: true,
           },
         ],
@@ -169,8 +208,9 @@ describe('gtest parser', () => {
           'suite',
           {
             range: suiteRange,
-            cases: new Map([['name', {range: suiteRange}]]),
-            isParameterized: true,
+            cases: new Map([
+              ['name', {range: suiteRange, isParameterized: true}],
+            ]),
             isTyped: true,
           },
         ],

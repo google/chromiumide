@@ -24,7 +24,6 @@ export class GtestSuite extends GtestRunnable {
     uri: vscode.Uri,
     range: vscode.Range,
     readonly suiteName: string,
-    readonly isParameterized: boolean,
     readonly isTyped: boolean,
     cases: parser.TestCaseMap
   ) {
@@ -37,8 +36,14 @@ export class GtestSuite extends GtestRunnable {
     testFileItem.children.add(item);
 
     super(controller, item, uri);
-    for (const [name, {range}] of cases.entries()) {
-      const testCase = new GtestCase(controller, this, range, name);
+    for (const [name, {range, isParameterized}] of cases.entries()) {
+      const testCase = new GtestCase(
+        controller,
+        this,
+        range,
+        name,
+        isParameterized
+      );
       this.testCases.push(testCase);
     }
   }
@@ -48,14 +53,31 @@ export class GtestSuite extends GtestRunnable {
   }
 
   override getGtestFilter(): string {
-    if (this.isParameterized) {
-      // Parameterized tests may or may not have a prefix.
-      return this.isTyped
-        ? `*/${this.suiteName}/*.*:${this.suiteName}/*.*`
-        : `*/${this.suiteName}.*/*:${this.suiteName}.*/*`;
-    } else {
-      return this.isTyped ? `${this.suiteName}/*.*` : `${this.suiteName}.*`;
+    const filters: string[] = [];
+
+    let hasParameterizedCase = false;
+    let hasNonParameterizedCase = false;
+    for (const testCase of this.testCases) {
+      if (testCase.isParameterized) {
+        hasParameterizedCase = true;
+      } else {
+        hasNonParameterizedCase = true;
+      }
     }
+
+    if (hasParameterizedCase) {
+      // Parameterized tests may or may not have a prefix.
+      filters.push(
+        this.isTyped
+          ? `*/${this.suiteName}/*.*:${this.suiteName}/*.*`
+          : `*/${this.suiteName}.*/*:${this.suiteName}.*/*`
+      );
+    } else if (hasNonParameterizedCase) {
+      filters.push(
+        this.isTyped ? `${this.suiteName}/*.*` : `${this.suiteName}.*`
+      );
+    }
+    return filters.join(':');
   }
 
   /**
