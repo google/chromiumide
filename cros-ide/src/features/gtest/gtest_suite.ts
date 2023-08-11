@@ -53,7 +53,7 @@ export class GtestSuite extends GtestRunnable {
   }
 
   override getGtestFilter(): string {
-    const filters: string[] = [];
+    const filters = new Set<string>();
 
     let hasParameterizedCase = false;
     let hasNonParameterizedCase = false;
@@ -67,17 +67,18 @@ export class GtestSuite extends GtestRunnable {
 
     if (hasParameterizedCase) {
       // Parameterized tests may or may not have a prefix.
-      filters.push(
-        this.isTyped
-          ? `*/${this.suiteName}/*.*:${this.suiteName}/*.*`
-          : `*/${this.suiteName}.*/*:${this.suiteName}.*/*`
-      );
-    } else if (hasNonParameterizedCase) {
-      filters.push(
+      for (const filter of this.isTyped
+        ? [`*/${this.suiteName}/*.*`, `${this.suiteName}/*.*`]
+        : [`*/${this.suiteName}.*/*`, `${this.suiteName}.*/*`]) {
+        filters.add(filter);
+      }
+    }
+    if (hasNonParameterizedCase) {
+      filters.add(
         this.isTyped ? `${this.suiteName}/*.*` : `${this.suiteName}.*`
       );
     }
-    return filters.join(':');
+    return Array.from(filters).join(':');
   }
 
   /**
