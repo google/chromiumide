@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {underDevelopment} from '../../../services/config';
 import {RunProfile} from './run_profile';
 
 /**
@@ -12,8 +13,10 @@ import {RunProfile} from './run_profile';
 export class LazyTestController implements vscode.Disposable {
   private controller?: vscode.TestController;
   private runProfile?: RunProfile;
+  private debugProfile?: RunProfile;
 
   dispose(): void {
+    this.debugProfile?.dispose();
     this.runProfile?.dispose();
     this.controller?.dispose();
   }
@@ -28,6 +31,9 @@ export class LazyTestController implements vscode.Disposable {
         'Tast (ChromiumIDE)'
       );
       this.runProfile = new RunProfile(this.controller);
+      if (underDevelopment.tastDebugging.get()) {
+        this.debugProfile = new RunProfile(this.controller, /* debug = */ true);
+      }
     }
     return this.controller;
   }

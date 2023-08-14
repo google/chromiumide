@@ -3,19 +3,25 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {RunTastTestsResult} from '../../device_management/commands/run_tast_tests';
+import {
+  DebugTastTestsResult,
+  RunTastTestsResult,
+} from '../../device_management/commands/tast';
 
 /**
- * Handles requests to run tests.
+ * Handles requests to run/debug tests.
  */
 export class RunProfile implements vscode.Disposable {
-  constructor(controller: vscode.TestController) {
+  constructor(
+    controller: vscode.TestController,
+    private readonly debug = false
+  ) {
     this.subscriptions.push(
       controller.createRunProfile(
-        'Tast',
-        vscode.TestRunProfileKind.Run,
+        debug ? 'Tast debug' : 'Tast',
+        debug ? vscode.TestRunProfileKind.Debug : vscode.TestRunProfileKind.Run,
         this.runHandler.bind(this, controller),
-        /* isDefault = */ true
+        /* isDefault = */ debug ? false : true
       )
     );
   }
@@ -45,10 +51,17 @@ export class RunProfile implements vscode.Disposable {
       const start = new Date();
 
       try {
-        const runResult: RunTastTestsResult | null | Error =
-          await vscode.commands.executeCommand(
+        let runResult;
+
+        if (this.debug) {
+          runResult = (await vscode.commands.executeCommand(
+            'chromiumide.deviceManagement.debugTastTests'
+          )) as DebugTastTestsResult | null | Error;
+        } else {
+          runResult = (await vscode.commands.executeCommand(
             'chromiumide.deviceManagement.runTastTests'
-          );
+          )) as RunTastTestsResult | null | Error;
+        }
 
         if (runResult !== null) {
           const duration =

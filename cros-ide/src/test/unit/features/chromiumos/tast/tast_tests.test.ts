@@ -17,6 +17,7 @@ function workspaceFolder(fsPath: string): vscode.WorkspaceFolder {
 
 describe('TastTests', () => {
   const {vscodeEmitters, vscodeSpy} = testing.installVscodeDouble();
+  testing.installFakeConfigs(vscodeSpy, vscodeEmitters);
 
   const tempDir = testing.tempDir();
 

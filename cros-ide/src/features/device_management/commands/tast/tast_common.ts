@@ -1,55 +1,20 @@
-// Copyright 2022 The ChromiumOS Authors
+// Copyright 2023 The ChromiumOS Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// TODO(oka): Move this file and registration of the command to the
-// features/chromiumos/tast component.
-
 import * as vscode from 'vscode';
-import * as netUtil from '../../../common/net_util';
-import * as services from '../../../services';
-import * as config from '../../../services/config';
-import * as parser from '../../chromiumos/tast/parser';
-import * as metrics from '../../metrics/metrics';
-import * as ssh from '../ssh_session';
-import {CommandContext, promptKnownHostnameIfNeeded} from './common';
+import * as netUtil from '../../../../common/net_util';
+import * as services from '../../../../services';
+import {ChrootService} from '../../../../services/chromiumos';
+import * as parser from '../../../chromiumos/tast/parser';
+import * as ssh from '../../ssh_session';
+import {CommandContext, promptKnownHostnameIfNeeded} from '../common';
 
-/**
- * Represents a Tast build error that can occur after calling the list command.
- * The message can be reported directly to the user.
- */
-class TastListBuildError extends Error {
-  constructor() {
-    super(
-      'Tast failed to build, please ensure all issues are addressed before trying again.'
-    );
-  }
-}
-
-/**
- * Represents the result of the call to runTastTests.
- */
-export class RunTastTestsResult {
-  constructor() {}
-}
-
-/**
- * Prompts a user for tast tests to run, and returns the results of
- * running the selected tests. Returns null when the tests aren't run.
- * @param context The current command context.
- * @param chrootService The chroot to run commands in.
- */
-export async function runTastTests(
-  context: CommandContext,
-  chrootService: services.chromiumos.ChrootService
-): Promise<RunTastTestsResult | null | Error> {
-  metrics.send({
-    category: 'interactive',
-    group: 'device',
-    name: 'device_management_run_tast_tests',
-    description: 'run Tast tests',
-  });
-
+export async function preTestSetUp(context: CommandContext): Promise<null | {
+  hostname: string;
+  testCase: parser.ParsedTestCase;
+  port: number;
+}> {
   // Get the test to run from file path and function name.
   const document = vscode.window.activeTextEditor?.document;
   if (document === undefined) {
@@ -115,11 +80,19 @@ export async function runTastTests(
     context.sshSessions.set(hostname, newSession);
   }
 
-  // Get list of available tests.
-  const target = `localhost:${port}`;
+  return {hostname, testCase, port};
+}
+
+export async function askTestNames(
+  context: CommandContext,
+  chrootService: ChrootService,
+  hostname: string,
+  target: string,
+  testCase: parser.ParsedTestCase
+): Promise<null | string[]> {
   let testList = undefined;
   try {
-    testList = await getAvailableTests(
+    testList = await getAvailableTestsOrThrow(
       context,
       chrootService,
       target,
@@ -154,13 +127,18 @@ export async function runTastTests(
     return null;
   }
 
-  try {
-    await runSelectedTests(context, chrootService, target, choice);
-    showPromptWithOpenLogChoice(context, 'Tests run successfully.', false);
-    return new RunTastTestsResult();
-  } catch (err) {
-    showPromptWithOpenLogChoice(context, 'Failed to run tests.', true);
-    throw err;
+  return choice;
+}
+
+/**
+ * Represents a Tast build error that can occur after calling the list command.
+ * The message can be reported directly to the user.
+ */
+class TastListBuildError extends Error {
+  constructor() {
+    super(
+      'Tast failed to build, please ensure all issues are addressed before trying again.'
+    );
   }
 }
 
@@ -173,7 +151,7 @@ export async function runTastTests(
  * @returns It returns the list of possible tests to run. Only returns undefined
  * if the operation is cancelled.
  */
-async function getAvailableTests(
+async function getAvailableTestsOrThrow(
   context: CommandContext,
   chrootService: services.chromiumos.ChrootService,
   target: string,
@@ -219,74 +197,13 @@ async function getAvailableTests(
 }
 
 /**
- * Runs all of the selected tests.
- * @param context The current command context.
- * @param chrootService The chroot to run commands in.
- * @param target The target to run the `tast list` command on.
- * @param testNames The names of the tests to run.
- */
-async function runSelectedTests(
-  context: CommandContext,
-  chrootService: services.chromiumos.ChrootService,
-  target: string,
-  testNames: string[]
-): Promise<void | Error> {
-  const extraArgs = config.tast.extraArgs.get();
-
-  context.output.show();
-
-  // Show a progress notification as this is a long operation.
-  return vscode.window.withProgress(
-    {
-      location: vscode.ProgressLocation.Notification,
-      cancellable: true,
-      title: 'Running tests',
-    },
-    async (_progress, token) => {
-      // Run all of the provided tests. `failfortests` is used to have
-      // the Tast command return an error status code on any test failure.
-      const res = await chrootService.exec(
-        'tast',
-        ['run', '-failfortests', ...extraArgs, target, ...testNames],
-        {
-          sudoReason: 'to run tast tests',
-          logger: context.output,
-          cancellationToken: token,
-          ignoreNonZeroExit: true,
-        }
-      );
-      if (token.isCancellationRequested) {
-        return;
-      }
-      // Handle response errors.
-      if (res instanceof Error) {
-        context.output.append(res.message);
-        throw res;
-      }
-      // Handle custom errors that are returned from Tast. It may make sense
-      // to parse stdout in order to return fail/pass/etc. for each test in the
-      // future.
-      const {exitStatus, stdout} = res;
-
-      // Always append the output since it contains the results that a user
-      // can use for diagnosing issues/success.
-      context.output.append(stdout);
-
-      if (exitStatus !== 0) {
-        throw new Error('Failed to run tests');
-      }
-    }
-  );
-}
-
-/**
  * Shows an error, or informational prompt with the option to open logs.
  * This function does not wait for a response.
  * @param context The context output to show when clicking 'Open Logs'.
  * @param message The message to display to the user.
  * @param isError Whether or not an error, or informational prompt should show.
  */
-function showPromptWithOpenLogChoice(
+export function showPromptWithOpenLogChoice(
   context: CommandContext,
   message: string,
   isError: boolean

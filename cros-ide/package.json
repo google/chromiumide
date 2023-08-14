@@ -126,6 +126,13 @@
         "title": "Copy Hostname"
       },
       {
+        "command": "chromiumide.deviceManagement.debugTastTests",
+        "category": "CrOS",
+        "title": "Debug tast tests",
+        "icon": "$(debug-alt)",
+        "enablement": "config.chromiumide.underDevelopment.tastDebugging"
+      },
+      {
         "command": "chromiumide.deviceManagement.runTastTests",
         "category": "CrOS",
         "title": "Run tast tests",
@@ -835,6 +842,11 @@
           "type": "boolean",
           "description": "Enable system log viewer",
           "default": true
+        },
+        "chromiumide.underDevelopment.tastDebugging": {
+          "type": "boolean",
+          "description": "Enable tast tests debugging",
+          "default": false
         },
         "chromiumide.underDevelopment.testCoverage": {
           "type": "boolean",

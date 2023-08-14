@@ -134,6 +134,7 @@ export const underDevelopment = {
   ),
   platformEc: new ConfigValue<boolean>('underDevelopment.platformEC'),
   relatedFiles: new ConfigValue<boolean>('underDevelopment.relatedFiles'),
+  tastDebugging: new ConfigValue<boolean>('underDevelopment.tastDebugging'),
   systemLogViewer: new ConfigValue<boolean>('underDevelopment.systemLogViewer'),
   testCoverage: new ConfigValue<boolean>('underDevelopment.testCoverage'),
 };

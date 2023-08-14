@@ -4,6 +4,7 @@
 
 import * as vscode from 'vscode';
 import * as services from '../../../services';
+import {underDevelopment} from '../../../services/config';
 import * as abandonedDevices from '../abandoned_devices';
 import * as crosfleet from '../crosfleet';
 import * as repository from '../device_repository';
@@ -23,8 +24,8 @@ import {flashPrebuiltImage} from './flash_prebuilt_image';
 import {abandonLease} from './lease_abandon';
 import {addLease} from './lease_add';
 import {refreshLeases} from './lease_refresh';
-import {runTastTests} from './run_tast_tests';
 import {openSystemLogViewer} from './syslog_viewer';
+import {debugTastTests, runTastTests} from './tast';
 
 /**
  * Registers VSCode commands for device management features.
@@ -148,6 +149,14 @@ function registerChromiumosCommands(
           () => runTastTests(context, chrootService)
         )
       );
+      if (underDevelopment.tastDebugging.get()) {
+        subscriptions.push(
+          vscode.commands.registerCommand(
+            'chromiumide.deviceManagement.debugTastTests',
+            () => debugTastTests(context, chrootService)
+          )
+        );
+      }
     }
   };
 
