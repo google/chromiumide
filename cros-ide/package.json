@@ -2,7 +2,7 @@
   "name": "cros-ide",
   "displayName": "ChromiumIDE",
   "description": "Chromium(OS) Development",
-  "version": "0.19.1",
+  "version": "0.19.2",
   "publisher": "Google",
   "author": {
     "name": "ChromeOS Velocity Team at Google"
