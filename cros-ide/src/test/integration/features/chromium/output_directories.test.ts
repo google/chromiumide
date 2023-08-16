@@ -12,6 +12,7 @@ import {
 import * as config from '../../../../services/config';
 import * as testing from '../../../testing';
 import * as fakes from '../../../testing/fakes';
+import type {ThemeIcon} from 'vscode';
 
 describe('OutputDirectoriesDataProvider', () => {
   const tempDir = testing.tempDir();
@@ -176,8 +177,39 @@ describe('OutputDirectoriesDataProvider', () => {
     ]);
   });
 
-  [true, false, 'unset'].forEach(useGoma => {
-    it(`queries GN args correctly when GOMA is ${useGoma}`, async () => {
+  for (const testCase of [
+    {
+      name: 'shows warning if neither goma or siso is enabled',
+      gnArgs: [{name: 'foo_bar', current: {value: 'true'}}],
+      wantIcon: 'warning',
+      wantArgs: {use_siso: false, use_goma: false},
+    },
+    {
+      name: 'shows warning if goma is explicitly disabled',
+      gnArgs: [{name: 'use_goma', current: {value: 'false'}}],
+      wantIcon: 'warning',
+      wantArgs: {use_siso: false, use_goma: false},
+    },
+    {
+      name: 'shows warning if siso is explicitly disabled',
+      gnArgs: [{name: 'use_siso', current: {value: 'false'}}],
+      wantIcon: 'warning',
+      wantArgs: {use_siso: false, use_goma: false},
+    },
+    {
+      name: 'shows no warning if goma is enabled',
+      gnArgs: [{name: 'use_goma', current: {value: 'true'}}],
+      wantIcon: 'file-directory',
+      wantArgs: {use_siso: false, use_goma: true},
+    },
+    {
+      name: 'shows no warning if siso is enabled',
+      gnArgs: [{name: 'use_siso', current: {value: 'true'}}],
+      wantIcon: 'file-directory',
+      wantArgs: {use_siso: true, use_goma: false},
+    },
+  ]) {
+    it(`queries GN args correctly and ${testCase.name}`, async () => {
       await fs.mkdir(path.join(tempDir.path, 'out'));
       await fs.mkdir(path.join(tempDir.path, 'out/dir1'));
 
@@ -195,24 +227,7 @@ describe('OutputDirectoriesDataProvider', () => {
           ],
           async options => {
             expect(options.cwd).toBe(tempDir.path);
-            switch (useGoma) {
-              case true:
-                return JSON.stringify([
-                  {name: 'foo_bar', current: {value: 'true'}},
-                  {name: 'use_goma', current: {value: 'true'}},
-                ]);
-              case false:
-                return JSON.stringify([
-                  {name: 'foo_bar', current: {value: 'true'}},
-                  {name: 'use_goma', current: {value: 'false'}},
-                ]);
-              case 'unset':
-                return JSON.stringify([
-                  {name: 'foo_bar', current: {value: 'false'}},
-                ]);
-              default:
-                throw new Error('not reached');
-            }
+            return JSON.stringify(testCase.gnArgs);
           }
         )
       );
@@ -228,9 +243,11 @@ describe('OutputDirectoriesDataProvider', () => {
       expect(nodes).toEqual([
         new DirNode('out/dir1', false, {
           type: 'success',
-          args: {use_goma: useGoma === true},
+          args: testCase.wantArgs,
         }),
       ]);
+      const treeItem = dataProvider.getTreeItem(nodes[0])!;
+      expect((treeItem.iconPath as ThemeIcon).id).toBe(testCase.wantIcon);
     });
-  });
+  }
 });
