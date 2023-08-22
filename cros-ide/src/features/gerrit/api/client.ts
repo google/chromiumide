@@ -51,7 +51,7 @@ export class GerritClient {
   ): Promise<api.ChangeInfo | undefined> {
     return await this.client.fetchOrThrow(
       repoId,
-      `changes/${changeId}?o=ALL_REVISIONS`,
+      `changes/${encodeURIComponent(changeId)}?o=ALL_REVISIONS`,
       authCookie
     );
   }
@@ -65,7 +65,7 @@ export class GerritClient {
     const baseCommentInfosMap: api.FilePathToBaseCommentInfos | undefined =
       await this.client.fetchOrThrow(
         repoId,
-        `changes/${changeId}/comments`,
+        `changes/${encodeURIComponent(changeId)}/comments`,
         authCookie
       );
     if (!baseCommentInfosMap) return undefined;
@@ -93,7 +93,7 @@ export class GerritClient {
     const baseCommentInfosMap: api.FilePathToBaseCommentInfos | undefined =
       await this.client.fetchOrThrow(
         repoId,
-        `a/changes/${changeId}/drafts`,
+        `a/changes/${encodeURIComponent(changeId)}/drafts`,
         authCookie
       );
     if (!baseCommentInfosMap) return undefined;

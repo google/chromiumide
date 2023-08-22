@@ -15,8 +15,8 @@ export class Comment {
     readonly commentInfo: api.CommentInfo
   ) {}
 
-  get authorId(): number | undefined {
-    return this.commentInfo.author?._account_id;
+  get authorId(): number {
+    return this.commentInfo.author._account_id;
   }
   get commentId(): string {
     return this.commentInfo.id;

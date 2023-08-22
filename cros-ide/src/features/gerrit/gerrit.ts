@@ -132,7 +132,12 @@ export function activate(
           repoId,
         },
       }: VscodeCommentThread) =>
-        openExternal(repoId, `c/${changeNumber}/comment/${commentId}`)
+        openExternal(
+          repoId,
+          `c/${encodeURIComponent(changeNumber)}/comment/${encodeURIComponent(
+            commentId
+          )}`
+        )
     ),
     // TODO(b/268655627): Instrument this command to send metrics.
     vscode.commands.registerCommand(
@@ -142,7 +147,8 @@ export function activate(
           firstComment: {authorId},
           repoId,
         },
-      }: VscodeCommentThread) => openExternal(repoId, `dashboard/${authorId}`)
+      }: VscodeCommentThread) =>
+        openExternal(repoId, `dashboard/${encodeURIComponent(authorId)}`)
     ),
     // TODO(b/268655627): Instrument this command to send metrics.
     vscode.commands.registerCommand(
@@ -150,13 +156,18 @@ export function activate(
       async ({
         gerritComment: {changeNumber, commentId, repoId},
       }: VscodeComment) =>
-        openExternal(repoId, `c/${changeNumber}/comment/${commentId}`)
+        openExternal(
+          repoId,
+          `c/${encodeURIComponent(changeNumber)}/comment/${encodeURIComponent(
+            commentId
+          )}`
+        )
     ),
     // TODO(b/268655627): Instrument this command to send metrics.
     vscode.commands.registerCommand(
       'chromiumide.gerrit.browseCommentAuthor',
       async ({gerritComment: {authorId, repoId}}: VscodeComment) =>
-        openExternal(repoId, `dashboard/${authorId}`)
+        openExternal(repoId, `dashboard/${encodeURIComponent(authorId)}`)
     )
   );
 
