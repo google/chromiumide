@@ -4,7 +4,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import {Chroot} from './common_util';
+import {Chroot, CrosOut} from './common_util';
 
 // Wraps functions in fs or fs.promises, adding prefix to given paths.
 export class WrapFs<T extends string> {
@@ -50,11 +50,13 @@ export class WrapFs<T extends string> {
  * oldest).
  */
 export async function getSetupBoardsRecentFirst(
-  chroot: WrapFs<Chroot>
+  chroot: WrapFs<Chroot>,
+  out: WrapFs<CrosOut>
 ): Promise<string[]> {
   return getSetupBoardsOrdered(
     chroot,
-    async dir => chroot.stat(dir),
+    out,
+    async (fs, dir) => fs.stat(dir),
     (a, b) => b.atimeMs - a.atimeMs
   );
 }
@@ -63,34 +65,51 @@ export async function getSetupBoardsRecentFirst(
  * @returns Boards that have been set up in alphabetic order.
  */
 export async function getSetupBoardsAlphabetic(
-  chroot: WrapFs<Chroot>
+  chroot: WrapFs<Chroot>,
+  out: WrapFs<CrosOut>
 ): Promise<string[]> {
   return getSetupBoardsOrdered(
     chroot,
-    async dir => dir,
+    out,
+    async (_fs, dir) => dir,
     (a, b) => a.localeCompare(b)
   );
 }
 
 async function getSetupBoardsOrdered<T>(
   chroot: WrapFs<Chroot>,
-  keyFn: (dir: string) => Promise<T>,
+  out: WrapFs<CrosOut>,
+  keyFn: (fs: WrapFs<Chroot | CrosOut>, dir: string) => Promise<T>,
+  compareFn: (a: T, b: T) => number
+): Promise<string[]> {
+  const res = [];
+  for (const fs of [chroot, out]) {
+    res.push(...(await getSetupBoardsOrderedInner(fs, keyFn, compareFn)));
+  }
+  return res;
+}
+
+async function getSetupBoardsOrderedInner<T, F extends Chroot | CrosOut>(
+  fs: WrapFs<F>,
+  keyFn: (fs: WrapFs<F>, dir: string) => Promise<T>,
   compareFn: (a: T, b: T) => number
 ): Promise<string[]> {
   const build = '/build';
 
   // /build does not exist outside chroot, which causes problems in tests.
-  if (!chroot.existsSync(build)) {
+  if (!fs.existsSync(build)) {
     return [];
   }
 
-  const dirs = await chroot.readdir(build);
+  const dirs = await fs.readdir(build);
   const dirStat: Array<[string, T]> = [];
   for (const dir of dirs) {
-    if (dir === 'bin') {
+    // README file exists in chroot/build if it's a directory on which out/build
+    // is mounted in chroot.
+    if (dir === 'bin' || dir === 'README') {
       continue;
     }
-    dirStat.push([dir, await keyFn(path.join(build, dir))]);
+    dirStat.push([dir, await keyFn(fs, path.join(build, dir))]);
   }
   dirStat.sort(([, a], [, b]) => compareFn(a, b));
   return dirStat.map(([x]) => x);

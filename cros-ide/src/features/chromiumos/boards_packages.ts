@@ -77,8 +77,9 @@ class BoardsPackages {
   // TODO: Write a unit test for watching packages.
   async createPackageWatches(): Promise<void> {
     const chroot = this.chrootService.chroot;
+    const out = this.chrootService.out;
 
-    const boards = await cros.getSetupBoardsAlphabetic(chroot);
+    const boards = await cros.getSetupBoardsAlphabetic(chroot, out);
     const crosWorkonDir = '.config/cros_workon/';
 
     const source = this.chrootService.source;
@@ -219,11 +220,12 @@ class BoardPackageProvider implements vscode.TreeDataProvider<ChrootItem> {
     const defaultBoard = config.board.get();
 
     if (element === undefined) {
-      const chroot = this.chrootService.chroot;
-      if (chroot === undefined) {
-        return [];
-      }
-      return (await cros.getSetupBoardsAlphabetic(chroot))
+      return (
+        await cros.getSetupBoardsAlphabetic(
+          this.chrootService.chroot,
+          this.chrootService.out
+        )
+      )
         .map(boardName => new BoardItem(boardName, boardName === defaultBoard))
         .concat([new BoardItem(VIRTUAL_BOARDS_HOST)]);
     }

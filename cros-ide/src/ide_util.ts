@@ -72,7 +72,10 @@ export async function selectAndUpdateTargetBoard(
     suggestMostRecent: boolean;
   }
 ): Promise<string | null | NoBoardError> {
-  const boards = await cros.getSetupBoardsRecentFirst(chroot);
+  const boards = await cros.getSetupBoardsRecentFirst(
+    chroot,
+    new cros.WrapFs(commonUtil.crosOutDir(commonUtil.sourceDir(chroot.root)))
+  );
   const board = await selectBoard(boards, options.suggestMostRecent);
 
   if (board instanceof Error) {
