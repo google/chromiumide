@@ -191,7 +191,10 @@ async function updateChangelogForRelease(version: semver.SemVer) {
   await fs.promises.writeFile(changeLogFile, updatedText, 'utf8');
 }
 
-async function updateVersionAndCommit(preRelease: boolean, extraMessage: string) {
+async function updateVersionAndCommit(
+  preRelease: boolean,
+  extraMessage: string
+) {
   await assertCleanGitStatus();
   const version = await bumpVersion(preRelease);
 
@@ -201,11 +204,10 @@ async function updateVersionAndCommit(preRelease: boolean, extraMessage: string)
 
   // Prepend and append by a new line if given non-empty extra messages to
   // format it as a stand-alone paragraph.
-  const additionalLines = (
-    (extraMessage.length > 0 ? '\n' : '')
-    + extraMessage
-    + (extraMessage.length > 0 ? '\n' : '')
-  );
+  const additionalLines =
+    (extraMessage.length > 0 ? '\n' : '') +
+    extraMessage +
+    (extraMessage.length > 0 ? '\n' : '');
 
   const release = preRelease ? 'pre-release' : 'release';
   const test = preRelease ? 'None' : 'Bugfest';
@@ -346,7 +348,10 @@ async function main() {
       await buildAndUpload(config.preRelease, config.remoteBranch);
       return;
     case 'update':
-      await updateVersionAndCommit(config.preRelease, config.extraMessage?? '');
+      await updateVersionAndCommit(
+        config.preRelease,
+        config.extraMessage ?? ''
+      );
       return;
   }
 }
