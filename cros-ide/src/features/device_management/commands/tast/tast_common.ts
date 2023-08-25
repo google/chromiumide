@@ -21,39 +21,54 @@ export async function preTestSetUp(context: CommandContext): Promise<null | {
   testCase: parser.ParsedTestCase;
   port: number;
 }> {
-  // Get the test to run from file path and function name.
-  const document = vscode.window.activeTextEditor?.document;
-  if (document === undefined) {
-    return null;
-  }
-  const testCase = parser.parseTestCase(document);
-  if (!testCase) {
-    // Show the errors without waiting so the main UI can continue.
-    void (async () => {
-      const choice = await vscode.window.showErrorMessage(
-        'Could not find test to run from file. Was the test registered?',
-        'Test registration'
-      );
-      if (choice) {
-        void vscode.env.openExternal(
-          vscode.Uri.parse(
-            'https://chromium.googlesource.com/chromiumos/platform/tast/+/HEAD/docs/writing_tests.md#Test-registration'
-          )
-        );
-      }
-    })();
-    return null;
-  }
+  const testCase = findTestCase();
+  if (!testCase) return null;
 
   const hostname = await promptKnownHostnameIfNeeded(
     'Connect to Device',
     undefined,
     context.deviceRepository
   );
-  if (!hostname) {
-    return null;
+  if (!hostname) return null;
+
+  const port = await ensureSshSession(context, hostname);
+
+  return {hostname, testCase, port};
+}
+
+/** Gets the test to run from the active document. */
+function findTestCase(): parser.ParsedTestCase | undefined {
+  const document = vscode.window.activeTextEditor?.document;
+  if (!document) {
+    return undefined;
   }
 
+  const testCase = parser.parseTestCase(document);
+  if (testCase) {
+    return testCase;
+  }
+
+  void (async () => {
+    const choice = await vscode.window.showErrorMessage(
+      'Could not find test to run from file. Was the test registered?',
+      'Test registration'
+    );
+    if (choice) {
+      void vscode.env.openExternal(
+        vscode.Uri.parse(
+          'https://chromium.googlesource.com/chromiumos/platform/tast/+/HEAD/docs/writing_tests.md#Test-registration'
+        )
+      );
+    }
+  })();
+
+  return undefined;
+}
+
+async function ensureSshSession(
+  context: CommandContext,
+  hostname: string
+): Promise<number> {
   // Check if we can reuse existing session
   let okToReuseSession = false;
   const existingSession = context.sshSessions.get(hostname);
@@ -69,24 +84,23 @@ export async function preTestSetUp(context: CommandContext): Promise<null | {
     }
   }
 
-  let port: number;
   if (existingSession && okToReuseSession) {
-    port = existingSession.forwardPort;
-  } else {
-    // Create new ssh session.
-    port = await netUtil.findUnusedPort();
-
-    const newSession = await ssh.SshSession.create(
-      hostname,
-      context.sshIdentity,
-      context.output,
-      port
-    );
-    newSession.onDidDispose(() => context.sshSessions.delete(hostname));
-    context.sshSessions.set(hostname, newSession);
+    return existingSession.forwardPort;
   }
 
-  return {hostname, testCase, port};
+  // Create new ssh session.
+  const port = await netUtil.findUnusedPort();
+
+  const newSession = await ssh.SshSession.create(
+    hostname,
+    context.sshIdentity,
+    context.output,
+    port
+  );
+  newSession.onDidDispose(() => context.sshSessions.delete(hostname));
+  context.sshSessions.set(hostname, newSession);
+
+  return port;
 }
 
 export async function askTestNames(
