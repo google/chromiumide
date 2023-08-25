@@ -10,6 +10,12 @@ import * as parser from '../../../chromiumos/tast/parser';
 import * as ssh from '../../ssh_session';
 import {CommandContext, promptKnownHostnameIfNeeded} from '../common';
 
+/**
+ * Lays the foundation for running Tast tests. It involes parsing the active document for test
+ * cases, asking the user the device to run the tests on, and ensuring an SSH session to the device.
+ *
+ * It returns null in case of failure showing the user an error message as needed.
+ */
 export async function preTestSetUp(context: CommandContext): Promise<null | {
   hostname: string;
   testCase: parser.ParsedTestCase;
