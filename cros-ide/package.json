@@ -185,8 +185,7 @@
       {
         "command": "chromiumide.setDefaultBoard",
         "category": "CrOS",
-        "title": "Set as Default Board",
-        "enablement": "!config.chromiumide.underDevelopment.boardsAndPackagesV2"
+        "title": "Set as Default Board"
       },
       {
         "command": "chromiumide.fileIdeBug",
@@ -598,6 +597,11 @@
         {
           "command": "chromiumide.setDefaultBoard",
           "when": "view == legacy-boards-packages && viewItem == board"
+        },
+        {
+          "command": "chromiumide.setDefaultBoard",
+          "when": "view == boards-and-packages && viewItem == board",
+          "group": "1_set"
         },
         {
           "command": "chromiumide.coverage.generate",

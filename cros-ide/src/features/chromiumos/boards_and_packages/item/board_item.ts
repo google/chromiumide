@@ -24,17 +24,22 @@ export class BoardItem implements Item {
       vscode.TreeItemCollapsibleState.Collapsed
     );
 
-    if (board === VIRTUAL_BOARDS_HOST) {
-      treeItem.iconPath = new vscode.ThemeIcon('device-desktop');
-    } else {
-      treeItem.iconPath = new vscode.ThemeIcon('circuit-board');
-    }
+    const isHost = board === VIRTUAL_BOARDS_HOST;
+    const isDefault = config.board.get() === board;
 
-    if (config.board.get() === board) {
+    treeItem.iconPath = isHost
+      ? new vscode.ThemeIcon('device-desktop')
+      : new vscode.ThemeIcon('circuit-board');
+
+    if (isDefault) {
       treeItem.description = 'default';
     }
 
-    treeItem.contextValue = ViewItemContext.BOARD;
+    treeItem.contextValue = isDefault
+      ? ViewItemContext.BOARD_DEFAULT
+      : isHost
+      ? ViewItemContext.BOARD_HOST
+      : ViewItemContext.BOARD;
 
     this.treeItem = treeItem;
   }

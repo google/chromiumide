@@ -6,6 +6,7 @@ import * as vscode from 'vscode';
 import {Context} from '../context';
 import {Breadcrumbs} from '../item';
 import {openEbuild} from './open_ebuild';
+import {setDefaultBoard} from './set_default_board';
 
 /**
  * Register all the commands for the boards and packages view and returns a disposable to unregister
@@ -13,12 +14,16 @@ import {openEbuild} from './open_ebuild';
  */
 export function registerCommands(ctx: Context): vscode.Disposable {
   return vscode.Disposable.from(
+    // Commands for board items
+    vscode.commands.registerCommand(
+      'chromiumide.setDefaultBoard',
+      ({breadcrumbs: [board]}: Breadcrumbs) => setDefaultBoard(board)
+    ),
+    // Commands for package name items
     vscode.commands.registerCommand(
       'chromiumide.openEbuild',
-      async ({breadcrumbs}: Breadcrumbs) => {
-        const [board, category, name] = breadcrumbs;
-        await openEbuild(ctx, board, {category, name});
-      }
+      ({breadcrumbs: [board, category, name]}: Breadcrumbs) =>
+        openEbuild(ctx, board, {category, name})
     )
   );
 }

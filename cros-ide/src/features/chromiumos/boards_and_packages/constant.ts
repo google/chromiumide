@@ -10,6 +10,8 @@ export const VIRTUAL_BOARDS_HOST = 'host';
 export enum ViewItemContext {
   // Set for board item.
   BOARD = 'board',
+  BOARD_DEFAULT = 'board-default',
+  BOARD_HOST = 'board-host',
   // Set for package name item.
   PACKAGE = 'package',
 }

@@ -15,7 +15,8 @@ import {BoardsAndPackagesTreeDataProvider} from './tree_data_provider';
 export class BoardsAndPackages implements vscode.Disposable {
   private readonly subscriptions: vscode.Disposable[] = [];
 
-  private readonly treeView;
+  private readonly treeDataProvider: BoardsAndPackagesTreeDataProvider;
+  private readonly treeView: vscode.TreeView<Breadcrumbs>;
 
   constructor(chrootService: ChrootService, statusManager: StatusManager) {
     const output = vscode.window.createOutputChannel('Boards and packages');
@@ -26,13 +27,23 @@ export class BoardsAndPackages implements vscode.Disposable {
       outputChannel: output,
     });
 
+    this.treeDataProvider = new BoardsAndPackagesTreeDataProvider(
+      chrootService,
+      output
+    );
+
     this.treeView = vscode.window.createTreeView('boards-and-packages', {
-      treeDataProvider: new BoardsAndPackagesTreeDataProvider(
-        chrootService,
-        output
-      ),
+      treeDataProvider: this.treeDataProvider,
     });
     this.subscriptions.push(this.treeView);
+
+    this.subscriptions.push(
+      vscode.workspace.onDidChangeConfiguration(e => {
+        if (e.affectsConfiguration('chromiumide.board')) {
+          this.treeDataProvider.refresh();
+        }
+      })
+    );
 
     this.subscriptions.push(
       registerCommands({
@@ -42,11 +53,15 @@ export class BoardsAndPackages implements vscode.Disposable {
     );
   }
 
-  getTreeViewForTesting(): vscode.TreeView<Breadcrumbs> {
-    return this.treeView;
-  }
-
   dispose(): void {
     vscode.Disposable.from(...this.subscriptions.reverse()).dispose();
+  }
+
+  getTreeDataProviderForTesting(): vscode.TreeDataProvider<Breadcrumbs> {
+    return this.treeDataProvider;
+  }
+
+  getTreeViewForTesting(): vscode.TreeView<Breadcrumbs> {
+    return this.treeView;
   }
 }

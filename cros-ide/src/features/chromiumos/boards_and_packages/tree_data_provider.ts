@@ -9,6 +9,11 @@ import {Breadcrumbs, searchItem, RootItem, Item} from './item';
 export class BoardsAndPackagesTreeDataProvider
   implements vscode.TreeDataProvider<Breadcrumbs>
 {
+  private onDidChangeTreeDataEmitter = new vscode.EventEmitter<
+    Breadcrumbs | undefined | null | void
+  >();
+  readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
+
   private readonly root = new RootItem();
 
   constructor(
@@ -57,5 +62,9 @@ export class BoardsAndPackagesTreeDataProvider
     }
 
     return item.children.map(x => x.breadcrumbs);
+  }
+
+  refresh(): void {
+    this.onDidChangeTreeDataEmitter.fire();
   }
 }

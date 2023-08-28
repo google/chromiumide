@@ -7,7 +7,7 @@ import {getCrosPath} from '../../../../../common/chromiumos/cros';
 import {BoardsAndPackages} from '../../../../../features/chromiumos/boards_and_packages';
 import {Breadcrumbs} from '../../../../../features/chromiumos/boards_and_packages/item';
 import {ChrootService} from '../../../../../services/chromiumos';
-import {underDevelopment} from '../../../../../services/config';
+import * as config from '../../../../../services/config';
 import * as testing from '../../../../testing';
 import {FakeStatusManager, VoidOutputChannel} from '../../../../testing/fakes';
 
@@ -27,8 +27,8 @@ describe('Boards and packages', () => {
     subscriptions.splice(0);
   });
 
-  it('supports revealing tree items from breadcrumbs', async () => {
-    await underDevelopment.boardsAndPackagesV2.update(true);
+  const state = testing.cleanState(async () => {
+    await config.underDevelopment.boardsAndPackagesV2.update(true);
 
     vscodeSpy.window.createOutputChannel.and.returnValue(
       new VoidOutputChannel()
@@ -37,10 +37,6 @@ describe('Boards and packages', () => {
     const chromiumosRoot = tempDir.path;
 
     const chroot = await testing.buildFakeChroot(chromiumosRoot);
-
-    await testing.putFiles(chroot, {
-      'build/betty/fake': 'x',
-    });
 
     const chrootService = ChrootService.maybeCreate(
       chromiumosRoot,
@@ -52,6 +48,20 @@ describe('Boards and packages', () => {
       new FakeStatusManager()
     );
     subscriptions.push(boardsAndPackages);
+
+    return {
+      chromiumosRoot,
+      chroot,
+      boardsAndPackages,
+    };
+  });
+
+  it('supports revealing tree items from breadcrumbs', async () => {
+    const {chromiumosRoot, chroot, boardsAndPackages} = state;
+
+    await testing.putFiles(chroot, {
+      'build/betty/fake': 'x',
+    });
 
     const treeView = boardsAndPackages.getTreeViewForTesting();
 
@@ -78,5 +88,20 @@ describe('Boards and packages', () => {
     await expectAsync(
       treeView.reveal(Breadcrumbs.from('betty', 'chromeos-base', 'not-exist'))
     ).toBeRejected();
+  });
+
+  it('refreshes when default board changes', async () => {
+    const {boardsAndPackages} = state;
+
+    const treeDataProvider = boardsAndPackages.getTreeDataProviderForTesting();
+
+    const reader = new testing.EventReader(
+      treeDataProvider.onDidChangeTreeData!
+    );
+
+    await config.board.update('betty');
+
+    // Confirm an event to refresh the tree is fired.
+    await reader.read();
   });
 });
