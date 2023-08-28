@@ -49,7 +49,7 @@ export async function activate(
     ),
 
     vscode.window.registerTreeDataProvider(
-      'boards-packages',
+      'legacy-boards-packages',
       boardPackageProvider
     )
   );

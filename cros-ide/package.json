@@ -352,7 +352,7 @@
           "name": "Devices"
         },
         {
-          "id": "boards-packages",
+          "id": "legacy-boards-packages",
           "name": "Boards and Packages",
           "when": "!config.chromiumide.underDevelopment.boardsAndPackagesV2"
         },
@@ -446,7 +446,7 @@
       "view/title": [
         {
           "command": "chromiumide.refreshBoardsPackages",
-          "when": "view == boards-packages",
+          "when": "view == legacy-boards-packages",
           "group": "navigation"
         },
         {
@@ -456,7 +456,7 @@
         },
         {
           "command": "chromiumide.showHelpForBoardsPackages",
-          "when": "view == boards-packages",
+          "when": "view == legacy-boards-packages",
           "group": "navigation"
         },
         {
@@ -578,30 +578,30 @@
         },
         {
           "command": "chromiumide.crosWorkonStart",
-          "when": "view == boards-packages && viewItem =~ /^board/",
+          "when": "view == legacy-boards-packages && viewItem =~ /^board/",
           "group": "inline"
         },
         {
           "command": "chromiumide.crosWorkonStop",
-          "when": "view == boards-packages && viewItem == package",
+          "when": "view == legacy-boards-packages && viewItem == package",
           "group": "inline"
         },
         {
           "command": "chromiumide.openEbuild",
-          "when": "view == boards-packages && viewItem == package",
+          "when": "view == legacy-boards-packages && viewItem == package",
           "group": "inline"
         },
         {
           "command": "chromiumide.setDefaultBoard",
-          "when": "view == boards-packages && viewItem == board"
+          "when": "view == legacy-boards-packages && viewItem == board"
         },
         {
           "command": "chromiumide.coverage.generate",
-          "when": "view == boards-packages && viewItem == package && config.chromiumide.testCoverage.enabled"
+          "when": "view == legacy-boards-packages && viewItem == package && config.chromiumide.testCoverage.enabled"
         },
         {
           "command": "chromiumide.coverage.showReport",
-          "when": "view == boards-packages && viewItem == package && config.chromiumide.underDevelopment.testCoverage"
+          "when": "view == legacy-boards-packages && viewItem == package && config.chromiumide.underDevelopment.testCoverage"
         },
         {
           "command": "chromiumide.chromium.outputDirectories.editArgs",
@@ -661,12 +661,12 @@
     },
     "viewsWelcome": [
       {
-        "view": "boards-packages",
+        "view": "legacy-boards-packages",
         "contents": "This view shows boards set up in the chroot and packages marked active with [cros_workon start](https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md#run-cros_workon-start). You can start and stop working on new packages from the UI. Selecting a new board and initializizing the build must be done on the command line. Visit [the developer guide](https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md#Select-a-board) to learn more.\n[Show Boards and Packages](command:chromiumide.dismissBoardsPkgsWelcome)",
         "when": "config.chromiumide.boardsAndPackages.showWelcomeMessage"
       },
       {
-        "view": "boards-packages",
+        "view": "legacy-boards-packages",
         "contents": "You have not yet opened a folder with ChromeOS sources (for example, platform2).\n[Open Folder](command:vscode.openFolder)\nChromiumIDE uses source location to detect the chroot and show [initialized boards](https://chromium.googlesource.com/chromiumos/docs/+/HEAD/developer_guide.md#Select-a-board).",
         "when": "!config.chromiumide.boardsAndPackages.showWelcomeMessage && !chromiumide.chrootPath"
       }
