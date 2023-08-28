@@ -21,7 +21,7 @@ export async function openEbuild(
   pkg: ParsedPackageName
 ): Promise<void> {
   const res = await ctx.chrootService.exec(
-    board.equeryExecutable(),
+    board.suffixedExecutable('equery'),
     ['which', '-m', getQualifiedPackageName(pkg)],
     {
       logger: ctx.output,

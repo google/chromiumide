@@ -8,6 +8,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import {BoardOrHost} from './common/chromiumos/board_or_host';
 import * as commonUtil from './common/common_util';
 import {Chroot} from './common/common_util';
 import * as cros from './common/cros';
@@ -42,10 +43,10 @@ export const SHOW_UI_LOG: vscode.Command = {
  */
 export async function getOrSelectTargetBoard(
   chroot: cros.WrapFs<Chroot>
-): Promise<string | null | NoBoardError> {
+): Promise<BoardOrHost | null | NoBoardError> {
   const board = config.board.get();
   if (board) {
-    return board;
+    return BoardOrHost.parse(board);
   }
   return await selectAndUpdateTargetBoard(chroot, {suggestMostRecent: true});
 }
@@ -71,7 +72,7 @@ export async function selectAndUpdateTargetBoard(
   options: {
     suggestMostRecent: boolean;
   }
-): Promise<string | null | NoBoardError> {
+): Promise<BoardOrHost | null | NoBoardError> {
   const boards = await cros.getSetupBoardsRecentFirst(
     chroot,
     new cros.WrapFs(commonUtil.crosOutDir(commonUtil.sourceDir(chroot.root)))
@@ -83,7 +84,7 @@ export async function selectAndUpdateTargetBoard(
   }
   if (board) {
     // TODO(oka): This should be per chroot (i.e. Remote) setting, instead of global (i.e. User).
-    await config.board.update(board);
+    await config.board.update(board.toString());
   }
   return board;
 }
@@ -91,7 +92,7 @@ export async function selectAndUpdateTargetBoard(
 async function selectBoard(
   boards: string[],
   suggestMostRecent: boolean
-): Promise<string | null | NoBoardError> {
+): Promise<BoardOrHost | null | NoBoardError> {
   if (boards.length === 0) {
     return new NoBoardError();
   }
@@ -114,18 +115,19 @@ async function selectBoard(
     }
     switch (selection.title) {
       case 'Yes':
-        return mostRecent;
+        return BoardOrHost.parse(mostRecent);
       case 'Customize':
         break;
       default:
         return null;
     }
   }
-  return (
-    (await vscode.window.showQuickPick(boards, {
-      title: 'Target board',
-    })) || null
-  );
+
+  const choice = await vscode.window.showQuickPick(boards, {
+    title: 'Target board',
+  });
+
+  return typeof choice === 'string' ? BoardOrHost.parse(choice) : null;
 }
 
 /**

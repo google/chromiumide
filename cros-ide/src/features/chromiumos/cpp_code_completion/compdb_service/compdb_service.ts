@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import {BoardOrHost} from '../../../../common/chromiumos/board_or_host';
 import {PackageInfo} from '../../../../services/chromiumos';
 
 /**
@@ -13,5 +14,5 @@ export interface CompdbService {
    * Generate compilation database. This method should be called only when generating
    * compilation database is actually needed.
    */
-  generate(board: string, packageInfo: PackageInfo): Promise<void>;
+  generate(board: BoardOrHost, packageInfo: PackageInfo): Promise<void>;
 }

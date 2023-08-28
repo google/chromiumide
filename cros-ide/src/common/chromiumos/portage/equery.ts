@@ -2,13 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import {BoardOrHost} from '../board_or_host';
 import {ParsedPackageName} from './ebuild';
 
 /**
  * Builds a command run in chroot to get the 9999 ebuild filepath.
  */
 export function buildGet9999EbuildCommand(
-  board: string | undefined,
+  board: BoardOrHost,
   pkg: ParsedPackageName
 ): string[] {
   return [
@@ -16,12 +17,8 @@ export function buildGet9999EbuildCommand(
     // Accept 9999 ebuilds that have the ~* keyword.
     // https://wiki.gentoo.org/wiki/ACCEPT_KEYWORDS
     'ACCEPT_KEYWORDS=~*',
-    equeryExecutableName(board),
+    board.suffixedExecutable('equery'),
     'which',
     `=${pkg.category}/${pkg.name}-9999`,
   ];
-}
-
-function equeryExecutableName(board: string | undefined): string {
-  return board ? `equery-${board}` : 'equery';
 }

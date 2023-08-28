@@ -5,6 +5,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import {BoardOrHost} from '../../../../../common/chromiumos/board_or_host';
 import * as commonUtil from '../../../../../common/common_util';
 import * as cros from '../../../../../common/cros';
 import {CompdbServiceImpl} from '../../../../../features/chromiumos/cpp_code_completion/compdb_service';
@@ -77,7 +78,7 @@ describe('Compdb service', () => {
       source: new cros.WrapFs(state.source),
       out: new cros.WrapFs(state.out),
     });
-    await compdbService.generate('amd64-generic', {
+    await compdbService.generate(BoardOrHost.newBoard('amd64-generic'), {
       sourceDir: 'src/platform2/codelab',
       pkg: {category: 'chromeos-base', name: 'codelab'},
     });
@@ -148,7 +149,7 @@ describe('Compdb service', () => {
       source: new cros.WrapFs(state.source),
       out: new cros.WrapFs(state.out),
     });
-    await compdbService.generate('amd64-generic', {
+    await compdbService.generate(BoardOrHost.newBoard('amd64-generic'), {
       sourceDir: 'src/platform2/codelab',
       pkg: {category: 'chromeos-base', name: 'codelab'},
     });

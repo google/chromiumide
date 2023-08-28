@@ -5,6 +5,7 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import {BoardOrHost} from '../../../common/chromiumos/board_or_host';
 import {getQualifiedPackageName} from '../../../common/chromiumos/portage/ebuild';
 import {CompdbServiceImpl} from '../../../features/chromiumos/cpp_code_completion/compdb_service';
 import {
@@ -84,7 +85,7 @@ describe('C++ xrefs in platform2', () => {
     );
   }
 
-  const board = 'amd64-generic';
+  const board = BoardOrHost.newBoard('amd64-generic');
 
   const output = new VoidOutputChannel();
   const compdbService = new CompdbServiceImpl(output, {

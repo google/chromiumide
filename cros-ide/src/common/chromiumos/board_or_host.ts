@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import path from 'path';
+
 /** An immutable data class representing ChromeOS's board or host. */
 export class BoardOrHost {
   /** String representation of host. Calling toString() to host returns it. */
@@ -35,11 +37,6 @@ export class BoardOrHost {
     }
   }
 
-  /** Returns the SDK board name for host, and the board name for board. */
-  toBoardName(): string {
-    return this.map(b => b, 'amd64-host');
-  }
-
   /**
    * Maps the board or host. If `this` represents a board, it is mapped via the first argument and
    * otherwise (if `this` represents the host), it is mapped to the second argument.
@@ -63,5 +60,26 @@ export class BoardOrHost {
     return this.boardOrHost.isHost
       ? BoardOrHost.HOST_AS_STRING
       : this.boardOrHost.board;
+  }
+
+  /** Returns the SDK board name for host, and the board name for board. */
+  toBoardName(): string {
+    return this.map(b => b, 'amd64-host');
+  }
+
+  /**
+   * Result of `portageq envvar SYSROOT`.
+   */
+  sysroot(): string {
+    return this.map(b => path.join('/build', b), '/');
+  }
+
+  /**
+   * The name of the executable inside chroot.
+   */
+  suffixedExecutable(
+    name: 'emerge' | 'equery' | 'ebuild' | 'portageq'
+  ): string {
+    return this.map(b => `${name}-${b}`, name);
   }
 }

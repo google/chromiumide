@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as net from 'net';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import {BoardOrHost} from '../../../common/chromiumos/board_or_host';
 import {getQualifiedPackageName} from '../../../common/chromiumos/portage/ebuild';
 import {
   parsePlatform2EbuildOrThrow,
@@ -40,7 +41,7 @@ export class Runner extends AbstractRunner {
     request: vscode.TestRunRequest,
     cancellation: vscode.CancellationToken,
     testRun: vscode.TestRun,
-    private readonly board: string,
+    private readonly board: BoardOrHost,
     gtestWorkspace: GtestWorkspace
   ) {
     super(request, cancellation, testRun, gtestWorkspace);

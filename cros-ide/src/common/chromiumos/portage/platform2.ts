@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import * as fs from 'fs';
+import {BoardOrHost} from '../board_or_host';
 import {
   EbuildPackage,
   ParsedEbuildFilepath,
@@ -26,7 +27,7 @@ export type Platform2Package = EbuildPackage & {
  * platform2_test.py.
  */
 export function platform2TestWorkingDirectory(
-  board: string | undefined,
+  board: BoardOrHost,
   pkg: Platform2Package
 ): string {
   if (pkg.version !== '9999') {

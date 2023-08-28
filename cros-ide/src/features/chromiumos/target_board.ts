@@ -7,6 +7,7 @@
  */
 
 import * as vscode from 'vscode';
+import {BoardOrHost} from '../../common/chromiumos/board_or_host';
 import {vscodeRegisterCommand} from '../../common/vscode/commands';
 import * as ideUtil from '../../ide_util';
 import * as services from '../../services';
@@ -50,14 +51,14 @@ export function activate(
         return;
       }
       // Type-check that errors are handled.
-      ((_: string | null) => {})(board);
+      ((_: BoardOrHost | null) => {})(board);
       if (board) {
         metrics.send({
           category: 'interactive',
           group: 'misc',
           name: 'select_target_board',
           description: 'select target board',
-          board: board,
+          board: board.toString(),
         });
       }
     })

@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as uuid from 'uuid';
+import {BoardOrHost} from '../../../../common/chromiumos/board_or_host';
 import {getQualifiedPackageName} from '../../../../common/chromiumos/portage/ebuild';
 import * as services from '../../../../services';
 import {PackageInfo} from '../../../../services/chromiumos';
@@ -22,7 +23,7 @@ export class CompdbServiceImpl implements CompdbService {
     private readonly crosFs: services.chromiumos.CrosFs
   ) {}
 
-  async generate(board: string, packageInfo: PackageInfo): Promise<void> {
+  async generate(board: BoardOrHost, packageInfo: PackageInfo): Promise<void> {
     // Add 'test' USE flag so that compdb includes test files.
     // This doesn't cause tests to be run, because we don't run the src_test phase.
     const compdbPath = await this.generateInner(board, packageInfo, [
@@ -56,7 +57,7 @@ export class CompdbServiceImpl implements CompdbService {
    * @throws CompdbError on failure
    */
   async generateInner(
-    board: string,
+    board: BoardOrHost,
     {sourceDir, pkg}: PackageInfo,
     useFlags: string[]
   ): Promise<string | undefined> {

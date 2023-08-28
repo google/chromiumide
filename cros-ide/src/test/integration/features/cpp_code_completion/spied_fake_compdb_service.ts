@@ -4,6 +4,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import {BoardOrHost} from '../../../../common/chromiumos/board_or_host';
 import * as commonUtil from '../../../../common/common_util';
 import * as compdbService from '../../../../features/chromiumos/cpp_code_completion/compdb_service';
 import {PackageInfo} from '../../../../services/chromiumos';
@@ -13,12 +14,12 @@ export class SpiedFakeCompdbService implements compdbService.CompdbService {
 
   constructor(private readonly source: commonUtil.Source) {}
 
-  async generate(board: string, packageInfo: PackageInfo): Promise<void> {
+  async generate(board: BoardOrHost, packageInfo: PackageInfo): Promise<void> {
     const dest = compdbService.destination(this.source, packageInfo);
     await fs.promises.mkdir(path.dirname(dest), {recursive: true});
     await fs.promises.writeFile(dest, 'fake compdb');
 
-    this.requests.push({board, packageInfo});
+    this.requests.push({board: board.toString(), packageInfo});
   }
 
   isEnabled(): boolean {

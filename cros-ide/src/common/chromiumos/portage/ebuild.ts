@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import * as path from 'path';
+import {BoardOrHost} from '../board_or_host';
 
 export type ParsedPackageName = {
   // Package's category, e.g. chromeos-base
@@ -58,7 +59,7 @@ type EbuildDefinedVariables = Readonly<{
  * Implementation is based on portage/package/ebuild/doebuild.py.
  */
 export function ebuildDefinedVariables(
-  board: string | undefined,
+  board: BoardOrHost,
   pkg: EbuildPackage
 ): EbuildDefinedVariables {
   const {portageTmpdir, sysroot} = portageDefinedVariables(board);
@@ -90,8 +91,8 @@ export function ebuildDefinedVariables(
 }
 
 /** Variables defined in the ebuild environment by Portage. */
-function portageDefinedVariables(board: string | undefined) {
-  const sysroot = board ? path.join('/build', board) : '/';
+function portageDefinedVariables(board: BoardOrHost) {
+  const sysroot = board.sysroot();
   const portageTmpdir = path.join(sysroot, 'tmp');
 
   return {

@@ -4,10 +4,10 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
+import {BoardOrHost} from '../../../../common/chromiumos/board_or_host';
 import {buildGet9999EbuildCommand} from '../../../../common/chromiumos/portage/equery';
 import * as commonUtil from '../../../../common/common_util';
 import * as services from '../../../../services';
-import {Board, HOST} from './board';
 import {CompdbError, CompdbErrorKind} from './error';
 
 /** Represents the filepath to an artifact. */
@@ -20,7 +20,7 @@ export type Artifact = {
 
 export class Ebuild {
   constructor(
-    private readonly board: Board,
+    private readonly board: BoardOrHost,
     readonly qualifiedPackageName: string,
     private readonly output: Pick<
       vscode.OutputChannel,
@@ -35,7 +35,9 @@ export class Ebuild {
     new Map();
 
   private mutex() {
-    const key = `${this.board}:${this.qualifiedPackageName}:${this.crosFs.source.root}`;
+    const key = `${this.board.toString()}:${this.qualifiedPackageName}:${
+      this.crosFs.source.root
+    }`;
     const existing = Ebuild.globalMutexMap.get(key);
     if (existing) {
       return existing;
@@ -69,23 +71,12 @@ export class Ebuild {
   }
 
   /**
-   * Result of `portageq envvar SYSROOT`
-   */
-  private sysroot(): string {
-    return this.board === HOST ? '/' : path.join('/build', this.board);
-  }
-
-  private ebuildExecutable(): string {
-    return this.board === HOST ? 'ebuild' : 'ebuild-' + this.board;
-  }
-
-  /**
    * The value of PORTAGE_BUILDDIR
    * https://devmanual.gentoo.org/ebuild-writing/variables/index.html
    */
   private portageBuildDir(): string {
     return path.join(
-      this.sysroot(),
+      this.board.sysroot(),
       'tmp/portage',
       this.qualifiedPackageName + '-9999'
     );
@@ -98,7 +89,11 @@ export class Ebuild {
   private buildDirs(): string[] {
     return [
       // If CROS_WORKON_INCREMENTAL_BUILD=="1"
-      path.join(this.sysroot(), 'var/cache/portage', this.qualifiedPackageName),
+      path.join(
+        this.board.sysroot(),
+        'var/cache/portage',
+        this.qualifiedPackageName
+      ),
       // Otherwise
       path.join(this.portageBuildDir(), 'work', 'build'),
       path.join(this.portageBuildDir()),
@@ -179,7 +174,7 @@ export class Ebuild {
       'env',
       [
         'USE=' + this.useFlags.join(' '),
-        this.ebuildExecutable(),
+        this.board.suffixedExecutable('ebuild'),
         await this.ebuild9999(),
         'clean',
         'compile',

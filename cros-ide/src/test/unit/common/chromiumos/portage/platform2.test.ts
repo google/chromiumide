@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import {BoardOrHost} from '../../../../../common/chromiumos/board_or_host';
 import {
   Platform2Package,
   platform2TestWorkingDirectory,
@@ -10,7 +11,7 @@ import {
 describe('platform2TestWorkingDirectory works for', () => {
   const testCases: {
     name: string;
-    board: string | undefined;
+    board: string;
     pkg: Platform2Package;
     want: string;
   }[] = [
@@ -58,7 +59,10 @@ describe('platform2TestWorkingDirectory works for', () => {
 
   for (const tc of testCases) {
     it(tc.name, () => {
-      const got = platform2TestWorkingDirectory(tc.board, tc.pkg);
+      const got = platform2TestWorkingDirectory(
+        BoardOrHost.parse(tc.board),
+        tc.pkg
+      );
       expect(got).toEqual(tc.want);
     });
   }
