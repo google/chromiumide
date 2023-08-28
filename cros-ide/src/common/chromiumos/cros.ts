@@ -4,6 +4,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
+import {execSudo} from '../../services/sudo';
 import * as commonUtil from '../common_util';
 import {ParsedPackageName, parseQualifiedPackageName} from './portage/ebuild';
 
@@ -47,5 +48,26 @@ export class CrosClient {
     return [...new Set(result.stdout.trim().split('\n'))]
       .sort()
       .map(parseQualifiedPackageName);
+  }
+
+  /**
+   * Lists cros-workon packages for the board. Results are deduplicated and sorted by name.
+   */
+  async listWorkonPackages(
+    board: string,
+    options?: {all?: boolean}
+  ): Promise<ParsedPackageName[] | Error> {
+    const args = [this.cros, 'workon', '-b', board, 'list'];
+    if (options?.all) {
+      args.push('--all');
+    }
+    const result = await execSudo(args[0], args.slice(1), {
+      cwd: this.chromiumosRoot,
+      logger: this.output,
+      sudoReason: 'to list workon packages',
+    });
+    if (result instanceof Error) return result;
+
+    return result.stdout.trim().split('\n').map(parseQualifiedPackageName);
   }
 }

@@ -356,11 +356,22 @@ interface PackageOpenEbuildEvent extends EventBase {
   name: 'package_open_ebuild';
 }
 
-interface BoardsAndPackagesOpenEbuildEvent extends EventBase {
-  category: 'interactive';
+type BoardsAndPackagesOpenEbuildEvent = EventBase & {
   group: 'boards_and_packages';
-  name: 'boards_and_packages_open_ebuild';
-}
+} & (
+    | {
+        category: 'interactive';
+        name: 'boards_and_packages_open_ebuild';
+      }
+    | {
+        category: 'interactive';
+        name:
+          | 'boards_and_packages_cros_workon_start'
+          | 'boards_and_packages_cros_workon_stop';
+        package: string;
+        board: string;
+      }
+  );
 
 type SpellcheckerEvent = EventBase &
   (

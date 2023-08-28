@@ -8,8 +8,9 @@ import * as cros from '../../common/cros';
 import * as ideUtil from '../../ide_util';
 import * as services from '../../services';
 import * as config from '../../services/config';
-import * as metrics from '../metrics/metrics';
+import {crosWorkon} from './boards_and_packages/command/cros_workon';
 import {openEbuild} from './boards_and_packages/command/open_ebuild';
+import {Context} from './boards_and_packages/context';
 
 export async function activate(
   subscriptions: vscode.Disposable[],
@@ -116,67 +117,23 @@ class BoardsPackages {
       return;
     }
 
-    metrics.send({
-      category: 'interactive',
-      group: 'package',
-      description: 'cros_workon start',
-      name: 'package_cros_workon_start',
-      package: pkgName,
-      board: board.name,
-    });
-    await this.crosWorkon(board.name, 'start', pkgName);
+    await crosWorkon(this.context(), board.name, pkgName, 'start');
   }
 
   async crosWorkonStop(pkg: PackageItem): Promise<void> {
-    metrics.send({
-      category: 'interactive',
-      group: 'package',
-      description: 'cros_workon stop',
-      name: 'package_cros_workon_stop',
-      package: pkg.name,
-      board: pkg.board.name,
-    });
-    await this.crosWorkon(pkg.board.name, 'stop', pkg.name);
-  }
-
-  async crosWorkon(
-    boardName: string,
-    cmd: string,
-    pkgName: string
-  ): Promise<void> {
-    const res = await this.chrootService.exec(
-      'cros_workon',
-      [
-        boardName === VIRTUAL_BOARDS_HOST ? '--host' : `--board=${boardName}`,
-        cmd,
-        pkgName,
-      ],
-      {
-        logger: ideUtil.getUiLogger(),
-        logStdout: true,
-        ignoreNonZeroExit: true,
-        sudoReason: 'to run cros_workon in chroot',
-      }
-    );
-    if (res instanceof Error) {
-      void vscode.window.showErrorMessage(res.message);
-      return;
-    }
-    const {exitStatus, stderr} = res;
-    if (exitStatus !== 0) {
-      void vscode.window.showErrorMessage(`cros_workon failed: ${stderr}`);
-    }
+    await crosWorkon(this.context(), pkg.board.name, pkg.name, 'stop');
   }
 
   async openEbuild(pkg: PackageItem): Promise<void> {
     await openEbuild(
-      {
-        chrootService: this.chrootService,
-        output: ideUtil.getUiLogger(),
-      },
+      this.context(),
       pkg.board.name,
       parseQualifiedPackageName(pkg.name)
     );
+  }
+
+  private context(): Context {
+    return {chrootService: this.chrootService, output: ideUtil.getUiLogger()};
   }
 }
 

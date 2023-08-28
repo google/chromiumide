@@ -19,7 +19,11 @@ export class PackageNameItem implements Item {
 
     const treeItem = new vscode.TreeItem(pkg.name);
 
-    treeItem.contextValue = ViewItemContext.PACKAGE;
+    treeItem.contextValue = {
+      none: ViewItemContext.PACKAGE,
+      started: ViewItemContext.PACKAGE_STARTED,
+      stopped: ViewItemContext.PACKAGE_STOPPED,
+    }[pkg.workon];
 
     this.treeItem = treeItem;
   }

@@ -165,11 +165,16 @@
         "enablement": "!config.chromiumide.underDevelopment.boardsAndPackagesV2"
       },
       {
+        "command": "chromiumide.crosWorkonStart",
+        "category": "CrOS",
+        "title": "Start Working on",
+        "enablement": "config.chromiumide.underDevelopment.boardsAndPackagesV2"
+      },
+      {
         "command": "chromiumide.crosWorkonStop",
         "category": "CrOS",
         "title": "Stop Working On",
-        "icon": "$(remove)",
-        "enablement": "!config.chromiumide.underDevelopment.boardsAndPackagesV2"
+        "icon": "$(remove)"
       },
       {
         "command": "chromiumide.openEbuild",
@@ -580,9 +585,19 @@
           "group": "inline"
         },
         {
+          "command": "chromiumide.crosWorkonStart",
+          "when": "view == boards-and-packages && viewItem == package-stopped",
+          "group": "3_workon"
+        },
+        {
           "command": "chromiumide.crosWorkonStop",
           "when": "view == legacy-boards-packages && viewItem == package",
           "group": "inline"
+        },
+        {
+          "command": "chromiumide.crosWorkonStop",
+          "when": "view == boards-and-packages && viewItem == package-started",
+          "group": "3_workon"
         },
         {
           "command": "chromiumide.openEbuild",
@@ -644,6 +659,10 @@
         },
         {
           "command": "chromiumide.cppxrefs.forceGenerate",
+          "when": "false"
+        },
+        {
+          "command": "chromiumide.crosWorkonStart",
           "when": "false"
         },
         {

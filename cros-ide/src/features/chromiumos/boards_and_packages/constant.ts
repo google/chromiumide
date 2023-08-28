@@ -14,4 +14,6 @@ export enum ViewItemContext {
   BOARD_HOST = 'board-host',
   // Set for package name item.
   PACKAGE = 'package',
+  PACKAGE_STARTED = 'package-started',
+  PACKAGE_STOPPED = 'package-stopped',
 }

@@ -5,7 +5,7 @@
 import * as vscode from 'vscode';
 import {ChrootService} from '../../../services/chromiumos';
 import {StatusManager, TaskStatus} from '../../../ui/bg_task_status';
-import {registerCommands} from './command';
+import {BoardsAndPackagesCommands, CommandName} from './command';
 import {Breadcrumbs} from './item';
 import {BoardsAndPackagesTreeDataProvider} from './tree_data_provider';
 
@@ -37,18 +37,33 @@ export class BoardsAndPackages implements vscode.Disposable {
     });
     this.subscriptions.push(this.treeView);
 
+    const commands = new BoardsAndPackagesCommands({
+      chrootService,
+      output,
+    });
+    this.subscriptions.push(commands);
+
     this.subscriptions.push(
       vscode.workspace.onDidChangeConfiguration(e => {
         if (e.affectsConfiguration('chromiumide.board')) {
           this.treeDataProvider.refresh();
         }
-      })
-    );
-
-    this.subscriptions.push(
-      registerCommands({
-        chrootService,
-        output,
+      }),
+      commands.onDidExecuteCommand(command => {
+        switch (command) {
+          // Do nothing if the command wouldn't affect the boards and packages view, or the event
+          // will be handled in other places. e.g. the default board change is handled by another
+          // handler, so we do nothing for SET_DEFAULT_BOARD here.
+          case CommandName.OPEN_EBUILD:
+          case CommandName.SET_DEFAULT_BOARD:
+            return;
+          case CommandName.CROS_WORKON_START:
+          case CommandName.CROS_WORKON_STOP:
+            this.treeDataProvider.refresh();
+            return;
+          default:
+            ((_: never) => {})(command); // typecheck
+        }
       })
     );
   }
