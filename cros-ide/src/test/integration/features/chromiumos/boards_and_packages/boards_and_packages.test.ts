@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {getCrosPath} from '../../../../../common/chromiumos/cros';
 import {BoardsAndPackages} from '../../../../../features/chromiumos/boards_and_packages';
 import {Breadcrumbs} from '../../../../../features/chromiumos/boards_and_packages/item';
-import {Packages} from '../../../../../features/chromiumos/boards_and_packages/package';
 import {ChrootService} from '../../../../../services/chromiumos';
 import {underDevelopment} from '../../../../../services/config';
 import * as testing from '../../../../testing';
@@ -13,6 +13,8 @@ import {FakeStatusManager} from '../../../../testing/fakes';
 
 describe('Boards and packages', () => {
   const tempDir = testing.tempDir();
+
+  const {fakeExec} = testing.installFakeExec();
 
   const subscriptions: vscode.Disposable[] = [];
 
@@ -26,14 +28,16 @@ describe('Boards and packages', () => {
   });
 
   it('supports revealing tree items from breadcrumbs', async () => {
-    const chroot = await testing.buildFakeChroot(tempDir.path);
+    const chromiumosRoot = tempDir.path;
+
+    const chroot = await testing.buildFakeChroot(chromiumosRoot);
 
     await testing.putFiles(chroot, {
       'build/betty/fake': 'x',
     });
 
     const chrootService = ChrootService.maybeCreate(
-      tempDir.path,
+      chromiumosRoot,
       /* setContext = */ false
     )!;
 
@@ -47,12 +51,23 @@ describe('Boards and packages', () => {
 
     expect(treeView.title).toEqual('Boards and Packages');
 
-    spyOn(Packages, 'readOrThrow').and.resolveTo([
-      {
-        category: 'chromeos-base',
-        name: 'codelab',
-      },
-    ]);
+    const cros = getCrosPath(chromiumosRoot);
+
+    fakeExec
+      .on(
+        cros,
+        testing.exactMatch(
+          ['query', 'ebuilds', '-b', 'amd64-host', '-o', '{package_info.atom}'],
+          async () => 'chromeos-base/codelab\n'
+        )
+      )
+      .on(
+        cros,
+        testing.exactMatch(
+          ['query', 'ebuilds', '-b', 'betty', '-o', '{package_info.atom}'],
+          async () => 'chromeos-base/codelab\n'
+        )
+      );
 
     await treeView.reveal(Breadcrumbs.from('host', 'chromeos-base', 'codelab'));
     await treeView.reveal(

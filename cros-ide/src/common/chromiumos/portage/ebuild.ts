@@ -11,6 +11,17 @@ export type ParsedPackageName = {
   readonly name: string;
 };
 
+/**
+ * Parse a qualified package name. The term qualified package name is used where a category/package
+ * pair is meant: https://wiki.gentoo.org/wiki/Package_Manager_Specification
+ */
+export function parseQualifiedPackageName(
+  qualifiedPackageName: string
+): ParsedPackageName {
+  const [category, name] = qualifiedPackageName.split('/');
+  return {category, name};
+}
+
 export type EbuildPackage = ParsedPackageName & {
   // Package version (excluding revision, if any), e.g. 9999
   readonly version: string;

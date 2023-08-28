@@ -17,7 +17,7 @@ export class ChrootService implements vscode.Disposable {
 
   // Throws if chroot is not found.
   private constructor(
-    private readonly chromiumosRoot: string,
+    readonly chromiumosRoot: string,
     private readonly setContext: boolean
   ) {
     if (!fs.existsSync(this.chrootPath)) {

@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import * as config from '../../../../services/config';
 import {VIRTUAL_BOARDS_HOST, ViewItemContext} from '../constant';
 import {Context} from '../context';
-import {type Package, Packages} from '../package';
+import {listPackages, type Package} from '../package';
 import {Breadcrumbs} from './breadcrumbs';
 import {Item} from './item';
 import {PackageCategoryItem} from './package_category_item';
@@ -40,12 +40,8 @@ export class BoardItem implements Item {
   }
 
   async refreshChildren(ctx: Context): Promise<void | Error> {
-    let packages;
-    try {
-      packages = await Packages.readOrThrow(ctx, this.board);
-    } catch (e) {
-      return e as Error;
-    }
+    const packages = await listPackages(ctx, this.board);
+    if (packages instanceof Error) return packages;
 
     const categoryToPackages = new Map<string, Package[]>();
 
