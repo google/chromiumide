@@ -108,11 +108,13 @@ describe('Boards and packages', () => {
       treeView.reveal(Breadcrumbs.from('betty', 'not-exist', 'not-exist'))
     ).toBeRejected();
 
-    // Test context values.
+    // Test context values and descriptions.
     const codelab = await treeDataProvider.getTreeItem(
       Breadcrumbs.from('betty', 'chromeos-base', 'codelab')
     );
     expect(codelab.contextValue).toEqual('package-started');
+    expect(codelab.description).toEqual('(workon)');
+
     const shill = await treeDataProvider.getTreeItem(
       Breadcrumbs.from('betty', 'chromeos-base', 'shill')
     );
@@ -331,7 +333,7 @@ describe('Boards and packages', () => {
     expect(await treeDataProvider.getChildren(host)).toEqual([a, c, b]);
   });
 
-  it('favorite packages shown first', async () => {
+  it('sorts packages by favorite and workon status', async () => {
     vscodeSpy.window.showErrorMessage.and.callFake(async (message: unknown) =>
       fail(message)
     );
@@ -345,9 +347,9 @@ describe('Boards and packages', () => {
       chromiumosRoot,
       host: {
         packages: {
-          all: ['x/a', 'x/b', 'x/c'],
-          workedOn: [],
-          allWorkon: [],
+          all: ['x/a', 'x/b', 'x/c', 'x/w'],
+          workedOn: ['x/w'],
+          allWorkon: ['x/c', 'x/w'],
         },
       },
       boards: [],
@@ -357,6 +359,7 @@ describe('Boards and packages', () => {
     const a = Breadcrumbs.from('host', 'x', 'a');
     const b = Breadcrumbs.from('host', 'x', 'b');
     const c = Breadcrumbs.from('host', 'x', 'c');
+    const w = Breadcrumbs.from('host', 'x', 'w');
 
     await treeView.reveal(a);
     await treeView.reveal(b);
@@ -374,32 +377,32 @@ describe('Boards and packages', () => {
       expect(await treeDataProvider.getChildren(x)).toEqual(want);
     };
 
-    // Lexicographically sorted by default.
-    await expectPackages([a, b, c]);
+    // Lexicographically sorted by default except workon-started pacakegs are shown first.
+    await expectPackages([w, a, b, c]);
 
     await vscode.commands.executeCommand(
       'chromiumide.boardsAndPackages.favoriteAdd',
       b
     );
 
-    await expectPackages([b, a, c]);
+    await expectPackages([b, w, a, c]);
 
     await vscode.commands.executeCommand(
       'chromiumide.boardsAndPackages.favoriteAdd',
       c
     );
 
-    await expectPackages([b, c, a]);
+    await expectPackages([b, c, w, a]);
 
     await vscode.commands.executeCommand(
       'chromiumide.boardsAndPackages.favoriteDelete',
       b
     );
 
-    await expectPackages([c, a, b]);
+    await expectPackages([c, w, a, b]);
 
-    await config.boardsAndPackages.favoritePackages.update(['x/a', 'x/c']);
+    await config.boardsAndPackages.favoritePackages.update(['x/b', 'x/w']);
 
-    await expectPackages([a, c, b]);
+    await expectPackages([w, b, a, c]);
   });
 });

@@ -118,6 +118,11 @@ export class BoardItem implements Item {
         if (a.favorite !== b.favorite) {
           return a.favorite ? -1 : 1;
         }
+        const aStarted = a.workon === 'started';
+        const bStarted = b.workon === 'started';
+        if (aStarted !== bStarted) {
+          return aStarted ? -1 : 1;
+        }
         return a.name.localeCompare(b.name);
       });
 
