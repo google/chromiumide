@@ -44,9 +44,9 @@ async function askRemoteSyslogPath(): Promise<string | undefined> {
       path: '/var/log/chrome/chrome',
     },
     {
-      label: '$(file) /home/chronos/user/lacros/lacros.log',
+      label: '$(file) /var/log/lacros/lacros.log',
       description: 'Lacros logs.',
-      path: '/home/chronos/user/lacros/lacros.log',
+      path: '/var/log/lacros/lacros.log',
     },
     {
       label: 'Enter a custom file path...',
