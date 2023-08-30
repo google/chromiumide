@@ -88,13 +88,8 @@ export async function debugTastTests(
   }
 
   try {
-    await debugSelectedTests(
-      context,
-      chrootService,
-      target,
-      testNames,
-      hostname
-    );
+    await debugSelectedTests(context, hostname);
+    // TODO: Wait to show the prompt until the tests run successfully
     showPromptWithOpenLogChoice(context, 'Tests run successfully.', false);
     return new DebugTastTestsResult();
   } catch (err) {
@@ -105,43 +100,65 @@ export async function debugTastTests(
 
 /**
  * Debug all of the selected tests.
- * @param context The current command context.
- * @param chrootService The chroot to run commands in.
- * @param target The target to run the `tast run` command on.
- * @param testNames The names of the tests to run.
  */
 async function debugSelectedTests(
-  _context: CommandContext,
-  _chrootService: services.chromiumos.ChrootService,
-  _target: string,
-  _testNames: string[],
+  context: CommandContext,
   hostname: string
-): Promise<void | Error> {
-  // TODO(uchiaki): Debug the selected tests.
-
+): Promise<void> {
   const taskType = 'shell';
 
   // TODO: Dispose of the registration after use.
   vscode.tasks.registerTaskProvider(taskType, {
     provideTasks(): vscode.Task[] {
-      return [
-        new vscode.Task(
-          {type: taskType},
-          vscode.TaskScope.Workspace,
-          'prep debugger',
-          'tast',
-          new vscode.ShellExecution(
-            `cros_sdk -- /mnt/host/source/src/platform/tast-tests/tools/run_debugger.py --dut=${hostname} --current-file=\${file}`
-          ),
-          '$prep-tast-debugger'
+      const task = new vscode.Task(
+        {type: taskType},
+        vscode.TaskScope.Workspace,
+        'prep debugger',
+        'tast',
+        // TODO: Use the file which was active when the debug command was invoked.
+        new vscode.ShellExecution(
+          `cros_sdk -- /mnt/host/source/src/platform/tast-tests/tools/run_debugger.py --dut=${hostname} --current-file=\${file}`
         ),
-      ];
+        '$prep-tast-debugger'
+      );
+      task.isBackground = true;
+      return [task];
     },
 
     resolveTask(task: vscode.Task): vscode.Task {
       return task;
     },
   });
+
+  // See https://github.com/golang/vscode-go/wiki/debugging#launchjson-attributes
+  // for the meaning of the fields.
+  const debugConfiguration: vscode.DebugConfiguration = {
+    name: 'Debug tast test',
+    type: 'go',
+    request: 'attach',
+    mode: 'remote',
+    port: 2345, // port number is hard-coded in run_debugger.py
+    host: '127.0.0.1',
+    appVersion: 2,
+    preLaunchTask: 'tast: prep debugger',
+  };
+
+  context.output.appendLine(
+    `ChromiumIDE running debugger with the following config: ${JSON.stringify(
+      debugConfiguration
+    )}`
+  );
+
+  // TODO: Use the delve we have set up.
+  // To do that we should update the "go.alternateTools" setting according to https://github.com/golang/vscode-go/wiki/debugging#manually-install-dlv.
+  const folder =
+    vscode.workspace.workspaceFolders === undefined
+      ? undefined
+      : vscode.workspace.workspaceFolders[0];
+
+  // TODO(b:298299866): The bug that the debug fails if the user changes the focus after starting debug tests.
+  // It doesn't work if the folder is specified to undefined.
+  await vscode.debug.startDebugging(folder, debugConfiguration);
 }
 
 /**
