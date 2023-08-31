@@ -60,11 +60,11 @@ export function lazyHandler(f: () => Handler): Handler {
 
 export class FakeExec {
   handlers: Map<string, Handler[]> = new Map();
-  on(name: string, handle: Handler): FakeExec {
+  on(name: string, ...handle: Handler[]): FakeExec {
     if (!this.handlers.has(name)) {
       this.handlers.set(name, []);
     }
-    this.handlers.get(name)!.push(handle);
+    this.handlers.get(name)!.push(...handle);
     return this;
   }
   async exec(

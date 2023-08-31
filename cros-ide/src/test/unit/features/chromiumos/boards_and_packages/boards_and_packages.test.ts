@@ -58,22 +58,17 @@ describe('Boards and packages', () => {
     expect(treeView.title).toEqual('Boards and Packages');
 
     const cros = getCrosPath(chromiumosRoot);
-
-    fakeExec
-      .on(
-        cros,
-        testing.exactMatch(
-          ['query', 'ebuilds', '-b', 'amd64-host', '-o', '{package_info.atom}'],
-          async () => 'chromeos-base/codelab\n'
-        )
+    fakeExec.on(
+      cros,
+      testing.exactMatch(
+        ['query', 'ebuilds', '-b', 'amd64-host', '-o', '{package_info.atom}'],
+        async () => 'chromeos-base/codelab\n'
+      ),
+      testing.exactMatch(
+        ['query', 'ebuilds', '-b', 'betty', '-o', '{package_info.atom}'],
+        async () => 'chromeos-base/codelab\n'
       )
-      .on(
-        cros,
-        testing.exactMatch(
-          ['query', 'ebuilds', '-b', 'betty', '-o', '{package_info.atom}'],
-          async () => 'chromeos-base/codelab\n'
-        )
-      );
+    );
 
     await treeView.reveal(Breadcrumbs.from('host', 'chromeos-base', 'codelab'));
     await treeView.reveal(
