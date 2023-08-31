@@ -57,15 +57,8 @@ export async function getRepoId(
     return remoteName;
   }
   if (repoUrl.startsWith('https://chromium.googlesource.com/chromium/')) {
-    if (underDevelopment.gerrit.get()) {
-      sink.appendLine(`Public Chromium remote repo detected at ${gitDir}`);
-      return 'chromium';
-    } else {
-      sink.appendLine(
-        "Support for Chromium Gerrit is still experimental. If you'd like to opt-in, enable the `chromiumide.underDevelopment.gerrit` setting in VSCode."
-      );
-      return;
-    }
+    sink.appendLine(`Public Chromium remote repo detected at ${gitDir}`);
+    return 'chromium';
   }
 
   sink.show({
