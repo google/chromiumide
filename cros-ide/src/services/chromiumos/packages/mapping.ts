@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 import glob = require('glob');
+import {ParsedPackageName} from '../../../common/chromiumos/portage/ebuild';
 import {Source} from '../../../common/common_util';
 import {PackageInfo} from './types';
 
@@ -53,7 +54,7 @@ async function generateSub(dir: string) {
       await fs.promises.readFile(ebuild, 'utf-8')
     );
     if (platformSubdir) {
-      const name = toPackageName(ebuild);
+      const pkg = toPackageName(ebuild);
 
       const subdirs = [platformSubdir];
       const sublings = SIBLING_DEPS[platformSubdir];
@@ -64,7 +65,7 @@ async function generateSub(dir: string) {
       for (const subdir of subdirs) {
         packages.push({
           sourceDir: path.join('src/platform2', subdir),
-          name,
+          pkg,
         });
       }
     }
@@ -72,11 +73,11 @@ async function generateSub(dir: string) {
   return packages;
 }
 
-function toPackageName(ebuildPath: string): string {
+function toPackageName(ebuildPath: string): ParsedPackageName {
   const dir = path.dirname(ebuildPath);
   const name = path.basename(dir);
   const category = path.basename(path.dirname(dir));
-  return `${category}/${name}`;
+  return {category, name};
 }
 
 /**

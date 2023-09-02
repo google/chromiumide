@@ -3,5 +3,5 @@
 // found in the LICENSE file.
 
 export {ChrootService, type CrosFs, execInChroot} from './chroot';
-export {Packages, type PackageName, type PackageInfo} from './packages';
+export {Packages, type PackageInfo} from './packages';
 export {ChromiumosServiceModule} from './module';

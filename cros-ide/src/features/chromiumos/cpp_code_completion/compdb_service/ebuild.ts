@@ -7,7 +7,6 @@ import * as vscode from 'vscode';
 import {buildGet9999EbuildCommand} from '../../../../common/chromiumos/portage/equery';
 import * as commonUtil from '../../../../common/common_util';
 import * as services from '../../../../services';
-import {PackageName} from '../../../../services/chromiumos';
 import {Board, HOST} from './board';
 import {CompdbError, CompdbErrorKind} from './error';
 
@@ -22,7 +21,7 @@ export type Artifact = {
 export class Ebuild {
   constructor(
     private readonly board: Board,
-    readonly packageName: PackageName,
+    readonly qualifiedPackageName: string,
     private readonly output: Pick<
       vscode.OutputChannel,
       'append' | 'appendLine'
@@ -36,7 +35,7 @@ export class Ebuild {
     new Map();
 
   private mutex() {
-    const key = `${this.board}:${this.packageName}:${this.crosFs.source.root}`;
+    const key = `${this.board}:${this.qualifiedPackageName}:${this.crosFs.source.root}`;
     const existing = Ebuild.globalMutexMap.get(key);
     if (existing) {
       return existing;
@@ -85,7 +84,11 @@ export class Ebuild {
    * https://devmanual.gentoo.org/ebuild-writing/variables/index.html
    */
   private portageBuildDir(): string {
-    return path.join(this.sysroot(), 'tmp/portage', this.packageName + '-9999');
+    return path.join(
+      this.sysroot(),
+      'tmp/portage',
+      this.qualifiedPackageName + '-9999'
+    );
   }
 
   /**
@@ -95,7 +98,7 @@ export class Ebuild {
   private buildDirs(): string[] {
     return [
       // If CROS_WORKON_INCREMENTAL_BUILD=="1"
-      path.join(this.sysroot(), 'var/cache/portage', this.packageName),
+      path.join(this.sysroot(), 'var/cache/portage', this.qualifiedPackageName),
       // Otherwise
       path.join(this.portageBuildDir(), 'work', 'build'),
       path.join(this.portageBuildDir()),
@@ -107,10 +110,9 @@ export class Ebuild {
    * cros_workon was run for the package.
    */
   async ebuild9999(): Promise<string> {
-    // TODO(oka): Update the type of this.packageName to ParsedPackageName.
     const pkg = {
-      category: this.packageName.split('/')[0],
-      name: this.packageName.split('/')[1],
+      category: this.qualifiedPackageName.split('/')[0],
+      name: this.qualifiedPackageName.split('/')[1],
     };
 
     const args = buildGet9999EbuildCommand(this.board, pkg);

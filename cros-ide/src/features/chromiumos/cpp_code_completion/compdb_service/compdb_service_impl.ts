@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as uuid from 'uuid';
+import {getQualifiedPackageName} from '../../../../common/chromiumos/portage/ebuild';
 import * as services from '../../../../services';
 import {PackageInfo} from '../../../../services/chromiumos';
 import {checkCompilationDatabase} from './compdb_checker';
@@ -37,8 +38,10 @@ export class CompdbServiceImpl implements CompdbService {
     if (checkCompilationDatabase(content)) {
       return;
     }
+
+    const qpn = getQualifiedPackageName(packageInfo.pkg);
     this.output.appendLine(
-      `Running compilation for ${packageInfo.name} to create generated C++ files`
+      `Running compilation for ${qpn} to create generated C++ files`
     );
     // Run compilation to generate C++ files (from mojom files, for example).
     await this.generateInner(board, packageInfo, [
@@ -54,10 +57,11 @@ export class CompdbServiceImpl implements CompdbService {
    */
   async generateInner(
     board: string,
-    {sourceDir, name}: PackageInfo,
+    {sourceDir, pkg}: PackageInfo,
     useFlags: string[]
   ): Promise<string | undefined> {
-    const ebuild = new Ebuild(board, name, this.output, this.crosFs, useFlags);
+    const qpn = getQualifiedPackageName(pkg);
+    const ebuild = new Ebuild(board, qpn, this.output, this.crosFs, useFlags);
     const artifact = await ebuild.generate();
     if (artifact === undefined) {
       throw new CompdbError({
@@ -66,7 +70,7 @@ export class CompdbServiceImpl implements CompdbService {
     }
     const dest = destination(this.crosFs.source.root, {
       sourceDir,
-      name,
+      pkg,
     });
     let tempFile;
     for (;;) {

@@ -5,6 +5,7 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import {getQualifiedPackageName} from '../../../common/chromiumos/portage/ebuild';
 import {CompdbServiceImpl} from '../../../features/chromiumos/cpp_code_completion/compdb_service';
 import {
   ChrootService,
@@ -110,15 +111,16 @@ describe('C++ xrefs in platform2', () => {
       if (packageInfo === null) {
         return undefined;
       }
-      const packageName = packageInfo.name;
-      if (!PACKAGES_TO_TEST_COMPDB_GENERATION.includes(packageName)) {
+      const qpn = getQualifiedPackageName(packageInfo.pkg);
+      if (!PACKAGES_TO_TEST_COMPDB_GENERATION.includes(qpn)) {
         return undefined;
       }
 
       if (
         seenPackageInfo.find(
           pi =>
-            pi.name === packageInfo.name &&
+            pi.pkg.category === packageInfo.pkg.category &&
+            pi.pkg.name === packageInfo.pkg.name &&
             pi.sourceDir === packageInfo.sourceDir
         )
       ) {
@@ -128,9 +130,9 @@ describe('C++ xrefs in platform2', () => {
 
       try {
         await compdbService.generate(board, packageInfo);
-        return {packageName};
+        return {packageName: qpn};
       } catch (e: unknown) {
-        return {packageName, error: e as Error};
+        return {packageName: qpn, error: e as Error};
       }
     }
   );

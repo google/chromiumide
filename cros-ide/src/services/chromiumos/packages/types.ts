@@ -2,17 +2,14 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import {ParsedPackageName} from '../../../common/chromiumos/portage/ebuild';
+
 /**
  * Directory containing source code relative to chromiumos/
  */
 export type SourceDir = string;
 
-/**
- * category/packagename e.g. chromeos-base/codelab
- */
-export type PackageName = string;
-
 export interface PackageInfo {
   sourceDir: SourceDir;
-  name: PackageName;
+  pkg: ParsedPackageName;
 }

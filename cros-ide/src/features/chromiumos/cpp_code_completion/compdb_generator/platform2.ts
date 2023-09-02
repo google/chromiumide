@@ -4,10 +4,11 @@
 
 import * as fs from 'fs';
 import * as vscode from 'vscode';
+import {getQualifiedPackageName} from '../../../../common/chromiumos/portage/ebuild';
 import * as commonUtil from '../../../../common/common_util';
 import {getOrSelectTargetBoard, NoBoardError} from '../../../../ide_util';
 import * as services from '../../../../services';
-import {PackageName, Packages} from '../../../../services/chromiumos';
+import {Packages} from '../../../../services/chromiumos';
 import * as metrics from '../../../metrics/metrics';
 import {
   CompdbError,
@@ -26,7 +27,8 @@ export class Platform2 implements CompdbGenerator {
   private readonly subscriptions: vscode.Disposable[] = [];
   private readonly packages: Packages;
   // Packages for which compdb has been or being generated in this session.
-  private readonly generationStates = new Map<PackageName, GenerationState>();
+  // Keyed by qualified package name.
+  private readonly generationStates = new Map<string, GenerationState>();
 
   constructor(
     private readonly chrootService: services.chromiumos.ChrootService,
@@ -75,7 +77,8 @@ export class Platform2 implements CompdbGenerator {
       return ShouldGenerateResult.NoUnsupported;
     }
 
-    switch (this.generationStates.get(packageInfo.name)) {
+    const qpn = getQualifiedPackageName(packageInfo.pkg);
+    switch (this.generationStates.get(qpn)) {
       case undefined:
         return ShouldGenerateResult.Yes;
       case 'generated': {
@@ -111,15 +114,16 @@ export class Platform2 implements CompdbGenerator {
     }
     const packageInfo = (await this.packages.fromFilepath(document.fileName))!;
 
-    this.generationStates.set(packageInfo.name, 'generating');
+    const qpn = getQualifiedPackageName(packageInfo.pkg);
+    this.generationStates.set(qpn, 'generating');
 
     try {
       // TODO(oka): use token to cancel the operation.
       await this.compdbService!.generate(board, packageInfo);
 
-      this.generationStates.set(packageInfo.name, 'generated');
+      this.generationStates.set(qpn, 'generated');
     } catch (e) {
-      this.generationStates.set(packageInfo.name, 'failed');
+      this.generationStates.set(qpn, 'failed');
 
       const error = e as CompdbError;
       switch (error.details.kind) {

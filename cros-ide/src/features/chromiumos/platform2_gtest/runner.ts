@@ -6,6 +6,7 @@ import * as fs from 'fs';
 import * as net from 'net';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import {getQualifiedPackageName} from '../../../common/chromiumos/portage/ebuild';
 import {
   parsePlatform2EbuildOrThrow,
   platform2TestWorkingDirectory,
@@ -184,17 +185,13 @@ export class Runner extends AbstractRunner {
    * iterates all the tests to run, and marks a test as enqueued if a package
    * containing the test is found, or as skipped otherwise.
    */
-  private async packageToTests(): Promise<
-    Map<services.chromiumos.PackageName, GtestCase[]>
-  > {
+  private async packageToTests(): Promise<Map<string, GtestCase[]>> {
     const packages = services.chromiumos.Packages.getOrCreate(
       this.chrootService
     );
 
-    const packageToTests = new Map<
-      services.chromiumos.PackageName,
-      GtestCase[]
-    >();
+    // Keyed by qualified package names.
+    const packageToTests = new Map<string, GtestCase[]>();
     for (const testCase of this.gtestWorkspace.matchingTestCases(
       this.request
     )) {
@@ -208,11 +205,12 @@ export class Runner extends AbstractRunner {
       }
       this.testRun.enqueued(testCase.item);
 
-      const tests = packageToTests.get(packageInfo.name);
+      const qpn = getQualifiedPackageName(packageInfo.pkg);
+      const tests = packageToTests.get(qpn);
       if (tests) {
         tests.push(testCase);
       } else {
-        packageToTests.set(packageInfo.name, [testCase]);
+        packageToTests.set(qpn, [testCase]);
       }
     }
 
@@ -254,7 +252,9 @@ export class Runner extends AbstractRunner {
     // generate() throws on failure.
     const compilationDatabase = await ebuildInstance.generate();
     if (!compilationDatabase) {
-      throw new Error(`failed to compile ${ebuildInstance.packageName}`);
+      throw new Error(
+        `failed to compile ${ebuildInstance.qualifiedPackageName}`
+      );
     }
     return {
       baseDir: compilationDatabase.baseDir,

@@ -39,7 +39,10 @@ PLATFORM_SUBDIR="camera/common"
       )
     ).toEqual({
       sourceDir: 'src/platform2/foo',
-      name: 'chromeos-base/foo',
+      pkg: {
+        category: 'chromeos-base',
+        name: 'foo',
+      },
     });
 
     for (const name of ['common', 'features', 'gpu']) {
@@ -49,7 +52,10 @@ PLATFORM_SUBDIR="camera/common"
         )
       ).toEqual({
         sourceDir: `src/platform2/camera/${name}`,
-        name: 'chromeos-base/cros-camera-libs',
+        pkg: {
+          category: 'chromeos-base',
+          name: 'cros-camera-libs',
+        },
       });
     }
 
@@ -69,7 +75,7 @@ PLATFORM_SUBDIR="camera/common"
 
     const fooPackageInfo = {
       sourceDir: 'foo',
-      name: 'chromeos-base/foo',
+      pkg: {category: 'chromeos-base', name: 'foo'},
     };
 
     const blocker = await testing.BlockingPromise.new(undefined);
