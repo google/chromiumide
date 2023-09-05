@@ -7,6 +7,8 @@ import * as os from 'os';
 import * as path from 'path';
 import * as process from 'process';
 import * as vscode from 'vscode';
+import * as glob from 'glob';
+import {ParsedEbuildFilepath} from '../../../../common/chromiumos/portage/ebuild';
 import * as commonUtil from '../../../../common/common_util';
 import {MemoryOutputChannel} from '../../../../common/memory_output_channel';
 import {TeeOutputChannel} from '../../../../common/tee_output_channel';
@@ -71,13 +73,21 @@ export async function debugTastTests(
   //    `getOrSelectTargetBoard` in `src/ide_util.ts` for getting the `BOARD`
   //    value on the initial implementation.
   context.output.appendLine('Start Debug Tast Tests');
-  const dutHasDelve = await ensureDutHasDelve(context, chrootService, hostname);
+
+  const dlvEbuildVersion = getDlvEbuildVersion(chrootService) ?? '1.21.0';
+
+  const dutHasDelve = await ensureDutHasDelve(
+    context,
+    chrootService,
+    hostname,
+    dlvEbuildVersion
+  );
   if (!dutHasDelve) {
     return null;
   }
 
   // http://go/debug-tast-tests#step-2_install-the-debugger-on-your-host-machine-outside-the-chroot
-  const delveInHost = await ensureHostHasDelve(context);
+  const delveInHost = await ensureHostHasDelve(context, dlvEbuildVersion);
   if (!delveInHost) {
     return null;
   }
@@ -190,8 +200,40 @@ async function debugSelectedTests(
   prepDebuggerTaskProvider.dispose();
 }
 
+function getDlvEbuildVersion(
+  chrootService: services.chromiumos.ChrootService
+): string | undefined {
+  const ebuildFileName = glob.glob.sync(
+    path.join(
+      chrootService.source.root,
+      'src/third_party/chromiumos-overlay/dev-go/delve/delve-*.ebuild'
+    )
+  )[0];
+
+  if (ebuildFileName) {
+    try {
+      const res = ParsedEbuildFilepath.parseOrThrow(ebuildFileName);
+      return res.pkg.version;
+    } catch {
+      Metrics.send({
+        category: 'error',
+        group: 'tast',
+        name: 'tast_debug_fail_to_get_delve_version_from_ebuild',
+        description: 'Tast Debug fail to get delve version from ebuild',
+      });
+      // return undefined when failing to get delve version from ebuild
+    }
+  }
+  return undefined;
+}
+
+function parseDlvVersion(out: string): string | undefined {
+  const m = /^Version: (.*)$/m.exec(out);
+  return m?.[1];
+}
+
 /**
- * Checks if the DUT has the delve binary, and otherwise builds and deploys delve to the DUT.
+ * Checks if the DUT has the delve binary (the version of delve is same as ebuild), and otherwise builds and deploys delve to the DUT.
  * Returns false if it fails to ensure that the delve is in DUT.
  *
  * @param context The current command context.
@@ -201,24 +243,29 @@ async function debugSelectedTests(
 async function ensureDutHasDelve(
   context: CommandContext,
   chrootService: services.chromiumos.ChrootService,
-  hostname: string
+  hostname: string,
+  dlvEbuildVersion: string
 ): Promise<boolean> {
   const args = sshUtil.buildSshCommand(
     hostname,
     context.sshIdentity,
     [],
-    'which dlv'
+    'dlv version'
   );
 
   const memoryOutput = new MemoryOutputChannel();
   const result = await commonUtil.exec(args[0], args.slice(1), {
     logger: new TeeOutputChannel(memoryOutput, context.output),
   });
-  // DUT has the delve binary.
-  if (!(result instanceof Error)) {
-    // TODO(uchiaki): Redeploy delve if the version of delve in DUT and local ebuild mismatch.
+  // DUT has the delve binary and the version of delve is same as ebuild.
+  if (
+    !(result instanceof Error) &&
+    parseDlvVersion(result.stdout) === dlvEbuildVersion
+  ) {
     context.output.appendLine(result.stdout);
-    context.output.appendLine('DUT can run dlv');
+    context.output.appendLine(
+      'DUT can run dlv (the version is same as ebuild)'
+    );
     return true;
   }
 
@@ -236,8 +283,7 @@ async function ensureDutHasDelve(
     }
   }
 
-  // DUT does not have the delve binary.
-  context.output.appendLine(result.message);
+  // DUT does not have the delve binary or the version of delve is different from ebuild.
   context.output.appendLine('Try to get the device board name');
   // TODO: Get the board name from the DUT.
   const board = await getOrSelectTargetBoard(chrootService.chroot);
@@ -294,18 +340,30 @@ async function ensureDutHasDelve(
 }
 
 /**
- * Checks if the host machine (outside the chroot) has delve binary in '${HOME}/.cache/chromiumide/go/bin/dlv', and otherwise install it.
+ * Checks if the host machine (outside the chroot) has delve binary in '${HOME}/.cache/chromiumide/go/bin/dlv'  (the version of delve is same as ebuild), and otherwise install it.
  *
  * @returns The path to delve if found or installed. undefined if failed.
  */
 async function ensureHostHasDelve(
-  context: CommandContext
+  context: CommandContext,
+  dlvEbuildVersion: string
 ): Promise<string | undefined> {
   const gobin = path.join(os.homedir(), '.cache/chromiumide/go/bin');
   const delveInstallPath = path.join(gobin, 'dlv');
   if (fs.existsSync(delveInstallPath)) {
-    context.output.appendLine('Host can run dlv');
-    return delveInstallPath;
+    const res = await commonUtil.exec(delveInstallPath, ['version'], {
+      logger: context.output,
+    });
+
+    if (
+      !(res instanceof Error) &&
+      parseDlvVersion(res.stdout) === dlvEbuildVersion
+    ) {
+      context.output.appendLine(
+        'Host can run dlv (the version is same as ebuild)'
+      );
+      return delveInstallPath;
+    }
   }
 
   return await vscode.window.withProgress(
@@ -317,11 +375,7 @@ async function ensureHostHasDelve(
     async (_progress, token): Promise<string | undefined> => {
       const res = await commonUtil.exec(
         'go',
-        [
-          // TODO: Parse the ebuild file for delve and get the version to use
-          'install',
-          'github.com/go-delve/delve/cmd/dlv@v1.21.0',
-        ],
+        ['install', `github.com/go-delve/delve/cmd/dlv@v${dlvEbuildVersion}`],
         {
           logger: context.output,
           cancellationToken: token,

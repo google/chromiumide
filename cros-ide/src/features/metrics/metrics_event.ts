@@ -395,11 +395,18 @@ interface TargetBoardEvent extends EventBase {
   board: string;
 }
 
-interface TastEvent extends EventBase {
-  category: 'interactive';
+type TastEvent = EventBase & {
   group: 'tast';
-  name: 'tast_setup_dev_environment';
-}
+} & (
+    | {
+        category: 'interactive';
+        name: 'tast_setup_dev_environment';
+      }
+    | {
+        category: 'error';
+        name: 'tast_debug_fail_to_get_delve_version_from_ebuild';
+      }
+  );
 
 interface VirtualdocumentOpenDocumentEvent extends EventBase {
   category: 'interactive';
