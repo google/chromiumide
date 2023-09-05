@@ -7,7 +7,8 @@ import * as dateFns from 'date-fns';
 import * as cipd from '../../../common/cipd';
 import * as commonUtil from '../../../common/common_util';
 import * as crosfleet from '../../../features/device_management/crosfleet';
-import {FakeExec, exactMatch, prefixMatch} from '../fake_exec';
+import {arrayWithPrefix} from '../../unit/testing/jasmine/asymmetric_matcher';
+import {FakeExec} from '../fake_exec';
 
 export class FakeCrosfleet {
   private loggedIn = true;
@@ -24,18 +25,19 @@ export class FakeCrosfleet {
   }
 
   install(fakeExec: FakeExec, cipdRepository: cipd.CipdRepository): void {
-    fakeExec.on(
-      path.join(cipdRepository.installDir, 'crosfleet'),
-      exactMatch(['whoami'], () => this.handleWhoami())
-    );
-    fakeExec.on(
-      path.join(cipdRepository.installDir, 'crosfleet'),
-      exactMatch(['dut', 'leases', '-json'], () => this.handleLeases())
-    );
-    fakeExec.on(
-      path.join(cipdRepository.installDir, 'crosfleet'),
-      prefixMatch(['dut', 'lease'], restArgs => this.handleLease(restArgs))
-    );
+    const crosfleet = path.join(cipdRepository.installDir, 'crosfleet');
+
+    fakeExec
+      .withArgs(crosfleet, ['whoami'], jasmine.anything())
+      .and.callFake(() => this.handleWhoami());
+    fakeExec
+      .withArgs(crosfleet, ['dut', 'leases', '-json'], jasmine.anything())
+      .and.callFake(() => this.handleLeases());
+    fakeExec
+      .withArgs(crosfleet, arrayWithPrefix('dut', 'lease'), jasmine.anything())
+      .and.callFake((_crosfleet, [_dut, _lease, ...restArgs]) =>
+        this.handleLease(restArgs)
+      );
   }
 
   private async handleWhoami(): Promise<

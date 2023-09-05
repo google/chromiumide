@@ -3,7 +3,8 @@
 // found in the LICENSE file.
 
 import * as commonUtil from '../../../common/common_util';
-import {FakeExec, prefixMatch} from '../fake_exec';
+import {arrayWithPrefix} from '../../unit/testing/jasmine/asymmetric_matcher';
+import {FakeExec} from '../fake_exec';
 
 /**
  * Installs a FakeExec handler that responds to sudo calls.
@@ -12,11 +13,10 @@ import {FakeExec, prefixMatch} from '../fake_exec';
  */
 export function installFakeSudo(fakeExec: FakeExec): void {
   beforeEach(() => {
-    fakeExec.on(
-      'sudo',
-      prefixMatch(['--askpass', '--'], (restArgs, options) => {
+    fakeExec
+      .withArgs('sudo', arrayWithPrefix('--askpass', '--'), jasmine.anything())
+      .and.callFake((_sudo, [_askpass, _hyphens, ...restArgs], options) => {
         return commonUtil.exec(restArgs[0], restArgs.slice(1), options);
-      })
-    );
+      });
   });
 }
