@@ -74,6 +74,17 @@ module.exports = {
           'MemberExpression' +
           '[object.type="MemberExpression"]' +
           '[object.object.name="vscode"]' +
+          '[object.property.name="workspace"]' +
+          '[property.name="onDidChangeConfiguration"]',
+        message:
+          'vscode.workspace.onDidChangeConfiguration should not be called ' +
+          'directly; use services/configs.ts instead',
+      },
+      {
+        selector:
+          'MemberExpression' +
+          '[object.type="MemberExpression"]' +
+          '[object.object.name="vscode"]' +
           '[object.property.name="commands"]' +
           '[property.name="registerCommand"]',
         message:

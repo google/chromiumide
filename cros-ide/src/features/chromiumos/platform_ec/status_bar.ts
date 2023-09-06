@@ -17,13 +17,9 @@ export function activate(context: vscode.ExtensionContext): void {
   };
 
   context.subscriptions.push(
-    vscode.workspace.onDidChangeConfiguration(
-      (event: vscode.ConfigurationChangeEvent) => {
-        if (event.affectsConfiguration('chromiumide.platformEC')) {
-          updateText(statusBarItem);
-        }
-      }
-    )
+    config.platformEc.board.onDidChange(() => updateText(statusBarItem)),
+    config.platformEc.mode.onDidChange(() => updateText(statusBarItem)),
+    config.platformEc.build.onDidChange(() => updateText(statusBarItem))
   );
 
   updateText(statusBarItem);
