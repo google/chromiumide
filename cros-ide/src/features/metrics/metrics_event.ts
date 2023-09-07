@@ -341,7 +341,7 @@ interface OwnersEvent extends EventBase {
   name: 'owners_clicked_file_or_link';
 }
 
-type BoardsAndPackagesOpenEbuildEvent = EventBase & {
+type BoardsAndPackagesEvent = EventBase & {
   group: 'boards_and_packages';
 } & (
     | {
@@ -403,7 +403,7 @@ interface VirtualdocumentOpenDocumentEvent extends EventBase {
 // Add new Event interfaces to UAEventDeprecated (joint by or |).
 export type Event =
   | ActivateChromiumosEvent
-  | BoardsAndPackagesOpenEbuildEvent
+  | BoardsAndPackagesEvent
   | ChromiumGtestEvent
   | ChromiumIdeExtensionEvent
   | ChromiumOutputDirectoriesEvent
