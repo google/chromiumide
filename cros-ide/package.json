@@ -28,6 +28,17 @@
   "contributes": {
     "commands": [
       {
+        "command": "chromiumide.boardsAndPackages.crosWorkonStart",
+        "category": "CrOS",
+        "title": "Start Working on"
+      },
+      {
+        "command": "chromiumide.boardsAndPackages.crosWorkonStop",
+        "category": "CrOS",
+        "title": "Stop Working On",
+        "icon": "$(remove)"
+      },
+      {
         "command": "chromiumide.boardsAndPackages.favoriteAdd",
         "category": "CrOS",
         "title": "Add to favorite"
@@ -36,6 +47,17 @@
         "command": "chromiumide.boardsAndPackages.favoriteDelete",
         "category": "CrOS",
         "title": "Delete from favorite"
+      },
+      {
+        "command": "chromiumide.boardsAndPackages.openEbuild",
+        "category": "CrOS",
+        "title": "Open Ebuild",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "chromiumide.boardsAndPackages.setDefaultBoard",
+        "category": "CrOS",
+        "title": "Set as Default Board"
       },
       {
         "command": "chromiumide.chrome.build",
@@ -161,31 +183,9 @@
         "title": "Search for selection in Code Search"
       },
       {
-        "command": "chromiumide.crosWorkonStart",
-        "category": "CrOS",
-        "title": "Start Working on"
-      },
-      {
-        "command": "chromiumide.crosWorkonStop",
-        "category": "CrOS",
-        "title": "Stop Working On",
-        "icon": "$(remove)"
-      },
-      {
-        "command": "chromiumide.openEbuild",
-        "category": "CrOS",
-        "title": "Open Ebuild",
-        "icon": "$(edit)"
-      },
-      {
         "command": "chromiumide.selectBoard",
         "category": "CrOS",
         "title": "Select target board"
-      },
-      {
-        "command": "chromiumide.setDefaultBoard",
-        "category": "CrOS",
-        "title": "Set as Default Board"
       },
       {
         "command": "chromiumide.fileIdeBug",
@@ -457,6 +457,36 @@
       ],
       "view/item/context": [
         {
+          "command": "chromiumide.boardsAndPackages.crosWorkonStart",
+          "when": "view == boards-and-packages && viewItem =~ /^package-stopped/",
+          "group": "3_workon"
+        },
+        {
+          "command": "chromiumide.boardsAndPackages.crosWorkonStop",
+          "when": "view == boards-and-packages && viewItem =~ /^package-started/",
+          "group": "3_workon"
+        },
+        {
+          "command": "chromiumide.boardsAndPackages.favoriteAdd",
+          "when": "view == boards-and-packages && !(viewItem =~ /favorite$/)",
+          "group": "0_favorite"
+        },
+        {
+          "command": "chromiumide.boardsAndPackages.favoriteDelete",
+          "when": "view == boards-and-packages && viewItem =~ /favorite$/",
+          "group": "0_favorite"
+        },
+        {
+          "command": "chromiumide.boardsAndPackages.openEbuild",
+          "when": "view == boards-and-packages && viewItem =~ /^package(-favorite)?$/",
+          "group": "1_open"
+        },
+        {
+          "command": "chromiumide.boardsAndPackages.setDefaultBoard",
+          "when": "view == boards-and-packages && viewItem == board",
+          "group": "1_set"
+        },
+        {
           "command": "chromiumide.deviceManagement.addDevice",
           "when": "view == devices && viewItem == category-owned",
           "group": "inline"
@@ -547,36 +577,6 @@
           "group": "inline@2"
         },
         {
-          "command": "chromiumide.boardsAndPackages.favoriteAdd",
-          "when": "view == boards-and-packages && !(viewItem =~ /favorite$/)",
-          "group": "0_favorite"
-        },
-        {
-          "command": "chromiumide.boardsAndPackages.favoriteDelete",
-          "when": "view == boards-and-packages && viewItem =~ /favorite$/",
-          "group": "0_favorite"
-        },
-        {
-          "command": "chromiumide.crosWorkonStart",
-          "when": "view == boards-and-packages && viewItem =~ /^package-stopped/",
-          "group": "3_workon"
-        },
-        {
-          "command": "chromiumide.crosWorkonStop",
-          "when": "view == boards-and-packages && viewItem =~ /^package-started/",
-          "group": "3_workon"
-        },
-        {
-          "command": "chromiumide.openEbuild",
-          "when": "view == boards-and-packages && viewItem =~ /^package(-favorite)?$/",
-          "group": "1_open"
-        },
-        {
-          "command": "chromiumide.setDefaultBoard",
-          "when": "view == boards-and-packages && viewItem == board",
-          "group": "1_set"
-        },
-        {
           "command": "chromiumide.coverage.generate",
           "when": "view == boards-and-packages && viewItem =~ /^package(-favorite)?$/ && config.chromiumide.testCoverage.enabled",
           "group": "5_coverage"
@@ -596,11 +596,27 @@
       ],
       "commandPalette": [
         {
+          "command": "chromiumide.boardsAndPackages.crosWorkonStart",
+          "when": "false"
+        },
+        {
+          "command": "chromiumide.boardsAndPackages.crosWorkonStop",
+          "when": "false"
+        },
+        {
           "command": "chromiumide.boardsAndPackages.favoriteAdd",
           "when": "false"
         },
         {
           "command": "chromiumide.boardsAndPackages.favoriteDelete",
+          "when": "false"
+        },
+        {
+          "command": "chromiumide.boardsAndPackages.openEbuild",
+          "when": "false"
+        },
+        {
+          "command": "chromiumide.boardsAndPackages.setDefaultBoard",
           "when": "false"
         },
         {
@@ -621,10 +637,6 @@
         },
         {
           "command": "chromiumide.cppxrefs.forceGenerate",
-          "when": "false"
-        },
-        {
-          "command": "chromiumide.crosWorkonStart",
           "when": "false"
         },
         {

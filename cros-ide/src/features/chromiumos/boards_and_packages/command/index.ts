@@ -18,14 +18,14 @@ import {openEbuild} from './open_ebuild';
 import {setDefaultBoard} from './set_default_board';
 
 export enum CommandName {
-  SET_DEFAULT_BOARD = 'chromiumide.setDefaultBoard',
+  SET_DEFAULT_BOARD = 'chromiumide.boardsAndPackages.setDefaultBoard',
 
   FAVORITE_ADD = 'chromiumide.boardsAndPackages.favoriteAdd',
   FAVORITE_DELETE = 'chromiumide.boardsAndPackages.favoriteDelete',
 
-  CROS_WORKON_START = 'chromiumide.crosWorkonStart',
-  CROS_WORKON_STOP = 'chromiumide.crosWorkonStop',
-  OPEN_EBUILD = 'chromiumide.openEbuild',
+  CROS_WORKON_START = 'chromiumide.boardsAndPackages.crosWorkonStart',
+  CROS_WORKON_STOP = 'chromiumide.boardsAndPackages.crosWorkonStop',
+  OPEN_EBUILD = 'chromiumide.boardsAndPackages.openEbuild',
 }
 
 /**

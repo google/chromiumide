@@ -164,7 +164,7 @@ describe('Boards and packages', () => {
     );
 
     await vscode.commands.executeCommand(
-      'chromiumide.crosWorkonStart',
+      'chromiumide.boardsAndPackages.crosWorkonStart',
       Breadcrumbs.from('betty', 'chromeos-base', 'codelab')
     );
 
