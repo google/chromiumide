@@ -813,11 +813,6 @@
           "description": "Enable build + deploy for chromium code (incomplete)",
           "default": false
         },
-        "chromiumide.underDevelopment.deviceManagement": {
-          "type": "boolean",
-          "description": "Enable experimental Device Management features.",
-          "default": false
-        },
         "chromiumide.underDevelopment.gerrit": {
           "type": "boolean",
           "description": "Enable new features for Gerrit (under development)",

@@ -36,7 +36,6 @@ async function migrateConfiguration(): Promise<void> {
     config.spellchecker,
     config.testCoverage.enabled,
     config.underDevelopment.chromiumBuild,
-    config.underDevelopment.deviceManagement,
     config.underDevelopment.gerrit,
     config.underDevelopment.platform2GtestDebugging,
     config.underDevelopment.platformEc,
