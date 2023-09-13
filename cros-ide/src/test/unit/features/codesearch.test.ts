@@ -146,12 +146,13 @@ describe('CodeSearch: opening current file', () => {
       document: {
         fileName: filepath,
       },
+      selection: {active: {line: 5}},
     } as vscode.TextEditor;
 
     await openCurrentFile(textEditor);
 
     const expectedUri = vscode.Uri.parse(
-      'https://source.chromium.org/chromium/chromium/src/+/main:ash/BUILD.gn'
+      'https://source.chromium.org/chromium/chromium/src/+/main:ash/BUILD.gn;l=6'
     );
     expect(vscodeSpy.env.openExternal).toHaveBeenCalledWith(expectedUri);
   });
@@ -165,12 +166,13 @@ describe('CodeSearch: opening current file', () => {
       document: {
         fileName: filepath,
       },
+      selection: {active: {line: 7}},
     } as vscode.TextEditor;
 
     await copyCurrentFile(textEditor);
 
     const expectedText =
-      'https://source.chromium.org/chromium/chromium/src/+/main:fake%20file%20with%20spaces.md';
+      'https://source.chromium.org/chromium/chromium/src/+/main:fake%20file%20with%20spaces.md;l=8';
 
     expect(await vscode.env.clipboard.readText()).toEqual(expectedText);
   });

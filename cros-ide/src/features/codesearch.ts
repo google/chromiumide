@@ -72,21 +72,30 @@ async function getCurrentFile(
   textEditor: vscode.TextEditor
 ): Promise<string | undefined> {
   const fullpath = textEditor.document.fileName;
+  const line = textEditor.selection.active.line + 1;
+  return getCodeSearchUrl(fullpath, line);
+}
 
+async function getCodeSearchUrl(
+  fullpath: string,
+  line: number | null
+): Promise<string | undefined> {
   const chromium = await chromiumRoot(fullpath);
   if (chromium) {
     const relative = path.relative(chromium + '/src', fullpath);
-    return encodeURI(
-      'https://source.chromium.org/chromium/chromium/src/+/main:' + relative
-    );
+    let url =
+      'https://source.chromium.org/chromium/chromium/src/+/main:' +
+      encodeURI(relative);
+    if (line !== null) {
+      url += `;l=${line}`;
+    }
+    return url;
   }
 
   // Which CodeSearch to use, options are public, internal, or gitiles.
   const csInstance = config.codeSearch.instance.get();
 
   const csHash = config.codeSearch.openWithRevision.get();
-
-  const line = textEditor.selection.active.line + 1;
 
   const csConfig = getCodeSearchToolConfig(fullpath);
   if (!csConfig) {
@@ -101,7 +110,11 @@ async function getCurrentFile(
   if (csHash) {
     opts.push('--upstream-sha');
   }
-  opts.push('--show', `--${csInstance}`, `--line=${line}`, fullpath);
+  opts.push('--show', `--${csInstance}`);
+  if (line !== null) {
+    opts.push(`--line=${line}`);
+  }
+  opts.push(fullpath);
 
   const res = await commonUtil.exec(executable, opts, {
     logger: ideUtil.getUiLogger(),
