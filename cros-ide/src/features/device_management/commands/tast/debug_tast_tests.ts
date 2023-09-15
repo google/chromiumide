@@ -12,10 +12,10 @@ import {ParsedEbuildFilepath} from '../../../../common/chromiumos/portage/ebuild
 import * as commonUtil from '../../../../common/common_util';
 import {MemoryOutputChannel} from '../../../../common/memory_output_channel';
 import {TeeOutputChannel} from '../../../../common/tee_output_channel';
-import {NoBoardError, getOrSelectTargetBoard} from '../../../../ide_util';
 import * as services from '../../../../services';
 import * as config from '../../../../services/config';
 import {Metrics} from '../../../metrics/metrics';
+import {DeviceClient} from '../../device_client';
 import {
   createShowLogsButton,
   diagnoseSshError,
@@ -293,17 +293,19 @@ async function ensureDutHasDelve(
 
   // DUT does not have the delve binary or the version of delve is different from ebuild.
   context.output.appendLine('Try to get the device board name');
-  // TODO: Get the board name from the DUT.
-  const board = await getOrSelectTargetBoard(chrootService.chroot);
-  if (board instanceof NoBoardError) {
-    context.output.appendLine(board.message);
-    void vscode.window.showErrorMessage(board.message);
-    return false;
-  }
-  if (board === null) {
-    context.output.appendLine('board is null');
+  const deviceClient = new DeviceClient(
+    hostname,
+    context.sshIdentity,
+    context.output
+  );
+  let board: string;
+
+  try {
+    board = (await deviceClient.readLsbRelease()).board;
+  } catch (err) {
+    context.output.appendLine(`${err}`);
     void vscode.window.showErrorMessage(
-      "debugging didn't start: board was not selected"
+      "debugging didn't start: failed to get board information from DUT"
     );
     return false;
   }
