@@ -228,10 +228,11 @@ abstract class BaseNode {
 }
 
 // This type represents the subset of GN args that we keep track of. Currently, we only keep track
-// of whether Goma or Siso are enabled or not.
+// of whether Goma, Siso, or Reclient are enabled or not.
 type GnArgs = {
   use_goma: boolean;
   use_siso: boolean;
+  use_remoteexec: boolean;
 };
 
 type GnArgsInfo =
@@ -285,12 +286,16 @@ export class DirNode extends BaseNode {
         description = 'Failed to load gn.args (right click for details)';
         break;
       case 'success':
-        if (!this.gnArgsInfo.args.use_goma && !this.gnArgsInfo.args.use_siso) {
+        if (
+          !this.gnArgsInfo.args.use_goma &&
+          !this.gnArgsInfo.args.use_siso &&
+          !this.gnArgsInfo.args.use_remoteexec
+        ) {
           icon = new vscode.ThemeIcon(
             'warning',
             new vscode.ThemeColor('list.warningForeground')
           );
-          description = 'Warning: Goma/Siso is not enabled.';
+          description = 'Warning: Goma/Siso/Reclient is not enabled.';
         }
         break;
     }
@@ -371,6 +376,9 @@ export class DirNode extends BaseNode {
           'true',
         use_siso:
           gnArgs.find(each => each.name === 'use_siso')?.current.value ===
+          'true',
+        use_remoteexec:
+          gnArgs.find(each => each.name === 'use_remoteexec')?.current.value ===
           'true',
       },
     };
