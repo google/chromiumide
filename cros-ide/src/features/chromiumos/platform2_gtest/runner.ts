@@ -12,6 +12,8 @@ import {
   parsePlatform2EbuildOrThrow,
   platform2TestWorkingDirectory,
 } from '../../../common/chromiumos/portage/platform2';
+import {MemoryOutputChannel} from '../../../common/memory_output_channel';
+import {TeeOutputChannel} from '../../../common/tee_output_channel';
 import * as services from '../../../services';
 import {AbstractRunner} from '../../gtest/abstract_runner';
 import {GtestCase} from '../../gtest/gtest_case';
@@ -388,7 +390,7 @@ export class Runner extends AbstractRunner {
     test: GtestCase,
     workingDir: string
   ) {
-    let message = '';
+    const memoryOutput = new MemoryOutputChannel();
     const result = await this.chrootService.exec(
       PLATFORM2_TEST_PY,
       [
@@ -400,12 +402,7 @@ export class Runner extends AbstractRunner {
       {
         sudoReason: 'to run test',
         cancellationToken: this.cancellation,
-        logger: {
-          append: x => {
-            this.output.append(x);
-            message += x;
-          },
-        },
+        logger: new TeeOutputChannel(this.output, memoryOutput),
         logStdout: true,
         crosSdkWorkingDir: workingDir,
       }
@@ -414,7 +411,7 @@ export class Runner extends AbstractRunner {
       this.output.appendLine(result.message);
       // TODO(oka): Strip ANSI coloring from the message. The logger supports
       // ANSI coloring, but the TestMessage doesn't.
-      throw new Error(message);
+      throw new Error(memoryOutput.output);
     }
   }
 
