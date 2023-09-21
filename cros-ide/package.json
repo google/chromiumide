@@ -939,7 +939,7 @@
         "chromiumide.underDevelopment.tastDebugging": {
           "type": "boolean",
           "description": "Enable tast tests debugging",
-          "default": false
+          "default": true
         },
         "chromiumide.deviceManagement.devices": {
           "type": "array",
