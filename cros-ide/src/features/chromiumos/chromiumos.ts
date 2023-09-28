@@ -8,7 +8,7 @@ import * as services from '../../services';
 import * as config from '../../services/config';
 import * as bgTaskStatus from '../../ui/bg_task_status';
 import * as boilerplate from '../boilerplate';
-import * as metrics from '../metrics/metrics';
+import {Metrics} from '../metrics/metrics';
 import {BoardsAndPackages} from './boards_and_packages';
 import {Coverage} from './coverage';
 import * as cppCodeCompletion from './cpp_code_completion';
@@ -60,7 +60,7 @@ export class Chromiumos implements vscode.Disposable {
         await this.activate(context);
       } catch (e) {
         console.error('Failed to activate chromiumos features', e);
-        metrics.send({
+        Metrics.send({
           category: 'error',
           group: 'misc',
           name: 'activate_chromiumos_error',

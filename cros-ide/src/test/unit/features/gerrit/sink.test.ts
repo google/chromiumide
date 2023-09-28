@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import {Sink} from '../../../../features/gerrit/sink';
-import * as metrics from '../../../../features/metrics/metrics';
+import {Metrics} from '../../../../features/metrics/metrics';
 import * as bgTaskStatus from '../../../../ui/bg_task_status';
 import {TaskStatus} from '../../../../ui/bg_task_status';
 import * as testing from '../../../testing';
@@ -31,7 +31,7 @@ describe('Sink', () => {
   });
 
   beforeEach(() => {
-    spyOn(metrics.Metrics, 'send');
+    spyOn(Metrics, 'send');
   });
 
   it('shows a simple message', () => {
@@ -39,7 +39,7 @@ describe('Sink', () => {
     expect(state.outputChannel.appendLine).toHaveBeenCalledOnceWith(
       'simple message'
     );
-    expect(metrics.Metrics.send).toHaveBeenCalledOnceWith({
+    expect(Metrics.send).toHaveBeenCalledOnceWith({
       category: 'error',
       group: 'gerrit',
       description: 'simple message',
@@ -59,7 +59,7 @@ describe('Sink', () => {
     expect(state.outputChannel.appendLine).toHaveBeenCalledOnceWith(
       'log message'
     );
-    expect(metrics.Metrics.send).toHaveBeenCalledOnceWith({
+    expect(Metrics.send).toHaveBeenCalledOnceWith({
       category: 'error',
       group: 'gerrit',
       description: 'metrics message',
@@ -80,7 +80,7 @@ describe('Sink', () => {
     expect(state.outputChannel.appendLine).toHaveBeenCalledOnceWith(
       'log message'
     );
-    expect(metrics.Metrics.send).toHaveBeenCalledOnceWith({
+    expect(Metrics.send).toHaveBeenCalledOnceWith({
       category: 'error',
       group: 'gerrit',
       description: 'metrics message',

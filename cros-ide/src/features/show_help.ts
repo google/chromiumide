@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import {vscodeRegisterCommand} from '../common/vscode/commands';
-import * as metrics from '../features/metrics/metrics';
+import {Metrics} from '../features/metrics/metrics';
 
 export function activate(context: vscode.ExtensionContext): void {
   const commandLink: [string, vscode.Uri][] = [
@@ -34,7 +34,7 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
       vscodeRegisterCommand(command, () => {
         void vscode.env.openExternal(link);
-        metrics.send({
+        Metrics.send({
           category: 'interactive',
           group: 'misc',
           description: command,

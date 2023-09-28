@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import * as commonUtil from '../../common/common_util';
-import * as metrics from '../../features/metrics/metrics';
+import {Metrics} from '../../features/metrics/metrics';
 import * as ideUtil from '../../ide_util';
 import {StatusManager, TaskStatus} from '../../ui/bg_task_status';
 
@@ -94,7 +94,7 @@ class CrosFormat implements vscode.DocumentFormattingEditProvider {
     if (formatterOutput instanceof Error) {
       this.outputChannel.appendLine(formatterOutput.message);
       this.statusManager.setStatus(FORMATTER, TaskStatus.ERROR);
-      metrics.send({
+      Metrics.send({
         category: 'error',
         group: 'format',
         name: 'cros_format_call_error',
@@ -114,7 +114,7 @@ class CrosFormat implements vscode.DocumentFormattingEditProvider {
       this.statusManager.setStatus(FORMATTER, TaskStatus.OK);
       // Depending on how formatting is called it can be interactive
       // (selected from the command palette) or background (format on save).
-      metrics.send({
+      Metrics.send({
         category: 'background',
         group: 'format',
         name: 'cros_format',
@@ -131,7 +131,7 @@ class CrosFormat implements vscode.DocumentFormattingEditProvider {
       // no exit status.
       this.outputChannel.appendLine(formatterOutput.stderr);
       this.statusManager.setStatus(FORMATTER, TaskStatus.ERROR);
-      metrics.send({
+      Metrics.send({
         category: 'error',
         group: 'format',
         name: 'cros_format_return_error',

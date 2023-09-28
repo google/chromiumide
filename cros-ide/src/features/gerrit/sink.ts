@@ -5,7 +5,7 @@
 import * as vscode from 'vscode';
 import * as bgTaskStatus from '../../ui/bg_task_status';
 import {TaskStatus} from '../../ui/bg_task_status';
-import * as metrics from '../metrics/metrics';
+import {Metrics} from '../metrics/metrics';
 
 // Task name in the status manager.
 const GERRIT = 'Gerrit';
@@ -63,7 +63,7 @@ export class Sink implements vscode.Disposable {
       this.statusManager.setStatus(GERRIT, TaskStatus.ERROR);
     }
     if (m.metrics) {
-      metrics.send({
+      Metrics.send({
         category: 'error',
         group: 'gerrit',
         description: m.metrics,

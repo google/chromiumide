@@ -12,7 +12,7 @@ import {vscodeRegisterCommand} from '../../common/vscode/commands';
 import * as ideUtil from '../../ide_util';
 import * as services from '../../services';
 import * as config from '../../services/config';
-import * as metrics from '../metrics/metrics';
+import {Metrics} from '../metrics/metrics';
 
 export function activate(
   context: vscode.ExtensionContext,
@@ -47,7 +47,7 @@ export function activate(
       // Type-check that errors are handled.
       ((_: BoardOrHost | null) => {})(board);
       if (board) {
-        metrics.send({
+        Metrics.send({
           category: 'interactive',
           group: 'misc',
           name: 'select_target_board',

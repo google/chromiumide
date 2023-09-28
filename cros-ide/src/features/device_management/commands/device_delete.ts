@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as metrics from '../../metrics/metrics';
+import {Metrics} from '../../metrics/metrics';
 import * as provider from '../device_tree_data_provider';
 import * as sshConfig from '../ssh_config';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
@@ -12,7 +12,7 @@ export async function deleteDevice(
   context: CommandContext,
   item?: provider.DeviceItem
 ): Promise<void> {
-  metrics.send({
+  Metrics.send({
     category: 'interactive',
     group: 'device',
     name: 'device_management_delete_device',

@@ -7,7 +7,7 @@ import {JobManager} from '../../common/common_util';
 import {vscodeRegisterCommand} from '../../common/vscode/commands';
 import * as services from '../../services';
 import * as bgTaskStatus from '../../ui/bg_task_status';
-import * as metrics from '../metrics/metrics';
+import {Metrics} from '../metrics/metrics';
 import * as api from './api';
 import {CommandName, GerritCommands} from './command';
 import {
@@ -49,7 +49,7 @@ export function activate(
       void vscode.commands.executeCommand(
         'workbench.action.focusCommentsPanel'
       );
-      metrics.send({
+      Metrics.send({
         category: 'interactive',
         group: 'gerrit',
         description: 'focus comments panel',
@@ -86,7 +86,7 @@ export function activate(
           'workbench.action.collapseAllComments'
         );
         gerrit.collapseAllCommentThreadsInVscode();
-        metrics.send({
+        Metrics.send({
           category: 'interactive',
           group: 'gerrit',
           description: 'collapse all comment threads',
@@ -402,7 +402,7 @@ class Gerrit implements vscode.Disposable {
 
       this.updateStatusBar();
       if (changes && threadsToDisplay.length > 0) {
-        metrics.send({
+        Metrics.send({
           category: 'background',
           group: 'gerrit',
           description: 'update comments',

@@ -22,6 +22,7 @@ import * as gn from './features/gn';
 import * as hints from './features/hints';
 import * as feedback from './features/metrics/feedback';
 import * as metrics from './features/metrics/metrics';
+import {Metrics} from './features/metrics/metrics';
 import * as metricsConfig from './features/metrics/metrics_config';
 import * as ownersLinks from './features/owners_links';
 import * as shortLinkProvider from './features/short_link_provider';
@@ -59,7 +60,7 @@ export async function activate(
   try {
     return await postMetricsActivate(context);
   } catch (err) {
-    metrics.send({
+    Metrics.send({
       category: 'error',
       group: 'misc',
       description: `activate failed: ${err}`,
@@ -103,7 +104,7 @@ async function postMetricsActivate(
   context.subscriptions.push(
     vscodeRegisterCommand(ideUtil.SHOW_UI_LOG.command, () => {
       ideUtil.getUiLogger().show();
-      metrics.send({
+      Metrics.send({
         category: 'interactive',
         group: 'idestatus',
         description: 'show ui actions log',
@@ -149,7 +150,7 @@ async function postMetricsActivate(
   // We want to know if some users flip enablement bit.
   // If the feature is disabled it could mean that it's annoying.
   if (!config.gerrit.enabled.hasDefaultValue()) {
-    metrics.send({
+    Metrics.send({
       category: 'background',
       group: 'gerrit',
       description: 'gerrit enablement',
@@ -158,7 +159,7 @@ async function postMetricsActivate(
     });
   }
 
-  metrics.send({
+  Metrics.send({
     category: 'background',
     group: 'misc',
     description: 'activate',
@@ -166,7 +167,7 @@ async function postMetricsActivate(
   });
 
   const age = await metricsConfig.getUserIdAgeInDays();
-  metrics.send({
+  Metrics.send({
     category: 'background',
     group: 'misc',
     description: 'user ID age',

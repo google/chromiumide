@@ -9,7 +9,7 @@ import * as services from '../../../../services';
 import * as gitDocument from '../../../../services/git_document';
 import * as bgTaskStatus from '../../../../ui/bg_task_status';
 import {TaskStatus} from '../../../../ui/bg_task_status';
-import * as metrics from '../../../metrics/metrics';
+import {Metrics} from '../../../metrics/metrics';
 import * as tricium from '../tricium';
 import * as executor from './executor';
 
@@ -184,7 +184,7 @@ class Spellchecker {
   ): Promise<void> {
     if (results instanceof Error) {
       this.setStatus(TaskStatus.ERROR);
-      metrics.send({
+      Metrics.send({
         category: 'error',
         group: 'spellchecker',
         name: 'spellchecker_error',
@@ -217,7 +217,7 @@ class Spellchecker {
     }
 
     if (diagnostics.length) {
-      metrics.send({
+      Metrics.send({
         category: 'background',
         group: 'spellchecker',
         name: 'spellchecker_diagnostics',

@@ -9,7 +9,7 @@ import * as commonUtil from '../../../../common/common_util';
 import {getOrSelectTargetBoard, NoBoardError} from '../../../../ide_util';
 import * as services from '../../../../services';
 import {Packages} from '../../../../services/chromiumos';
-import * as metrics from '../../../metrics/metrics';
+import {Metrics} from '../../../metrics/metrics';
 import {
   CompdbError,
   CompdbErrorKind,
@@ -60,7 +60,7 @@ export class Platform2 implements CompdbGenerator {
     // Send metrcis if the user interacts with platform2 files for which we support
     // xrefs.
     if (['cpp', 'c'].includes(document.languageId)) {
-      metrics.send({
+      Metrics.send({
         category: 'background',
         group: 'cppxrefs',
         name: 'cppxrefs_interact_with_platform2_cpp',

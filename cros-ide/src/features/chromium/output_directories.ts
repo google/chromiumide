@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 import * as common_util from '../../common/common_util';
 import {envForDepotTools} from '../../common/depot_tools';
 import {vscodeRegisterCommand} from '../../common/vscode/commands';
-import * as metrics from '../../features/metrics/metrics';
+import {Metrics} from '../../features/metrics/metrics';
 import * as bgTaskStatus from '../../ui/bg_task_status';
 import type {Stats} from 'fs';
 
@@ -35,7 +35,7 @@ export async function createOrUpdateSymLinkToDirectory(
     if (stat.isSymbolicLink()) {
       await fs.unlink(linkPath);
     } else {
-      metrics.send({
+      Metrics.send({
         category: 'error',
         group: 'chromium.outputDirectories',
         description: 'unable to update symlink: is not a symlink',
@@ -107,7 +107,7 @@ export function activate(
             vscode.Uri.file(path.join(srcPath, node.name, 'args.gn'))
           );
 
-          metrics.send({
+          Metrics.send({
             category: 'interactive',
             group: 'chromium.outputDirectories',
             description: 'edit args.gn',
@@ -124,7 +124,7 @@ export function activate(
       async () => {
         await treeDataProvider.refresh();
 
-        metrics.send({
+        Metrics.send({
           category: 'interactive',
           group: 'chromium.outputDirectories',
           description: 'refresh',
@@ -147,7 +147,7 @@ export function activate(
         if (
           !newOutDirName.match(/^(out|out_[a-zA-Z0-9_-]+)[/\\][a-zA-Z0-9_-]+$/)
         ) {
-          metrics.send({
+          Metrics.send({
             category: 'error',
             group: 'chromium.outputDirectories',
             description:
@@ -179,7 +179,7 @@ export function activate(
           treeDataProvider.refresh(),
         ]);
 
-        metrics.send({
+        Metrics.send({
           category: 'interactive',
           group: 'chromium.outputDirectories',
           description: 'change output directory',
@@ -200,7 +200,7 @@ export function activate(
             })
           );
 
-          metrics.Metrics.send({
+          Metrics.send({
             category: 'interactive',
             group: 'chromium.outputDirectories',
             description: 'view args.gn error',
@@ -476,7 +476,7 @@ export class OutputDirectoriesDataProvider
         this.outputChannel.appendLine(
           'Error: Node cache was rebuilt concurrently.'
         );
-        metrics.send({
+        Metrics.send({
           category: 'error',
           group: 'chromium.outputDirectories',
           description: 'race condition while rebuilding node cache',
@@ -569,7 +569,7 @@ export class OutputDirectoriesDataProvider
       }
     }
 
-    metrics.send({
+    Metrics.send({
       category: 'background',
       group: 'chromium.outputDirectories',
       description: 'number of output directories',
@@ -651,7 +651,7 @@ export class OutputDirectoriesDataProvider
               }
             }
             if (targetOutDir === null) {
-              metrics.send({
+              Metrics.send({
                 category: 'error',
                 group: 'chromium.outputDirectories',
                 description:

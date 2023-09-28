@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as metrics from '../../metrics/metrics';
+import {Metrics} from '../../metrics/metrics';
 import * as crosfleet from '../crosfleet';
 import * as sshConfig from '../ssh_config';
 import {CommandContext} from './common';
@@ -33,7 +33,7 @@ const FILTERS: Filter[] = [
 ];
 
 export async function addLease(context: CommandContext): Promise<void> {
-  metrics.send({
+  Metrics.send({
     category: 'interactive',
     group: 'device',
     name: 'device_management_add_lease',

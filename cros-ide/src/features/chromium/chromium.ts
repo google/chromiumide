@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import * as config from '../../services/config';
 import * as bgTaskStatus from '../../ui/bg_task_status';
 import * as boilerplate from '../boilerplate';
-import * as metrics from '../metrics/metrics';
+import {Metrics} from '../metrics/metrics';
 import * as chromiumBuild from './chromium_build';
 import * as format from './format';
 import * as gtest from './gtest';
@@ -53,7 +53,7 @@ export class Chromium implements vscode.Disposable {
         await this.activate(context);
       } catch (e) {
         console.error('Failed to activate chromium features', e);
-        metrics.send({
+        Metrics.send({
           category: 'error',
           group: 'misc',
           description: `failed to activte chromium feature ${this.featureName}`,

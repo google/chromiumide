@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as metrics from '../../metrics/metrics';
+import {Metrics} from '../../metrics/metrics';
 import * as provider from '../device_tree_data_provider';
 import {SyslogPanel} from '../syslog/panel';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
@@ -78,7 +78,7 @@ export async function openSystemLogViewer(
   context: CommandContext,
   item?: provider.DeviceItem
 ): Promise<void> {
-  metrics.send({
+  Metrics.send({
     category: 'interactive',
     group: 'device',
     name: 'device_management_syslog_viewer_open',

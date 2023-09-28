@@ -8,7 +8,7 @@ import {vscodeRegisterCommand} from '../../../common/vscode/commands';
 import * as services from '../../../services';
 import * as bgTaskStatus from '../../../ui/bg_task_status';
 import {TaskStatus} from '../../../ui/bg_task_status';
-import * as metrics from '../../metrics/metrics';
+import {Metrics} from '../../metrics/metrics';
 import * as compdbGenerator from './compdb_generator';
 import {CLANGD_EXTENSION, SHOW_LOG_COMMAND} from './constants';
 
@@ -46,7 +46,7 @@ export class CppCodeCompletion implements vscode.Disposable {
     this.output,
     vscodeRegisterCommand(SHOW_LOG_COMMAND.command, () => {
       this.output.show();
-      metrics.send({
+      Metrics.send({
         category: 'interactive',
         group: 'idestatus',
         name: 'cppxrefs_show_cpp_log',
@@ -182,7 +182,7 @@ export class CppCodeCompletion implements vscode.Disposable {
       const canceller = new vscode.CancellationTokenSource();
       try {
         const action = `${generator.name}: generate compdb`;
-        metrics.send({
+        Metrics.send({
           category: 'background',
           group: 'cppxrefs',
           name: 'cppxrefs_generate_compdb',
@@ -207,7 +207,7 @@ export class CppCodeCompletion implements vscode.Disposable {
             rawError.message,
             ...rawError.buttons
           );
-        metrics.send({
+        Metrics.send({
           category: 'error',
           group: 'cppxrefs',
           name: 'cppxrefs_generate_compdb_error',

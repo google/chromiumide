@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../common/common_util';
-import * as metrics from '../features/metrics/metrics';
+import {Metrics} from '../features/metrics/metrics';
 import * as logs from '../logs';
 import * as services from '../services';
 import * as config from '../services/config';
@@ -283,7 +283,7 @@ async function updateDiagnosticsWrapper(
       status: TaskStatus.ERROR,
       command: log.showLogCommand,
     });
-    metrics.send({
+    Metrics.send({
       category: 'error',
       group: 'lint',
       description: 'error was thrown',
@@ -303,7 +303,7 @@ async function updateDiagnostics(
     const lintConfigs = languageToLintConfigs.get(document.languageId);
     if (!lintConfigs) {
       // Sent metrics just to track languages.
-      metrics.send({
+      Metrics.send({
         category: 'background',
         group: 'lint',
         description: 'skip',
@@ -360,7 +360,7 @@ async function updateDiagnostics(
             status: TaskStatus.ERROR,
             command: log.showLogCommand,
           });
-          metrics.send({
+          Metrics.send({
             category: 'error',
             group: 'lint',
             description: `non-zero linter exit, but no diagnostics (${document.languageId})`,
@@ -377,7 +377,7 @@ async function updateDiagnostics(
       status: TaskStatus.OK,
       command: log.showLogCommand,
     });
-    metrics.send({
+    Metrics.send({
       category: 'background',
       group: 'lint',
       description: 'update',

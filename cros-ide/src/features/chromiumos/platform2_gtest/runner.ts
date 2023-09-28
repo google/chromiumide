@@ -19,7 +19,7 @@ import {AbstractRunner} from '../../gtest/abstract_runner';
 import {GtestCase} from '../../gtest/gtest_case';
 import * as gtestTestListParser from '../../gtest/gtest_test_list_parser';
 import {GtestWorkspace} from '../../gtest/gtest_workspace';
-import * as metrics from '../../metrics/metrics';
+import {Metrics} from '../../metrics/metrics';
 // TODO(oka): Move ebuild under src/services/chromiumos.
 import * as ebuild from '../cpp_code_completion/compdb_service/ebuild';
 
@@ -62,7 +62,7 @@ export class Runner extends AbstractRunner {
         ? ('debugging_run_gtest' as const)
         : ('debugging_debug_gtest' as const);
 
-    metrics.send({
+    Metrics.send({
       category: 'interactive',
       group: 'debugging',
       name: name,

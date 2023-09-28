@@ -4,7 +4,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as metrics from '../metrics/metrics';
+import {Metrics} from '../metrics/metrics';
 
 const SCHEME = 'gerrit';
 
@@ -34,7 +34,7 @@ export class GerritDocumentProvider
   }
 
   async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
-    metrics.send({
+    Metrics.send({
       category: 'interactive',
       group: 'virtualdocument',
       description: 'open gerrit document',

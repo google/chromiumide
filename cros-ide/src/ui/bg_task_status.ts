@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import {vscodeRegisterCommand} from '../common/vscode/commands';
-import * as metrics from '../features/metrics/metrics';
+import {Metrics} from '../features/metrics/metrics';
 
 /**
  * Shows `OutputChannel` attached to a tree item. Arguments:
@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext): StatusManager {
   context.subscriptions.push(
     vscodeRegisterCommand(showIdeStatusCommand, () => {
       void vscode.commands.executeCommand('chromiumide-status.focus');
-      metrics.send({
+      Metrics.send({
         category: 'interactive',
         group: 'idestatus',
         description: 'show ide status',
@@ -42,7 +42,7 @@ export function activate(context: vscode.ExtensionContext): StatusManager {
         if (outputChannel) {
           outputChannel.show();
         }
-        metrics.send({
+        Metrics.send({
           category: 'interactive',
           group: 'idestatus',
           description: 'show log for ' + taskName,

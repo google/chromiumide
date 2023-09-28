@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 import * as commonUtil from '../../../common/common_util';
 import * as shutil from '../../../common/shutil';
 import {ReactPanel} from '../../../services/react_panel';
-import * as metrics from '../../metrics/metrics';
+import {Metrics} from '../../metrics/metrics';
 import {SshIdentity} from '../ssh_identity';
 import * as sshUtil from '../ssh_util';
 import {
@@ -121,7 +121,7 @@ export class SyslogPanel extends ReactPanel<SyslogViewContext> {
           );
         }
       } else if (msg.command === 'copy') {
-        metrics.send({
+        Metrics.send({
           category: 'interactive',
           group: 'device',
           name: 'device_management_syslog_viewer_copy',

@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as metrics from '../features/metrics/metrics';
+import {Metrics} from '../features/metrics/metrics';
 import * as ideUtil from '../ide_util';
 
 export function activate(context: vscode.ExtensionContext): void {
@@ -136,7 +136,7 @@ class Recommender implements vscode.Disposable {
         YES,
         LATER
       );
-      metrics.send({
+      Metrics.send({
         category: 'background',
         group: 'misc',
         description: 'show suggestion',
@@ -152,7 +152,7 @@ class Recommender implements vscode.Disposable {
           'workbench.extensions.installExtension',
           this.recommendation.extensionId
         );
-        metrics.send({
+        Metrics.send({
           category: 'interactive',
           group: 'misc',
           description: 'install suggested',

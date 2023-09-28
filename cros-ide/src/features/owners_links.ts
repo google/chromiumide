@@ -5,7 +5,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../common/common_util';
-import * as metrics from './metrics/metrics';
+import {Metrics} from './metrics/metrics';
 
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
@@ -26,7 +26,7 @@ export class OwnersLink extends vscode.DocumentLink {
   }
 
   resolve(): void {
-    metrics.send({
+    Metrics.send({
       category: 'interactive',
       group: 'owners',
       description: 'clicked file: or include link',

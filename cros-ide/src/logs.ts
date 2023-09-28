@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 import * as vscode from 'vscode';
 import {vscodeRegisterCommand} from './common/vscode/commands';
-import * as metrics from './features/metrics/metrics';
+import {Metrics} from './features/metrics/metrics';
 
 // outputChannel for log output, and command to show it.
 export interface LoggingBundle {
@@ -40,7 +40,7 @@ function createLoggingBundle(
   context.subscriptions.push(
     vscodeRegisterCommand(showLogCommand.command, () => {
       channel.show();
-      metrics.send({
+      Metrics.send({
         category: 'interactive',
         group: 'idestatus',
         description: 'show linter log',

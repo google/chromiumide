@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import * as services from '../../../services';
-import * as metrics from '../../metrics/metrics';
+import {Metrics} from '../../metrics/metrics';
 import * as deviceClient from '../device_client';
 import * as provider from '../device_tree_data_provider';
 import * as prebuiltUtil from '../prebuilt_util';
@@ -27,7 +27,7 @@ export async function flashPrebuiltImage(
     return;
   }
 
-  metrics.send({
+  Metrics.send({
     category: 'interactive',
     group: 'device',
     name: 'device_management_flash_prebuilt_image',

@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as metrics from '../features/metrics/metrics';
+import {Metrics} from '../features/metrics/metrics';
 import * as commonUtil from './common_util';
 import * as depotTools from './depot_tools';
 
@@ -53,7 +53,7 @@ export class CipdRepository {
         );
         if (result instanceof Error) {
           const details = errorDetails(result);
-          metrics.send({
+          Metrics.send({
             category: 'error',
             group: 'cipd',
             description: `call to 'cipd init' failed, details: ${details}`,
@@ -74,7 +74,7 @@ export class CipdRepository {
       );
       if (result instanceof Error) {
         const details = errorDetails(result);
-        metrics.send({
+        Metrics.send({
           category: 'error',
           group: 'cipd',
           description: `call to 'cipd install' failed, details: ${details}`,

@@ -7,7 +7,7 @@ import * as commonUtil from '../../../common/common_util';
 import {MemoryOutputChannel} from '../../../common/memory_output_channel';
 import * as shutil from '../../../common/shutil';
 import {TeeOutputChannel} from '../../../common/tee_output_channel';
-import * as metrics from '../../metrics/metrics';
+import {Metrics} from '../../metrics/metrics';
 import * as provider from '../device_tree_data_provider';
 import {
   createShowLogsButton,
@@ -21,7 +21,7 @@ export async function connectToDeviceForShell(
   context: CommandContext,
   item?: provider.DeviceItem
 ): Promise<void> {
-  metrics.send({
+  Metrics.send({
     category: 'interactive',
     group: 'device',
     name: 'device_management_connect_to_device_ssh',

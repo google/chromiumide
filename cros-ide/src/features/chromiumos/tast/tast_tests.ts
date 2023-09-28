@@ -4,7 +4,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as metrics from '../../../features/metrics/metrics';
+import {Metrics} from '../../../features/metrics/metrics';
 import * as services from '../../../services';
 import * as config from '../../../services/config';
 import {LazyTestController} from './lazy_test_controller';
@@ -150,7 +150,7 @@ export class TastTests implements vscode.Disposable {
       ADD
     );
     if (choice === ADD) {
-      metrics.send({
+      Metrics.send({
         category: 'interactive',
         group: 'tast',
         name: 'tast_setup_dev_environment',

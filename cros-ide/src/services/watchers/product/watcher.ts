@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import {chromiumRoot} from '../../../common/chromium/fs';
 import {chromiumosRoot} from '../../../common/chromiumos/fs';
 import * as commonUtil from '../../../common/common_util';
-import * as metrics from '../../../features/metrics/metrics';
+import {Metrics} from '../../../features/metrics/metrics';
 
 /**
  * Watches workspace and fires event when the status of whether the workspace
@@ -123,7 +123,7 @@ export class ProductWatcher implements vscode.Disposable {
         )}]. Selecting ${this.root}. ` +
           `Open at most one ${this.product} sources per workspace to fix this problem.`
       );
-      metrics.send({
+      Metrics.send({
         category: 'background',
         group: 'misc',
         description: `multiple ${this.product} candidates (product watcher)`,

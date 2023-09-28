@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import {vscodeRegisterCommand} from '../../../common/vscode/commands';
-import * as metrics from '../../../features/metrics/metrics';
+import {Metrics} from '../../../features/metrics/metrics';
 import * as services from '../../../services';
 import * as bgTaskStatus from '../../../ui/bg_task_status';
 import {SHOW_LOG_COMMAND} from './constants';
@@ -24,7 +24,7 @@ export function activate(
   context.subscriptions.push(
     vscodeRegisterCommand(SHOW_LOG_COMMAND.command, () => {
       outputChannel.show();
-      metrics.send({
+      Metrics.send({
         category: 'interactive',
         group: 'idestatus',
         name: 'platform_ec_show_log',

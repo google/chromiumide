@@ -13,7 +13,7 @@ import {AbstractRunner} from '../../gtest/abstract_runner';
 import {GtestCase} from '../../gtest/gtest_case';
 import * as gtestTestListParser from '../../gtest/gtest_test_list_parser';
 import {GtestWorkspace} from '../../gtest/gtest_workspace';
-import * as metrics from '../../metrics/metrics';
+import {Metrics} from '../../metrics/metrics';
 import * as autoninja from '../autoninja';
 import * as outputDirectories from '../output_directories';
 import * as testLauncherSummaryParser from './test_launcher_summary_parser';
@@ -201,7 +201,7 @@ export class Runner extends AbstractRunner {
     const testCases = this.getTestCasesToRun();
     if (testCases.length === 0) {
       this.output.appendLine('No tests found to run.');
-      metrics.send({
+      Metrics.send({
         category: 'error',
         group: 'chromium.gtest',
         name: 'chromium_gtest_no_test_cases_found',
@@ -226,7 +226,7 @@ export class Runner extends AbstractRunner {
         `Error calculating test targets from test files: ${testTargetNames}`
       );
       if (!(testTargetNames instanceof commonUtil.CancelledError)) {
-        metrics.send({
+        Metrics.send({
           category: 'error',
           group: 'chromium.gtest',
           name: 'chromium_gtest_calculate_test_targets_failed',
@@ -236,7 +236,7 @@ export class Runner extends AbstractRunner {
       return;
     }
 
-    metrics.send({
+    Metrics.send({
       category: 'interactive',
       group: 'debugging',
       name: 'debugging_run_gtest',
@@ -251,7 +251,7 @@ export class Runner extends AbstractRunner {
         `Error while building test targets (${testTargetNames}): ${result}`
       );
       if (!(result instanceof commonUtil.CancelledError)) {
-        metrics.send({
+        Metrics.send({
           category: 'error',
           group: 'chromium.gtest',
           name: 'chromium_gtest_build_test_targets_failed',
@@ -270,7 +270,7 @@ export class Runner extends AbstractRunner {
           `Error while extracting tests of test target ${testTargetName}: ${allTestNamesInTarget}`
         );
         if (!(allTestNamesInTarget instanceof commonUtil.CancelledError)) {
-          metrics.send({
+          Metrics.send({
             category: 'error',
             group: 'chromium.gtest',
             name: 'chromium_gtest_extract_tests_from_target',
@@ -287,7 +287,7 @@ export class Runner extends AbstractRunner {
         this.output.appendLine(
           `Expected to find at least one test case in target ${testTargetName}.`
         );
-        metrics.send({
+        Metrics.send({
           category: 'error',
           group: 'chromium.gtest',
           name: 'chromium_gtest_test_target_has_no_matching_test_cases',
@@ -328,7 +328,7 @@ export class Runner extends AbstractRunner {
     );
     if (result instanceof Error) {
       if (!(result instanceof commonUtil.CancelledError)) {
-        metrics.send({
+        Metrics.send({
           category: 'error',
           group: 'chromium.gtest',
           name: 'chromium_gtest_test_run_failed',
@@ -345,7 +345,7 @@ export class Runner extends AbstractRunner {
       await fs.promises.readFile(resultOutputPath, 'utf-8')
     );
     if (testResults instanceof Error) {
-      metrics.send({
+      Metrics.send({
         category: 'error',
         group: 'chromium.gtest',
         name: 'chromium_gtest_parse_test_results_failed',
@@ -444,7 +444,7 @@ export class Runner extends AbstractRunner {
       testCase => testCase.suiteAndCaseName === testName
     )?.item;
     if (!item) {
-      metrics.send({
+      Metrics.send({
         category: 'error',
         group: 'chromium.gtest',
         name: 'chromium_gtest_test_item_for_test_result_failed',

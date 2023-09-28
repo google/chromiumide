@@ -4,13 +4,13 @@
 
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../common/common_util';
-import * as metrics from '../../../metrics/metrics';
+import {Metrics} from '../../../metrics/metrics';
 import {ErrorDetails} from '.';
 
 export function throwForNoChroot(fileName: string): never {
   // Send metrics before showing the message, because they don't seem
   // to be sent if the user does not act on the message.
-  metrics.send({
+  Metrics.send({
     category: 'background',
     group: 'cppxrefs',
     name: 'cppxrefs_no_chroot',

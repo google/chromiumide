@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as metrics from '../../metrics/metrics';
+import {Metrics} from '../../metrics/metrics';
 import {OwnedDeviceRepository} from '../device_repository';
 import * as sshConfig from '../ssh_config';
 import {CommandContext} from './common';
@@ -20,7 +20,7 @@ async function addExistingHosts(
   deviceRepository: OwnedDeviceRepository,
   sshConfigPath: string = sshConfig.defaultConfigPath
 ): Promise<void> {
-  metrics.send({
+  Metrics.send({
     category: 'interactive',
     group: 'device',
     name: 'device_management_add_existing_hosts',

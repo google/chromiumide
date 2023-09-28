@@ -5,7 +5,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../common/common_util';
-import * as metrics from '../features/metrics/metrics';
+import {Metrics} from '../features/metrics/metrics';
 
 const GIT_MSG_SCHEME = 'gitmsg';
 const COMMIT_MESSAGE = 'COMMIT MESSAGE';
@@ -63,7 +63,7 @@ export class GitDocumentProvider implements vscode.TextDocumentContentProvider {
   async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
     const file = path.basename(uri.path);
 
-    metrics.send({
+    Metrics.send({
       category: 'interactive',
       group: 'virtualdocument',
       description: 'open git document',
