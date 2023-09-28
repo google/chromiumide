@@ -198,13 +198,6 @@ export class Analytics {
   }
 }
 
-/**
- * @deprecated Use Metrics.send instead.
- */
-export function send(event: metricsEvent.Event): void {
-  Metrics.send(event);
-}
-
 /** The class to send metrics. */
 export class Metrics {
   static analytics: Promise<Analytics> | null;
