@@ -32,6 +32,8 @@ export async function build(
       cancellable: true,
     },
     async (_progress, token) => {
+      ctx.output.show();
+
       const res = await ctx.chrootService.exec(args[0], args.slice(1), {
         sudoReason: 'to build package',
         logger: ctx.output,
