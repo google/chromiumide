@@ -28,6 +28,11 @@
   "contributes": {
     "commands": [
       {
+        "command": "chromiumide.boardsAndPackages.build",
+        "category": "CrOS",
+        "title": "Build the package"
+      },
+      {
         "command": "chromiumide.boardsAndPackages.crosWorkonStart",
         "category": "CrOS",
         "title": "Start Working on"
@@ -680,6 +685,10 @@
       ],
       "commandPalette": [
         {
+          "command": "chromiumide.boardsAndPackages.build",
+          "when": "false"
+        },
+        {
           "command": "chromiumide.boardsAndPackages.crosWorkonStart",
           "when": "false"
         },
@@ -729,10 +738,6 @@
         },
         {
           "command": "chromiumide.cppxrefs.forceGenerate",
-          "when": "false"
-        },
-        {
-          "command": "chromiumide.deviceManagement.build",
           "when": "false"
         },
         {
