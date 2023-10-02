@@ -231,7 +231,7 @@ export function activate(
             })
           );
 
-          metrics.Metrics.send({
+          Metrics.send({
             category: 'interactive',
             group: 'chromium.outputDirectories',
             description: 'view args.gn warnings',
