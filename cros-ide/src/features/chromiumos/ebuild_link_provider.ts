@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as vscode from 'vscode';
+import * as parse from '../../common/chromiumos/portage/parse';
 
 export function activate(
   context: vscode.ExtensionContext,
@@ -15,19 +16,8 @@ export function activate(
   );
 }
 
-// TODO(b:303398643): support arrays in CROS_WORKON_LOCALNAME
-// and CROS_WORKON_SUBTREE
-// TODO(b:303398643): use the existing ebuild parser, see
-// https://chromium-review.googlesource.com/c/chromiumos/chromite/+/4886419/comment/cebe74cd_f244c8e3/
-const localName = 'CROS_WORKON_LOCALNAME';
-const localNameRegex = new RegExp(localName + '="(.*)"');
-const localNameOffset = localName.length + 2; // +2 for ="
-
-const subtree = 'CROS_WORKON_SUBTREE';
-const subtreeRegex = new RegExp(subtree + '="(.*)"');
-const subtreeOffset = subtree.length + 2; // +2 for ="
-
-const dirName = /[^ ]+/g;
+const CROS_WORKON_LOCALNAME = 'CROS_WORKON_LOCALNAME';
+const CROS_WORKON_SUBTREE = 'CROS_WORKON_SUBTREE';
 
 /**
  * Put links on CROS_WORKON_LOCALNAME and CROS_WORKON_SUBTREE values in ebuilds.
@@ -41,51 +31,82 @@ export class EbuildLinkProvider implements vscode.DocumentLinkProvider {
     _token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.DocumentLink[]> {
     const links: vscode.DocumentLink[] = [];
+    let parsedEbuild: parse.ParsedEbuild;
+    try {
+      parsedEbuild = parse.parseEbuildOrThrow(document.getText());
+    } catch (e) {
+      // Does not provide link for ebuild file failed to be parsed (e.g. edit-
+      // in-progress file has open parenthesis or quotes).
+      return [];
+    }
+    const assignments = parsedEbuild.assignments;
 
-    const lnMatch = localNameRegex.exec(document.getText());
-    if (!lnMatch) {
+    // Support only one (the first) localname assignment.
+    const localnameAssignment = assignments.find(
+      assignment => assignment.name.name === CROS_WORKON_LOCALNAME
+    );
+    if (!localnameAssignment) {
       return links;
     }
 
+    const localnames =
+      localnameAssignment.value.kind === 'string'
+        ? [localnameAssignment.value]
+        : localnameAssignment.value.value;
     // CROS_WORKON_LOCALNAME points to file paths relative to src/ if the
     // package is in the chromeos-base category; otherwise they're relative
     // to src/third_party/.
     // TODO(b:303398643): support third_party (non chromeos-base)
-    let localName = lnMatch[1];
-    // Sometimes we also need to strip leading "../"
-    if (localName.startsWith('../')) {
-      localName = localName.substring(3);
+    const pathsFromSrc: string[] = [];
+    for (const localname of localnames) {
+      // Sometimes we also need to strip leading "../"
+      const path = localname.value.startsWith('../')
+        ? localname.value.substring(3)
+        : localname.value;
+      pathsFromSrc.push(path);
+      links.push(...this.createLinks(localname.range, `src/${path}`));
     }
 
-    {
-      const start = document.positionAt(lnMatch.index + localNameOffset);
-      const end = document.positionAt(
-        lnMatch.index + localNameOffset + lnMatch[1].length
-      );
-      const range = new vscode.Range(start, end);
-      links.push(...this.createLinks(range, `src/${localName}`));
-    }
-
-    const subtreesMatch = subtreeRegex.exec(document.getText());
-    if (!subtreesMatch) {
+    // Support only one (the first) subtree assignment.
+    const subtreeAssignment = assignments.find(
+      assignment => assignment.name.name === CROS_WORKON_SUBTREE
+    );
+    if (!subtreeAssignment) {
       return links;
     }
 
-    let subtreeMatch: RegExpMatchArray | null;
-    while ((subtreeMatch = dirName.exec(subtreesMatch[1])) !== null) {
-      if (subtreeMatch.index !== undefined) {
-        const subtree = subtreeMatch[0];
-        const start = document.positionAt(
-          subtreesMatch.index + subtreeOffset + subtreeMatch.index
-        );
-        const end = document.positionAt(
-          subtreesMatch.index +
-            subtreeOffset +
-            subtreeMatch.index +
-            subtree.length
-        );
-        const range = new vscode.Range(start, end);
-        links.push(...this.createLinks(range, `src/${localName}/${subtree}`));
+    const subtreesPerLocalname =
+      subtreeAssignment.value.kind === 'string'
+        ? [subtreeAssignment.value]
+        : subtreeAssignment.value.value;
+
+    // Length of subtrees should be the same as number of localname paths.
+    // Do not generate link for any of them if it does not match.
+    if (subtreesPerLocalname.length !== pathsFromSrc.length) {
+      return links;
+    }
+
+    for (const [subtrees, pathFromSrc] of subtreesPerLocalname.map<
+      [parse.EbuildStrValue, string]
+    >((x, i) => [x, pathsFromSrc[i]])) {
+      let subtreeMatch: RegExpMatchArray | null;
+      const DIR_NAME_RE = /[^ ]+/g;
+      while ((subtreeMatch = DIR_NAME_RE.exec(subtrees.value)) !== null) {
+        if (subtreeMatch.index !== undefined) {
+          const subtree = subtreeMatch[0];
+          const start = new vscode.Position(
+            subtrees.range.start.line,
+            subtrees.range.start.character + subtreeMatch.index
+          );
+          const end = new vscode.Position(
+            start.line,
+            start.character + subtree.length
+          );
+          const range = new vscode.Range(start, end);
+          links.push(
+            ...this.createLinks(range, `src/${pathFromSrc}/${subtree}`)
+          );
+        }
       }
     }
 
