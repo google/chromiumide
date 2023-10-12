@@ -6,7 +6,7 @@
 // features/chromiumos/tast component.
 
 import * as vscode from 'vscode';
-import * as services from '../../../../services';
+import {ChrootService} from '../../../../services/chromiumos';
 import * as config from '../../../../services/config';
 import {Metrics} from '../../../metrics/metrics';
 import {CommandContext} from '../common';
@@ -19,9 +19,47 @@ import {
 /**
  * Represents the result of the call to runTastTests.
  */
-export class RunTastTestsResult {
-  constructor(readonly success: boolean) {}
-}
+export type RunTastTestsResult =
+  | {
+      status: 'run';
+      /**
+       * Test results or an Error if reading or parsing the result.json failed.
+       */
+      results: ExtTestResult[] | Error;
+    }
+  | {
+      status: 'cancel';
+    }
+  | {
+      status: 'error';
+      error: Error;
+    };
+
+/**
+ * Represents the result of a test. This type is an extension of the TestResult with the custom
+ * result field.
+ */
+export type ExtTestResult = TestResult & {
+  result: 'passed' | 'failed' | 'skipped';
+};
+
+/**
+ * Subset of the TestResult type defined in
+ * https://pkg.go.dev/go.chromium.org/chromiumos/infra/proto/go/tast#TestResult
+ */
+export type TestResult = {
+  name: string;
+  errors: TestError[] | null;
+  skipReason: string;
+};
+
+/**
+ * Subset of the TestError type defined in
+ * https://pkg.go.dev/go.chromium.org/chromiumos/infra/proto/go/tast#TestError.
+ */
+export type TestError = {
+  reason: string;
+};
 
 /**
  * Prompts a user for tast tests to run, and returns the results of
@@ -31,7 +69,7 @@ export class RunTastTestsResult {
  */
 export async function runTastTests(
   context: CommandContext,
-  chrootService: services.chromiumos.ChrootService
+  chrootService: ChrootService
 ): Promise<RunTastTestsResult | null | Error> {
   Metrics.send({
     category: 'interactive',
@@ -60,17 +98,84 @@ export async function runTastTests(
     return null;
   }
 
-  try {
-    await runSelectedTestsOrThrow(context, chrootService, target, testNames);
-    showPromptWithOpenLogChoice(context, 'Tests run successfully.', false);
-    return new RunTastTestsResult(true);
-  } catch (err) {
-    if (err instanceof vscode.CancellationError) {
-      showPromptWithOpenLogChoice(context, 'Cancelled running tests.', true);
-    } else {
-      showPromptWithOpenLogChoice(context, 'Failed to run tests.', true);
+  const extraArgs = config.tast.extraArgs.get();
+  context.output.show();
+
+  // Show a progress notification as this is a long operation.
+  const res = await vscode.window.withProgress(
+    {
+      location: vscode.ProgressLocation.Notification,
+      cancellable: true,
+      title: 'Running tests',
+    },
+    async (_progress, token) => {
+      return await runSelectedTests(
+        context,
+        chrootService,
+        target,
+        testNames,
+        extraArgs,
+        token
+      );
     }
-    return new RunTastTestsResult(false);
+  );
+
+  notifyTestResults(context, res);
+
+  return res;
+}
+
+function notifyTestResults(
+  context: CommandContext,
+  res: RunTastTestsResult
+): void {
+  switch (res.status) {
+    case 'cancel': {
+      showPromptWithOpenLogChoice(
+        context,
+        'Cancelled running tests.',
+        /* isError = */ true
+      );
+      return;
+    }
+    case 'error': {
+      context.output.append(res.error.message);
+      showPromptWithOpenLogChoice(
+        context,
+        `Command failed: ${res.error.message}`,
+        true
+      );
+      return;
+    }
+    case 'run': {
+      if (res.results instanceof Error) {
+        context.output.append(res.results.message);
+        showPromptWithOpenLogChoice(
+          context,
+          `Tests finished but reading results failed: ${res.results.message}`,
+          true
+        );
+        return;
+      }
+
+      const skipped = res.results.filter(x => x.result === 'skipped').length;
+      const run = res.results.length - skipped;
+      const failed = res.results.filter(x => x.result === 'failed').length;
+
+      let message =
+        failed > 0
+          ? `${failed} / ${run} test(s) failed`
+          : `All ${run} test(s) passed`;
+      if (skipped > 0) {
+        message += ` (${skipped} skipped)`;
+      }
+      showPromptWithOpenLogChoice(context, message, failed > 0);
+
+      return;
+    }
+    default: {
+      ((_: never) => {})(res); // typecheck
+    }
   }
 }
 
@@ -81,58 +186,73 @@ export async function runTastTests(
  * @param chrootService The chroot to run commands in.
  * @param target The target to run the `tast list` command on.
  * @param testNames The names of the tests to run.
- * @throws Error if test doesn't pass. CancellationError in particular on cancellation.
  */
-async function runSelectedTestsOrThrow(
+async function runSelectedTests(
   context: CommandContext,
-  chrootService: services.chromiumos.ChrootService,
+  chrootService: ChrootService,
   target: string,
-  testNames: string[]
-): Promise<void | Error> {
-  const extraArgs = config.tast.extraArgs.get();
-
-  context.output.show();
-
-  // Show a progress notification as this is a long operation.
-  return vscode.window.withProgress(
+  testNames: string[],
+  extraArgs: string[],
+  token: vscode.CancellationToken
+): Promise<RunTastTestsResult> {
+  // Run all of the provided tests. `failfortests` is not used to treat
+  // test failures and command failures separately.
+  const tastRun = await chrootService.exec(
+    'tast',
+    ['run', ...extraArgs, target, ...testNames],
     {
-      location: vscode.ProgressLocation.Notification,
-      cancellable: true,
-      title: 'Running tests',
-    },
-    async (_progress, token) => {
-      // Run all of the provided tests. `failfortests` is used to have
-      // the Tast command return an error status code on any test failure.
-      const res = await chrootService.exec(
-        'tast',
-        ['run', '-failfortests', ...extraArgs, target, ...testNames],
-        {
-          sudoReason: 'to run tast tests',
-          logger: context.output,
-          cancellationToken: token,
-          ignoreNonZeroExit: true,
-        }
-      );
-      if (token.isCancellationRequested) {
-        throw new vscode.CancellationError();
-      }
-      // Handle response errors.
-      if (res instanceof Error) {
-        context.output.append(res.message);
-        throw res;
-      }
-      // Handle custom errors that are returned from Tast. It may make sense
-      // to parse stdout in order to return fail/pass/etc. for each test in the
-      // future.
-      const {exitStatus, stdout} = res;
-
-      // Always append the output since it contains the results that a user
-      // can use for diagnosing issues/success.
-      context.output.append(stdout);
-
-      if (exitStatus !== 0) {
-        throw new Error('Failed to run tests');
-      }
+      sudoReason: 'to run tast tests',
+      logger: context.output,
+      // Allow the user to see the logs during the command execution.
+      logStdout: true,
+      cancellationToken: token,
     }
   );
+  if (token.isCancellationRequested) {
+    return {
+      status: 'cancel',
+    };
+  }
+  if (tastRun instanceof Error) {
+    return {
+      status: 'error',
+      error: tastRun,
+    };
+  }
+
+  return {
+    status: 'run',
+    results: await readResultsJson(context, chrootService),
+  };
+}
+
+async function readResultsJson(
+  context: CommandContext,
+  chrootService: ChrootService
+): Promise<ExtTestResult[] | Error> {
+  const readResultJson = await chrootService.exec(
+    'cat',
+    ['/tmp/tast/results/latest/results.json'],
+    {
+      sudoReason: 'to read test results',
+      logger: context.output,
+    }
+  );
+  if (readResultJson instanceof Error) {
+    return readResultJson;
+  }
+  try {
+    const rawResults: TestResult[] = JSON.parse(readResultJson.stdout);
+    return rawResults.map(r => ({
+      result:
+        r.errors !== null
+          ? 'failed'
+          : r.skipReason !== ''
+          ? 'skipped'
+          : 'passed',
+      ...r,
+    }));
+  } catch (e) {
+    return e as Error;
+  }
 }

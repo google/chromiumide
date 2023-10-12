@@ -4,10 +4,7 @@
 
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../../../../common/common_util';
-import {
-  RunTastTestsResult,
-  runTastTests,
-} from '../../../../../../../features/device_management/commands/tast/run_tast_tests';
+import {runTastTests} from '../../../../../../../features/device_management/commands/tast/run_tast_tests';
 import {ChrootService} from '../../../../../../../services/chromiumos';
 import * as testing from '../../../../../../testing';
 import {installChrootCommandHandler} from '../../../../../../testing/fakes';
@@ -63,6 +60,20 @@ func ChromeFixture(ctx context.Context, s *testing.State) {}
       arrayWithPrefix('run'),
       async () => '' // OK
     );
+    installChrootCommandHandler(
+      fakeExec,
+      chromiumos,
+      'cat',
+      ['/tmp/tast/results/latest/results.json'],
+      async () => `[
+    {
+        "name": "example.ChromeFixture",
+        "errors": null,
+        "skipReason": ""
+    }
+]
+`
+    );
 
     // Test.
     const result = await runTastTests(
@@ -70,6 +81,21 @@ func ChromeFixture(ctx context.Context, s *testing.State) {}
       ChrootService.maybeCreate(chromiumos, /* setContext = */ false)!
     );
 
-    expect(result).toEqual(new RunTastTestsResult(true));
+    expect(result).toEqual({
+      status: 'run',
+      results: [
+        {
+          result: 'passed',
+          name: 'example.ChromeFixture',
+          errors: null,
+          skipReason: '',
+        },
+      ],
+    });
+
+    expect(vscodeSpy.window.showInformationMessage).toHaveBeenCalledOnceWith(
+      'All 1 test(s) passed',
+      jasmine.anything()
+    );
   });
 });
