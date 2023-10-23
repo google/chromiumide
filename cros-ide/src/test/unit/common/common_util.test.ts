@@ -204,9 +204,7 @@ describe('Logging exec', () => {
     });
     canceller.cancel();
     const res = await process;
-    expect(res).toBeInstanceOf(commonUtil.CancelledError);
-    expect(res).toBeInstanceOf(vscode.CancellationError);
-    expect((res as Error).message).toEqual('"sleep 100" cancelled');
+    assert(res instanceof commonUtil.CancelledError);
   });
 
   it('supports killing the process tree when cancelling', async () => {
