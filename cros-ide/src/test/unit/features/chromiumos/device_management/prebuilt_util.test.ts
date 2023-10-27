@@ -16,20 +16,19 @@ describe('Prebuilt utilities', () => {
   it('list available release images', async () => {
     await testing.buildFakeChroot(tempDir.path);
 
-    const FAKE_STDOUT = `gs://chromeos-image-archive/xyz-release/R100-10000.0.0/
-gs://chromeos-image-archive/xyz-release/R100-10001.0.0/
-gs://chromeos-image-archive/xyz-release/R101-10100.0.0/
-gs://chromeos-image-archive/xyz-release/R101-10101.0.0/
-gs://chromeos-image-archive/xyz-release/R99-9900.0.0/
-gs://chromeos-image-archive/xyz-release/R99-9901.0.0/
-gs://chromeos-image-archive/xyz-release/garbage.txt
+    const FAKE_STDOUT = `gs://chromeos-image-archive/xyz-release/R100-10000.0.0/image.zip
+gs://chromeos-image-archive/xyz-release/R100-10001.0.0/image.zip
+gs://chromeos-image-archive/xyz-release/R101-10100.0.0/image.zip
+gs://chromeos-image-archive/xyz-release/R101-10101.0.0/image.zip
+gs://chromeos-image-archive/xyz-release/R99-9900.0.0/image.zip
+gs://chromeos-image-archive/xyz-release/R99-9901.0.0/image.zip
 `;
 
     fakes.installChrootCommandHandler(
       fakeExec,
       tempDir.path as commonUtil.Source,
       'gsutil',
-      ['ls', 'gs://chromeos-image-archive/xyz-release/'],
+      ['ls', 'gs://chromeos-image-archive/xyz-release/*/image.zip'],
       () => FAKE_STDOUT
     );
 
@@ -52,19 +51,18 @@ gs://chromeos-image-archive/xyz-release/garbage.txt
   it('list available postsubmit images', async () => {
     await testing.buildFakeChroot(tempDir.path);
 
-    const FAKE_STDOUT = `gs://chromeos-image-archive/xyz-postsubmit/R99-10000.0.0-10001-1000000000000000000/
-gs://chromeos-image-archive/xyz-postsubmit/R100-10000.0.0-10001-1000000000000000005/
-gs://chromeos-image-archive/xyz-postsubmit/R100-10000.0.0-10005-1000000000000000010/
-gs://chromeos-image-archive/xyz-postsubmit/R101-10003.0.0-10010-1000000000000000999/
-gs://chromeos-image-archive/xyz-postsubmit/R102-10010.0.0-10100-1000000000000100000/
-gs://chromeos-image-archive/xyz-postsubmit/garbage.txt
+    const FAKE_STDOUT = `gs://chromeos-image-archive/xyz-postsubmit/R99-10000.0.0-10001-1000000000000000000/image.zip
+gs://chromeos-image-archive/xyz-postsubmit/R100-10000.0.0-10001-1000000000000000005/image.zip
+gs://chromeos-image-archive/xyz-postsubmit/R100-10000.0.0-10005-1000000000000000010/image.zip
+gs://chromeos-image-archive/xyz-postsubmit/R101-10003.0.0-10010-1000000000000000999/image.zip
+gs://chromeos-image-archive/xyz-postsubmit/R102-10010.0.0-10100-1000000000000100000/image.zip
 `;
 
     fakes.installChrootCommandHandler(
       fakeExec,
       tempDir.path as commonUtil.Source,
       'gsutil',
-      ['ls', 'gs://chromeos-image-archive/xyz-postsubmit/'],
+      ['ls', 'gs://chromeos-image-archive/xyz-postsubmit/*/image.zip'],
       () => FAKE_STDOUT
     );
 

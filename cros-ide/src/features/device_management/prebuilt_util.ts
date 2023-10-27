@@ -19,7 +19,7 @@ export async function listPrebuiltVersions(
   // https://chromium.googlesource.com/chromiumos/docs/+/HEAD/gsutil.md
   const result = await chrootService.exec(
     'gsutil',
-    ['ls', `gs://chromeos-image-archive/${board}-${imageType}/`],
+    ['ls', `gs://chromeos-image-archive/${board}-${imageType}/*/image.zip`],
     {
       logger: logger,
       sudoReason: 'to list available prebuilt images',
@@ -29,7 +29,7 @@ export async function listPrebuiltVersions(
     throw result;
   }
 
-  const versionRegexp = /\/(R\d+-\d+\.\d+\.\d+(-\d+-\d+)?)\/$/gm;
+  const versionRegexp = /\/(R\d+-\d+\.\d+\.\d+(-\d+-\d+)?)\//gm;
   const versions = [];
   for (;;) {
     const match = versionRegexp.exec(result.stdout);
