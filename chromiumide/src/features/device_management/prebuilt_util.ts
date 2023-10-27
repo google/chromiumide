@@ -6,20 +6,25 @@ import * as vscode from 'vscode';
 import * as services from '../../services';
 
 /**
- * Returns a list of prebuilt images available for the given board and image type.
+ * Returns a list of prebuilt images available for the given board and image type, matching the
+ * version pattern (all versions by default).
  * Returned versions are sorted in the reverse-chronological order (newest first).
  */
 export async function listPrebuiltVersions(
   board: string,
   imageType: string,
   chrootService: services.chromiumos.ChrootService,
-  logger: vscode.OutputChannel
+  logger: vscode.OutputChannel,
+  versionPattern = '*'
 ): Promise<string[]> {
   // gs://chromeos-image-archive/ contains prebuilt image files.
   // https://chromium.googlesource.com/chromiumos/docs/+/HEAD/gsutil.md
   const result = await chrootService.exec(
     'gsutil',
-    ['ls', `gs://chromeos-image-archive/${board}-${imageType}/*/image.zip`],
+    [
+      'ls',
+      `gs://chromeos-image-archive/${board}-${imageType}/${versionPattern}/image.zip`,
+    ],
     {
       logger: logger,
       sudoReason: 'to list available prebuilt images',

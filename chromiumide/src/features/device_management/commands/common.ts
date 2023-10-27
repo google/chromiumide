@@ -78,7 +78,7 @@ export async function promptKnownHostnameIfNeeded(
   return undefined;
 }
 
-class SimplePickItem implements vscode.QuickPickItem {
+export class SimplePickItem implements vscode.QuickPickItem {
   constructor(readonly label: string) {}
 }
 
