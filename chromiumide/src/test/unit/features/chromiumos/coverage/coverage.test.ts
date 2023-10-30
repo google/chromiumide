@@ -65,7 +65,7 @@ describe('Test coverage', () => {
   it('ignores files not in platform2', async () => {
     expect(
       await state.coverage.readDocumentCoverage(
-        '/mnt/host/source/chromite/ide_tooling/cros-ide/package.cc'
+        '/mnt/host/source/chromite/ide_tooling/chromiumide/package.cc'
       )
     ).toEqual({});
   });

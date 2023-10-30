@@ -10,6 +10,6 @@ IDE tools for Chrome/ChromeOS developers.
 
 # Main Components
 
-- cros-ide: VSCode extension implementation (TODO: rename it to chromiumide).
+- chromiumide: VSCode extension implementation.
 - scripts: Helper Python scripts the extension can make use of when the user has
   chromiumos checkout.

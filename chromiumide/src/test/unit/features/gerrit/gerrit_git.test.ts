@@ -10,10 +10,10 @@ const {parseDiffHunks} = TEST_ONLY;
 const testDiffEmpty = '';
 
 const testDiff = `
-diff --git a/ide_tooling/cros-ide/src/features/gerrit.ts b/ide_tooling/cros-ide/src/features/gerrit.ts
+diff --git a/ide_tooling/chromiumide/src/features/gerrit.ts b/ide_tooling/chromiumide/src/features/gerrit.ts
 index 511bb797b..e475e16d4 100644
---- a/ide_tooling/cros-ide/src/features/gerrit.ts
-+++ b/ide_tooling/cros-ide/src/features/gerrit.ts
+--- a/ide_tooling/chromiumide/src/features/gerrit.ts
++++ b/ide_tooling/chromiumide/src/features/gerrit.ts
 @@ -2 +2 @@ export function activate(context: vscode.ExtensionContext) {
 -  void vscode.window.showInformationMessage('Hello GerritIntegration!!');
 +  // void vscode.window.showInformationMessage('Hello GerritIntegration!!');
@@ -23,10 +23,10 @@ index 511bb797b..e475e16d4 100644
 +  context.subscriptions.push(
 +      void shiftCommentsOnEdit();
 +  );
-diff --git a/ide_tooling/cros-ide/src/features/git.ts b/ide_tooling/cros-ide/src/features/git.ts
+diff --git a/ide_tooling/chromiumide/src/features/git.ts b/ide_tooling/chromiumide/src/features/git.ts
 index 511bb797b..e475e16d4 100644
---- a/ide_tooling/cros-ide/src/features/git.ts
-+++ b/ide_tooling/cros-ide/src/features/git.ts
+--- a/ide_tooling/chromiumide/src/features/git.ts
++++ b/ide_tooling/chromiumide/src/features/git.ts
 @@ -3 +3 @@ export function activate(context: vscode.ExtensionContext) {
 -  void vscode.window.showInformationMessage('Hello GerritIntegration!!');
 +  // void vscode.window.showInformationMessage('Hello GerritIntegration!!');
@@ -57,7 +57,7 @@ describe('Gerrit support', () => {
   it('extracts ranges of each hunk', () => {
     const hunkRanges = parseDiffHunks(testDiff);
     expect(hunkRanges).toEqual({
-      'ide_tooling/cros-ide/src/features/gerrit.ts': [
+      'ide_tooling/chromiumide/src/features/gerrit.ts': [
         Hunk.of({
           originalStart: 2,
           originalSize: 1,
@@ -77,7 +77,7 @@ describe('Gerrit support', () => {
           currentSize: 3,
         }),
       ],
-      'ide_tooling/cros-ide/src/features/git.ts': [
+      'ide_tooling/chromiumide/src/features/git.ts': [
         Hunk.of({
           originalStart: 3,
           originalSize: 1,

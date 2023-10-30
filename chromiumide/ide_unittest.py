@@ -5,7 +5,7 @@
 """ChromiumIDE unit test"""
 
 # To run the test, run the following command under `chromite`.
-# ./run_tests --network ide_tooling/cros-ide/ide_unittest.py
+# ./run_tests --network ide_tooling/chromiumide/ide_unittest.py
 
 import functools
 import os
