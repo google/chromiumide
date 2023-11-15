@@ -167,7 +167,11 @@ export class EbuildLinkProvider implements vscode.DocumentLinkProvider {
     const vscodeDocumentLink = new vscode.DocumentLink(range, vscodeUri);
     vscodeDocumentLink.tooltip = vscodeTooltip;
 
-    return [csDocumentLink, vscodeDocumentLink];
+    // Ctrl+click opens the first link. If it is a file then we prefer it
+    // to go first, otherwise CS goes first.
+    return vscodeDocumentLink.target?.scheme === 'file'
+      ? [vscodeDocumentLink, csDocumentLink]
+      : [csDocumentLink, vscodeDocumentLink];
   }
 
   /** Get `Uri` taking into account that we might need to open ssh remote. */

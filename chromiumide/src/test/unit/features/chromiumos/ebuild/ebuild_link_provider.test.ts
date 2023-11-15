@@ -81,13 +81,13 @@ function fileLinks(
   return [
     documentLink(
       range,
-      vscode.Uri.parse(csBase + path),
-      `Open ${path} in CodeSearch`
+      vscode.Uri.file(`${pathToCros}/${path}`),
+      `Open ${path} in New Tab`
     ),
     documentLink(
       range,
-      vscode.Uri.file(`${pathToCros}/${path}`),
-      `Open ${path} in New Tab`
+      vscode.Uri.parse(csBase + path),
+      `Open ${path} in CodeSearch`
     ),
   ];
 }
