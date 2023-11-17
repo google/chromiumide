@@ -1189,6 +1189,7 @@
     "build-all": "wireit",
     "check": "wireit",
     "test": "wireit",
+    "cq-test": "wireit",
     "unit-test": "wireit",
     "integration-test": "wireit",
     "e2e-test": "wireit",
@@ -1269,6 +1270,13 @@
     "test": {
       "dependencies": [
         "unit-test",
+        "integration-test",
+        "check",
+        "lint"
+      ]
+    },
+    "cq-test": {
+      "dependencies": [
         "integration-test",
         "check",
         "lint"
