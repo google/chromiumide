@@ -386,6 +386,54 @@ PLATFORM_SUBDIR="arc/keymint"
     );
   });
 
+  it('does not generate remote vscode links for non-ssh-remote', async () => {
+    const CONTENT = dedent`# copyright
+    EAPI=7
+    CROS_WORKON_PROJECT=("chromiumos/platform2")
+    CROS_WORKON_LOCALNAME=("platform2")
+    CROS_WORKON_DESTDIR=("\${S}/platform2")
+    CROS_WORKON_SUBTREE=("common-mk .gn")
+
+    PLATFORM_SUBDIR="vpd"
+    `;
+
+    const PLATFORM2 = 'src/platform2';
+    const COMMONMK = PLATFORM2 + '/common-mk';
+    const GN = PLATFORM2 + '/.gn';
+    const CHROOT = '/path/to/cros';
+    mockEbuildFs('/path/to/cros/', {
+      dirs: [PLATFORM2, COMMONMK],
+      files: [GN],
+    });
+
+    const ebuildLinkProvider = new EbuildLinkProvider(
+      CHROOT,
+      // Remote links that are not 'ssh-remote' should not generate folder links due to b/311555429.
+      () => 'localhost:8080'
+    );
+    const textDocument = new FakeTextDocument({text: CONTENT});
+
+    const documentLinks = await ebuildLinkProvider.provideDocumentLinks(
+      textDocument,
+      new FakeCancellationToken()
+    );
+
+    const RANGE_PLATFORM2 = new vscode.Range(3, 24, 3, 33);
+    const RANGE_COMMONMK = new vscode.Range(5, 22, 5, 31);
+    const RANGE_GN = new vscode.Range(5, 32, 5, 35);
+
+    const HOSTNAME = os.hostname();
+
+    // For directory, only generates the CS link but not the vscode link.
+    expect(documentLinks).toEqual(
+      [
+        dirLinks(RANGE_PLATFORM2, PLATFORM2, CHROOT, HOSTNAME)[0],
+        dirLinks(RANGE_COMMONMK, COMMONMK, CHROOT, HOSTNAME)[0],
+        fileLinks(RANGE_GN, GN),
+      ].flat()
+    );
+  });
+
   it('ignores missing files', async () => {
     const CONTENT = dedent`# copyright
         EAPI=7

@@ -144,6 +144,26 @@ export class EbuildLinkProvider implements vscode.DocumentLinkProvider {
     const csDocumentLink = new vscode.DocumentLink(range, targetCs);
     csDocumentLink.tooltip = `Open ${path} in CodeSearch`;
 
+    const vscodeDocumentLink = await this.generateVsCodeDocumentLink(
+      absPath,
+      path,
+      range
+    );
+    // Return only link to CS if fails to generate a valid vscode link.
+    if (!vscodeDocumentLink) return [csDocumentLink];
+
+    // Ctrl+click opens the first link. If it is a file then we prefer it
+    // to go first, otherwise CS goes first.
+    return vscodeDocumentLink.target?.scheme === 'file'
+      ? [vscodeDocumentLink, csDocumentLink]
+      : [csDocumentLink, vscodeDocumentLink];
+  }
+
+  private async generateVsCodeDocumentLink(
+    absPath: string,
+    path: string,
+    range: vscode.Range
+  ): Promise<vscode.DocumentLink | undefined> {
     let vscodeUri: vscode.Uri;
     let vscodeTooltip: string;
     if ((await fs.promises.stat(absPath)).isFile()) {
@@ -151,9 +171,12 @@ export class EbuildLinkProvider implements vscode.DocumentLinkProvider {
       vscodeUri = vscode.Uri.file(absPath);
       vscodeTooltip = `Open ${path} in New Tab`;
     } else {
+      const folderUri = this.getFolderUri(absPath);
+      if (!folderUri) return undefined;
+
       // Directories require a Uri with a command that opens a new window.
       const args = [
-        this.getFolderUri(absPath),
+        folderUri,
         {
           forceNewWindow: true,
         },
@@ -166,20 +189,21 @@ export class EbuildLinkProvider implements vscode.DocumentLinkProvider {
 
     const vscodeDocumentLink = new vscode.DocumentLink(range, vscodeUri);
     vscodeDocumentLink.tooltip = vscodeTooltip;
-
-    // Ctrl+click opens the first link. If it is a file then we prefer it
-    // to go first, otherwise CS goes first.
-    return vscodeDocumentLink.target?.scheme === 'file'
-      ? [vscodeDocumentLink, csDocumentLink]
-      : [csDocumentLink, vscodeDocumentLink];
+    return vscodeDocumentLink;
   }
 
   /** Get `Uri` taking into account that we might need to open ssh remote. */
-  private getFolderUri(absPath: string): vscode.Uri {
-    if (this.remoteName() === 'ssh-remote') {
-      return vscode.Uri.parse(
-        `vscode-remote://ssh-remote+${os.hostname()}${absPath}`
-      );
+  private getFolderUri(absPath: string): vscode.Uri | undefined {
+    if (this.remoteName()) {
+      if (this.remoteName() === 'ssh-remote') {
+        return vscode.Uri.parse(
+          `vscode-remote://ssh-remote+${os.hostname()}${absPath}`
+        );
+      }
+      console.log(`hscham debugging, this.remoteName is ${this.remoteName()}`);
+      // b/311555429: In code-server or code serve-web, file scheme URI is not valid to open a
+      // folder in new window.
+      return undefined;
     }
     return vscode.Uri.file(absPath);
   }

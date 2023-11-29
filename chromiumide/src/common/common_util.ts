@@ -11,9 +11,9 @@ import * as childProcess from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import treeKill from 'tree-kill';
 import * as shutil from './shutil';
-import type * as vscode from 'vscode'; // import type definitions only
 
 // Type Chroot represents the path to chroot.
 // We use nominal typing technique here. https://basarat.gitbook.io/typescript/main-1/nominaltyping
@@ -216,9 +216,13 @@ export class ProcessError extends Error {
 /**
  * Command execution was interrupted with vscode.CancellationToken.
  */
-export class CancelledError extends Error {
-  constructor(cmd: string, args: string[]) {
-    super(`"${shutil.escapeArray([cmd, ...args])}" cancelled`);
+export class CancelledError extends vscode.CancellationError {
+  override readonly message = `"${shutil.escapeArray([
+    this.cmd,
+    ...this.args,
+  ])}" cancelled`;
+  constructor(private readonly cmd: string, private readonly args: string[]) {
+    super();
   }
 }
 

@@ -139,9 +139,10 @@ fake.X.skip
       subscriptions
     );
 
-    let tastRun: Awaited<ReturnType<typeof commonUtil.exec>> = new Error(
-      'failed'
-    );
+    let tastRun: (
+      args: string[]
+    ) => Awaited<ReturnType<typeof commonUtil.exec>> = () =>
+      new Error('failed');
     let catResultsJson: Awaited<ReturnType<typeof commonUtil.exec>> = new Error(
       'not found'
     );
@@ -160,7 +161,7 @@ fake.X.skip
             'fake.X.skip',
           ])
         );
-        return tastRun;
+        return tastRun(args);
       }
     );
     installChrootCommandHandler(
@@ -180,7 +181,7 @@ fake.X.skip
       // Tast run command fails.
       const result = await runTastTests(context, chrootService);
       expect(vscodeSpy.window.showErrorMessage).toHaveBeenCalledWith(
-        'Command failed: ' + tastRun.message,
+        'Command failed: failed',
         jasmine.anything()
       );
       expect(result).toEqual({
@@ -190,11 +191,11 @@ fake.X.skip
     }
 
     // Make tast run succeed.
-    tastRun = {
+    tastRun = () => ({
       exitStatus: 0,
       stdout: '',
       stderr: '',
-    };
+    });
 
     {
       // Cat command fails.
@@ -248,6 +249,20 @@ fake.X.skip
       expect(result).toEqual({
         status: 'run',
         results: testResults.map((r, i) => ({...r, result: wantResults[i]})),
+      });
+    }
+
+    // Make tast run command cancelled.
+    tastRun = args => new commonUtil.CancelledError('tast', args);
+
+    {
+      const result = await runTastTests(context, chrootService);
+      expect(vscodeSpy.window.showErrorMessage).toHaveBeenCalledWith(
+        'Cancelled running tests.',
+        jasmine.anything()
+      );
+      expect(result).toEqual({
+        status: 'cancel',
       });
     }
   });

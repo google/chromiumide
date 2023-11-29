@@ -47,9 +47,12 @@ export class OwnersLink extends vscode.DocumentLink {
         path.join(gitDir, this.relativeOrAbsolutePath)
       );
     } else {
-      // Resolve relative paths relative to the OWNERS file.
+      // Resolve relative paths relative to the folder containing the OWNERS file.
       this.target = vscode.Uri.file(
-        path.join(this.documentUri.fsPath, this.relativeOrAbsolutePath)
+        path.join(
+          path.dirname(this.documentUri.fsPath),
+          this.relativeOrAbsolutePath
+        )
       );
     }
   }

@@ -2,10 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as childProcess from 'child_process';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as semver from 'semver';
-import * as commonUtil from '../src/common/common_util';
+import * as shutil from '../src/common/shutil';
 
 const USAGE = `
  Usage:
@@ -44,19 +46,77 @@ async function execute(
     cwd?: string;
   }
 ): Promise<string> {
-  const res = await commonUtil.exec(name, args, {
-    logger: new (class {
-      append(s: string): void {
-        process.stderr.write(s);
+  const {logStdout, cwd} = opts || {};
+  const logger = new (class {
+    append(s: string) {
+      process.stdout.write(s);
+    }
+  })();
+
+  return new Promise((resolve, reject) => {
+    logger.append(shutil.escapeArray([name, ...args]) + '\n');
+
+    const command = childProcess.spawn(name, args, {
+      cwd,
+    });
+
+    command.stdout.setEncoding('utf-8');
+    command.stderr.setEncoding('utf-8');
+
+    let stdout = '';
+    let lastChar = '';
+    command.stdout.on('data', (data: string) => {
+      if (logger && logStdout) {
+        logger.append(data);
+        lastChar = data[data.length - 1];
       }
-    })(),
-    logStdout: opts?.logStdout,
-    cwd: opts?.cwd,
+      stdout += data;
+    });
+
+    command.on('close', exitStatus => {
+      if (logger && lastChar !== '' && lastChar !== '\n') {
+        logger.append('\n');
+      }
+      if (exitStatus !== 0) {
+        reject(
+          new Error(
+            `"${shutil.escapeArray([
+              name,
+              ...args,
+            ])}" failed, exit status: ${exitStatus}`
+          )
+        );
+      }
+
+      resolve(stdout);
+    });
+
+    // 'error' happens when the command is not available
+    command.on('error', err => {
+      if (logger && lastChar !== '' && lastChar !== '\n') {
+        logger.append('\n');
+      }
+      reject(
+        new Error(
+          `"${shutil.escapeArray([name, ...args])}" failed: ${err.message}`
+        )
+      );
+    });
   });
-  if (res instanceof Error) {
-    throw res;
+}
+
+async function withTempDir(
+  f: (tempDir: string) => Promise<void>
+): Promise<void> {
+  let td: string | undefined;
+  try {
+    td = await fs.promises.mkdtemp(os.tmpdir() + '/');
+    await f(td);
+  } finally {
+    if (td) {
+      await fs.promises.rm(td, {recursive: true});
+    }
   }
-  return res.stdout;
 }
 
 async function currentVersion(): Promise<semver.SemVer> {
@@ -252,7 +312,7 @@ async function buildAndUpload(preRelease: boolean, remoteBranch?: string) {
     );
   }
 
-  await commonUtil.withTempDir(async td => {
+  await withTempDir(async td => {
     const vsixFile = await build(td, preRelease);
     const fileName = path.basename(vsixFile);
 

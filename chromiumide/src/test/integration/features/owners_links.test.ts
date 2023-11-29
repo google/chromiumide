@@ -157,12 +157,12 @@ per-file foo.txt =   file:/path2
   it('resolves link with relative path', async () => {
     const link = new ownersLinkProvider.OwnersLink(
       'foo/bar/baz/..',
-      vscode.Uri.file('/document'),
+      vscode.Uri.file('/some/OWNERS'),
       new vscode.Range(0, 0, 0, 10)
     );
 
     resolveLink(link);
-    assert.deepStrictEqual(link.target, vscode.Uri.file('/document/foo/bar'));
+    assert.deepStrictEqual(link.target, vscode.Uri.file('/some/foo/bar'));
   });
 
   it('resolves link with absolute path', async () => {
@@ -177,12 +177,12 @@ per-file foo.txt =   file:/path2
     );
 
     await testing.putFiles(tempDir.path, {
-      document: 'fake',
+      OWNERS: 'fake',
     });
 
     const link = new ownersLinkProvider.OwnersLink(
       '/foo/bar/baz/..',
-      vscode.Uri.file(path.join(tempDir.path, 'document')),
+      vscode.Uri.file(path.join(tempDir.path, 'OWNERS')),
       new vscode.Range(0, 0, 0, 10)
     );
 

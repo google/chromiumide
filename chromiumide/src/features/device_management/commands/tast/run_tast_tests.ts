@@ -208,7 +208,7 @@ async function runSelectedTests(
       cancellationToken: token,
     }
   );
-  if (token.isCancellationRequested) {
+  if (tastRun instanceof vscode.CancellationError) {
     return {
       status: 'cancel',
     };

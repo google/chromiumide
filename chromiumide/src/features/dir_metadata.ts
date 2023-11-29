@@ -118,15 +118,15 @@ class MonorailComponentLink extends vscode.DocumentLink {
       return;
     }
     const mapping = JSON.parse(res.stdout) as DirmdMapping;
-    const monorailProject = Object.values(mapping.dirs)[0].monorail?.project;
+    let monorailProject = Object.values(mapping.dirs)[0].monorail?.project;
     if (!monorailProject) {
+      // Not all repos explicitly set `project` for Monorail metadata. All cases we investigated
+      // seem to assume 'chromium' as the default project. Therefore, it seems good enough to just
+      // default to `chromium` here as well.
       outputChannel.append(
-        `Could not determine Monorail project for DIR_METADATA file located in ${this.filePath}.`
+        `Could not determine Monorail project for DIR_METADATA file located in ${this.filePath}. Defaulting to 'chromium'. Please report an issue if this is wrong.`
       );
-      void vscode.window.showErrorMessage(
-        'Unable to determine Monorail project for DIR_METADATA file.'
-      );
-      return;
+      monorailProject = 'chromium';
     }
 
     this.target = vscode.Uri.parse(

@@ -11,6 +11,7 @@ import * as windowModule from './window';
 import * as workspaceModule from './workspace';
 import type * as vscode from 'vscode';
 
+export {CancellationError} from './cancellation_error';
 export {CancellationTokenSource} from './cancellation_token';
 export {CommentMode} from './comment_mode';
 export {CommentThreadCollapsibleState} from './comment_thread_collapsible_state';

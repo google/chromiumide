@@ -62,7 +62,7 @@ describe('DIR_METADATA', () => {
     expect(link.range).toEqual(new vscode.Range(1, 2, 3, 4));
   });
 
-  it('does not create monorail URLs if dirmd does not return a project', async () => {
+  it('defaults to chromium monorail if dirmd does not return a project', async () => {
     await fakeExec.installStdout(
       '/path/to/dirmd',
       [
@@ -83,7 +83,11 @@ describe('DIR_METADATA', () => {
       new VoidOutputChannel(),
       new FakeCancellationToken()
     );
-    expect(link.target).toBeUndefined();
+    expect(link.target).toEqual(
+      vscode.Uri.parse(
+        'https://bugs.chromium.org/p/chromium/issues/list?q=component:Some>Component Name'
+      )
+    );
     expect(link.range).toEqual(new vscode.Range(1, 2, 3, 4));
   });
 

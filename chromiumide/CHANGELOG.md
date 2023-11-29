@@ -1,5 +1,16 @@
 # Change Log
 
+## 0.24.0 (November 2023)
+
+- Chromium
+  - DIR\_METADATA file support
+- Ebuild and eclass file support
+  - Links to src code from CROS\_WORKON\_LOCAL\_NAME and CROS\_WORKON\_SUBTREE
+  - Links to inherited eclass
+  - Tooltip for portage and eclass variables and functions
+- DUT management
+  - Flashing with non-release (local, postsubmit, cq, snapshot) images
+
 ## 0.22.0 (September 2023)
 
 - Boards and packages view V2
