@@ -25,7 +25,7 @@ Initial release has been tested for `platform2` development and offers the follo
 
 See [QuickStart Guide] for setup instructions.
 
-[quickstart guide]: https://chromium.googlesource.com/chromiumos/chromite/+/HEAD/ide_tooling/docs/quickstart.md
+[quickstart guide]: https://chromium.googlesource.com/chromiumos/infra/ide/+/HEAD/docs/quickstart.md
 
 ## Contacting Us
 

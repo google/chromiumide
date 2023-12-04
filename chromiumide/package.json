@@ -7,7 +7,7 @@
   "author": {
     "name": "ChromeOS Velocity Team at Google"
   },
-  "repository": "https://chromium.googlesource.com/chromiumos/chromite/+/HEAD/ide_tooling",
+  "repository": "https://chromium.googlesource.com/chromiumos/infra/ide",
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.75.1",

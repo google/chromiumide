@@ -10,8 +10,8 @@ describe('getChromiumosDirectory', () => {
   it('returns the chromiumos directory', () => {
     const chromiumos = getChromiumosDirectory();
 
-    const ideTooling = path.join(chromiumos, 'chromite/ide_tooling');
+    const ide = path.join(chromiumos, 'infra/ide');
 
-    expect(fs.existsSync(ideTooling)).toBeTrue();
+    expect(fs.existsSync(ide)).toBeTrue();
   });
 });

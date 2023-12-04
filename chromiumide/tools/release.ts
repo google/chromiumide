@@ -132,7 +132,7 @@ async function assertHeadUpdatesVersion(remoteBranch?: string) {
   if (remoteBranch) {
     await execute('git', [
       'fetch',
-      'https://chromium.googlesource.com/chromiumos/chromite',
+      'https://chromium.googlesource.com/chromiumos/infra/ide',
       remoteBranch,
     ]);
     mergedRevision = 'FETCH_HEAD';

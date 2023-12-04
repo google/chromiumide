@@ -11,5 +11,5 @@ IDE tools for Chrome/ChromeOS developers.
 # Main Components
 
 - chromiumide: VSCode extension implementation.
-- scripts: Helper Python scripts the extension can make use of when the user has
-  chromiumos checkout.
+- scripts (in ../../chromite/ide_tooling): Helper Python scripts the extension can make use of when
+  the user has chromiumos checkout.

@@ -198,12 +198,12 @@ export async function readDiffHunks(
 function parseDiffHunks(gitDiffContent: string): FilePathToHunks {
   /**
    * gitDiffContent example:`
-   * --- a/ide_tooling/chromiumide/src/features/gerrit.ts
-   * +++ b/ide_tooling/chromiumide/src/features/gerrit.ts
+   * --- a/chromiumide/src/features/gerrit.ts
+   * +++ b/chromiumide/src/features/gerrit.ts
    * @@ -1,2 +3,4 @@
    * @@ -10,11 +12,13@@
-   * --- a/ide_tooling/chromiumide/src/features/git.ts
-   * +++ b/ide_tooling/chromiumide/src/features/git.ts
+   * --- a/chromiumide/src/features/git.ts
+   * +++ b/chromiumide/src/features/git.ts
    * @@ -1,2 +3,4 @@
    * `
    * Note, that when a file is added the old name is `--- /dev/null`
