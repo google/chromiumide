@@ -81,7 +81,10 @@ export async function promptKnownHostnameIfNeeded(
 }
 
 export class SimplePickItem implements vscode.QuickPickItem {
-  constructor(readonly label: string) {}
+  constructor(
+    readonly label: string,
+    readonly kind?: vscode.QuickPickItemKind
+  ) {}
 }
 
 interface InputBoxWithSuggestionsOptions {

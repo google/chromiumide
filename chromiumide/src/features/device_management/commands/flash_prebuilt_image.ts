@@ -23,14 +23,9 @@ import {
 const BOTO_PATH =
   'src/private-overlays/chromeos-overlay/googlestorage_account.boto';
 
-type ParsedImageVersion = {
-  chromeVer: string;
-  chromeOsVer?: string;
-};
-
 function matchInputAsImageVersion(
   input: string
-): ParsedImageVersion | undefined {
+): prebuiltUtil.ImageVersion | undefined {
   // Match input string as having a Chrome version if it is a number
   //   1. starting with 2-9 and has at least 2 digits, or
   //   2. starting with 1 and has at least 3 digits, or
@@ -40,9 +35,11 @@ function matchInputAsImageVersion(
   const m = versionRegexp.exec(input);
   if (!m) return undefined;
   return {
-    // Remove trailing hyphen, if any.
-    chromeVer: m[1].endsWith('-') ? m[1].slice(0, m[1].length - 1) : m[1],
-    chromeOsVer: m[2],
+    chromeMilestone: Number(
+      // Remove trailing hyphen, if any.
+      m[1].endsWith('-') ? m[1].slice(0, m[1].length - 1) : m[1]
+    ),
+    chromeOsMajor: m[2] ? Number(m[2]) : undefined,
   };
 }
 
@@ -86,9 +83,29 @@ async function showAllLocalImagesInputBox(
 }
 
 /*
+ * Contains only the Chrome milestone in a full ChromeOS version.
+ * This is an intermediate pick item for users to narrow down the full version they want and speed
+ * up fetching available images on gs.
+ */
+class ChromeMilestoneItem extends SimplePickItem {
+  constructor(readonly milestone: number) {
+    super(`R${milestone}-`);
+  }
+}
+
+/*
+ * A full ChromeOS version. This would be the final image choice passed to the cros flash command.
+ */
+class ChromeOsVersionItem extends SimplePickItem {
+  constructor(readonly fullVersion: string) {
+    super(fullVersion);
+  }
+}
+
+/*
  * Return full path of remote image to flash with, or undefined if user exits prematurely.
  */
-function showImageVersionInputBoxWithDynamicSuggestions(
+async function showImageVersionInputBoxWithDynamicSuggestions(
   board: string,
   imageType: string,
   chrootService: services.chromiumos.ChrootService,
@@ -102,10 +119,19 @@ function showImageVersionInputBoxWithDynamicSuggestions(
   const subscriptions: vscode.Disposable[] = [];
   let queries_count = 0;
 
+  const chromeMilestonesItems: (ChromeMilestoneItem | SimplePickItem)[] = (
+    await prebuiltUtil.getChromeMilestones()
+  ).map((milestone: number) => new ChromeMilestoneItem(milestone));
+  chromeMilestonesItems.unshift(
+    new SimplePickItem(
+      'Chrome Milestones (CrOS image version filter)',
+      vscode.QuickPickItemKind.Separator
+    )
+  );
+
   const task: Promise<string | undefined> = new Promise(resolve => {
-    // Each Chrome version is key to an array of ChromeOS versions fetched, including '*' for
-    // arbitrary ChromeOS versions.
-    const fetchedVersions: string[] = [];
+    const fetchedVersionPatterns: string[] = [];
+    let fetchedVersionItems: (ChromeOsVersionItem | SimplePickItem)[] = [];
 
     // Keep input box opened when lost focus since it is typical for user to change to another
     // window to search for or copy version string they want.
@@ -116,20 +142,35 @@ function showImageVersionInputBoxWithDynamicSuggestions(
       sortByLabel: false,
       ...options,
     });
-    picker.items = [];
+
+    // First show only Chrome milestones (e.g. 'R121-', 'R120-', ...).
+    picker.items = chromeMilestonesItems;
 
     subscriptions.push(
       picker.onDidChangeValue(async () => {
+        // picker.value could be either a manual input from user or selected from the list of Chrome
+        // milestones.
         const newInputImage = matchInputAsImageVersion(picker.value);
 
-        // Return early if the input is not valid for fetching images, or has been queried already.
-        if (!newInputImage) return;
-        const pattern = `R${newInputImage.chromeVer}-${
-          newInputImage.chromeOsVer ?? '*'
-        }.*`;
-        if (fetchedVersions.includes(pattern)) return;
+        // If the input is not valid (at least containing a proper Chrome milestone), reset items to
+        // the list of milestones.
+        if (!newInputImage) {
+          picker.items = chromeMilestonesItems;
+          return;
+        }
 
-        fetchedVersions.push(pattern);
+        // No need to refetch versions if the current input has been queried already, return early
+        // after resetting items as the list of all fetched version items (to be filtered by
+        // vscode.QuickPick API).
+        const pattern = `R${newInputImage.chromeMilestone}-${
+          newInputImage.chromeOsMajor ?? '*'
+        }.*`;
+        if (fetchedVersionPatterns.includes(pattern)) {
+          picker.items = fetchedVersionItems;
+          return;
+        }
+
+        fetchedVersionPatterns.push(pattern);
 
         queries_count += 1;
         picker.busy = true;
@@ -151,13 +192,34 @@ function showImageVersionInputBoxWithDynamicSuggestions(
         // This is to avoid overwriting picker.items with results from an obsolete prebuiltUtil.listPrebuiltVersions request that finishes later (for example if the pattern has a lot more matches on gsutil list).
         // Remove duplicates by casting to and back from a set.
         versions = [
-          ...new Set(picker.items.map(item => item.label).concat(versions)),
+          ...new Set(
+            fetchedVersionItems.map(item => item.label).concat(versions)
+          ),
         ];
-        picker.items = versions.map(label => new SimplePickItem(label));
+        fetchedVersionItems = versions.map(
+          label => new ChromeOsVersionItem(label)
+        );
+        fetchedVersionItems.unshift(
+          new SimplePickItem(
+            'Full CrOS image versions available for flashing device',
+            vscode.QuickPickItemKind.Separator
+          )
+        );
+        picker.items = fetchedVersionItems;
       }),
       picker.onDidAccept(() => {
-        const version = picker.activeItems[0].label;
-        resolve(`xbuddy://remote/${board}-${imageType}/${version}/test`);
+        const selectedItem = picker.activeItems[0];
+        if (selectedItem instanceof ChromeMilestoneItem) {
+          // User selected a Chrome milestone, empty the list and set it as value on input box.
+          // It would trigger onDidChangeValue(), and be parsed to list all prebuilt versions with
+          // this milestone.
+          picker.value = selectedItem.label;
+          picker.items = [];
+        } else {
+          // User selected a full ChromeOS image version listed on gs.
+          const version = selectedItem.label;
+          resolve(`xbuddy://remote/${board}-${imageType}/${version}/test`);
+        }
       }),
       picker.onDidHide(() => {
         resolve(undefined);
@@ -229,7 +291,7 @@ export async function flashPrebuiltImage(
           chrootService,
           context.output,
           {
-            title: `Image version: available images on gs://chromeos-image-archive/${board}-${imageType}/ will be listed given sufficient version number for matching, e.g. 'R99', 'R102', 'R12-', and optionally ChromeOS version number, e.g. 'R119-15608.'; remaining of the version string is optional.`,
+            title: `Image version: available images in gs://chromeos-image-archive/${board}-${imageType}/`,
             placeholder:
               imageType === 'release'
                 ? 'Rxxx-yyyyy.0.0'
