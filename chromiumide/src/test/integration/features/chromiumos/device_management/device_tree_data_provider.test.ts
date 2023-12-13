@@ -6,11 +6,8 @@ import 'jasmine';
 import * as vscode from 'vscode';
 import * as abandonedDevices from '../../../../../features/device_management/abandoned_devices';
 import * as crosfleet from '../../../../../features/device_management/crosfleet';
-import * as deviceClient from '../../../../../features/device_management/device_client';
 import * as repository from '../../../../../features/device_management/device_repository';
 import * as provider from '../../../../../features/device_management/device_tree_data_provider';
-import {SshIdentity} from '../../../../../features/device_management/ssh_identity';
-import {ChromiumosServiceModule} from '../../../../../services/chromiumos';
 import * as config from '../../../../../services/config';
 import * as testing from '../../../../testing';
 import * as doubles from '../../../../testing/doubles';
@@ -59,13 +56,6 @@ xdescribe('Device tree data provider', () => {
     const deviceRepository = new repository.DeviceRepository(
       new crosfleet.CrosfleetRunner(
         cipdRepository,
-        new fakes.VoidOutputChannel()
-      ),
-      new deviceClient.DeviceClient(
-        new SshIdentity(
-          testing.getExtensionUri(),
-          new ChromiumosServiceModule()
-        ),
         new fakes.VoidOutputChannel()
       ),
       new abandonedDevices.AbandonedDevices(new fakes.Memento())

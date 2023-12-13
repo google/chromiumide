@@ -14,10 +14,8 @@ import {TaskStatus} from '../../ui/bg_task_status';
 import * as abandonedDevices from './abandoned_devices';
 import * as commands from './commands';
 import * as crosfleet from './crosfleet';
-import * as deviceClient from './device_client';
 import * as repository from './device_repository';
 import * as provider from './device_tree_data_provider';
-import {SshIdentity} from './ssh_identity';
 import * as sshUtil from './ssh_util';
 
 export function activate(
@@ -31,15 +29,12 @@ export function activate(
   const output = vscode.window.createOutputChannel(
     'ChromiumIDE: Device Management'
   );
-  const sshIdentity = new SshIdentity(context.extensionUri, chromiumosServices);
-  const client = new deviceClient.DeviceClient(sshIdentity, output);
   const crosfleetRunner = new crosfleet.CrosfleetRunner(cipdRepository, output);
   const abandonedDuts = new abandonedDevices.AbandonedDevices(
     context.globalState
   );
   const deviceRepository = new repository.DeviceRepository(
     crosfleetRunner,
-    client,
     abandonedDuts
   );
   const commandsDisposable = commands.registerCommands(
