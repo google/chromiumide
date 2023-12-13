@@ -211,9 +211,10 @@ async function retrieveClientInfoWithProgress(
       title: 'Deploy Package: Auto-detecting board name',
     },
     async () => {
-      const lsbRelease = await client.readLsbRelease(hostname);
+      const result = await client.readLsbRelease(hostname);
+      if (result instanceof Error) throw result;
       return {
-        board: lsbRelease.board,
+        board: result.board,
       };
     }
   );

@@ -206,6 +206,9 @@ export async function flashPrebuiltImage(
   const board = await vscode.window.showInputBox({
     title: 'Board Name to Flash',
     value: defaultBoard,
+    prompt: !defaultBoard
+      ? 'Failed to get board from device, please input board name'
+      : undefined,
     ignoreFocusOut: true,
   });
   if (!board) {
@@ -264,15 +267,15 @@ export async function flashPrebuiltImage(
 async function retrieveBoardWithProgress(
   client: deviceClient.DeviceClient,
   hostname: string
-): Promise<string> {
+): Promise<string | undefined> {
   return vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Window,
       title: 'Flash Prebuilt Image: Auto-detecting board name',
     },
     async () => {
-      const lsbRelease = await client.readLsbRelease(hostname);
-      return lsbRelease.board;
+      const result = await client.readLsbRelease(hostname);
+      return result instanceof Error ? undefined : result.board;
     }
   );
 }

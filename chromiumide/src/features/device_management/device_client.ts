@@ -21,7 +21,7 @@ export class DeviceClient {
     private readonly logger: vscode.OutputChannel
   ) {}
 
-  async readLsbRelease(hostname: string): Promise<LsbRelease> {
+  async readLsbRelease(hostname: string): Promise<LsbRelease | Error> {
     const args = sshUtil.buildSshCommand(
       hostname,
       this.sshIdentity,
@@ -32,7 +32,7 @@ export class DeviceClient {
       logger: this.logger,
     });
     if (result instanceof Error) {
-      throw result;
+      return result;
     }
     return parseLsbRelease(result.stdout);
   }

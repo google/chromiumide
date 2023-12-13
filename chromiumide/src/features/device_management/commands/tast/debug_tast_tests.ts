@@ -286,12 +286,9 @@ async function ensureDutHasDelve(
   // DUT does not have the delve binary or the version of delve is different from ebuild.
   context.output.appendLine('Try to get the device board name');
   const deviceClient = new DeviceClient(context.sshIdentity, context.output);
-  let board: string;
-
-  try {
-    board = (await deviceClient.readLsbRelease(hostname)).board;
-  } catch (err) {
-    context.output.appendLine(`${err}`);
+  const lsbRelease = await deviceClient.readLsbRelease(hostname);
+  if (lsbRelease instanceof Error) {
+    context.output.appendLine(`${lsbRelease.message}`);
     showPromptWithOpenLogChoice(
       context,
       "debugging didn't start: failed to get board information from DUT",
@@ -299,6 +296,7 @@ async function ensureDutHasDelve(
     );
     return false;
   }
+  const board = lsbRelease.board;
 
   context.output.appendLine(`The device board name: ${board}`);
 
