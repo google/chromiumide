@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import {Https} from '../../../common/https';
 import * as git from '../git';
-import {Https} from '../https';
 import {Sink} from '../sink';
 import {parseResponse} from './client';
 
@@ -139,7 +139,10 @@ export async function createDraftOrThrow(
   const options =
     authCookie !== undefined ? {headers: {cookie: authCookie}} : undefined;
 
-  const res = await Https.putJsonOrThrow(url, req, options, sink);
+  sink.appendLine(
+    `PUT ${url} ${JSON.stringify(req)} ${JSON.stringify(options)}`
+  );
+  const res = await Https.putJsonOrThrow(url, req, options);
   return parseResponse(res);
 }
 
@@ -161,7 +164,8 @@ export async function deleteDraftOrThrow(
 
   const options = {headers: {cookie: authCookie}};
 
-  await Https.deleteOrThrow(url, options, sink);
+  sink.appendLine(`DELETE ${url}`);
+  await Https.deleteOrThrow(url, options);
 }
 
 /**
@@ -184,6 +188,9 @@ export async function updateDraftOrThrow(
   const options =
     authCookie !== undefined ? {headers: {cookie: authCookie}} : undefined;
 
-  const res = await Https.putJsonOrThrow(url, req, options, sink);
+  sink.appendLine(
+    `PUT ${url} ${JSON.stringify(req)} ${JSON.stringify(options)}`
+  );
+  const res = await Https.putJsonOrThrow(url, req, options);
   return parseResponse(res);
 }

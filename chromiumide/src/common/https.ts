@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import * as https from 'https';
-import {Sink} from './sink';
 
 export class Https {
   /**
@@ -18,7 +17,7 @@ export class Https {
   ): Promise<string | undefined> {
     return new Promise((resolve, reject) => {
       https
-        .get(url, options, res => {
+        .get(url, {...options, method: 'GET'}, res => {
           if (res.statusCode === 404) {
             resolve(undefined);
           }
@@ -42,11 +41,8 @@ export class Https {
    */
   static async deleteOrThrow(
     url: string,
-    options: https.RequestOptions,
-    sink: Sink
+    options: https.RequestOptions
   ): Promise<void> {
-    sink.appendLine(`DELETE ${url}`);
-
     return new Promise((resolve, reject) => {
       https
         .request(url, {...options, method: 'DELETE'}, res => {
@@ -78,8 +74,7 @@ export class Https {
   static async putJsonOrThrow(
     url: string,
     postData: Object,
-    options: https.RequestOptions = {},
-    sink: Sink
+    options: https.RequestOptions = {}
   ): Promise<string> {
     const postDataString = JSON.stringify(postData);
 
@@ -93,7 +88,51 @@ export class Https {
       },
     };
 
-    sink.appendLine(`PUT ${url} ${postDataString} ${JSON.stringify(opts)}`);
+    return new Promise((resolve, reject) => {
+      const req = https
+        .request(url, opts, res => {
+          const body: Uint8Array[] = [];
+          res.on('data', data => body.push(data));
+          res.on('end', () => {
+            const status = res.statusCode!;
+            if (200 <= status && status < 300) {
+              resolve(Buffer.concat(body).toString());
+              return;
+            }
+            reject(
+              new Error(`status code ${res.statusCode}: ${body.toString()}`)
+            );
+          });
+        })
+        .on('error', reject);
+
+      req.write(postDataString);
+      req.end();
+    });
+  }
+
+  /**
+   * Sends POST request over https.
+   *
+   * Returns the response if it is successful (200).
+   * Otherwise throws an error.
+   */
+  static async postJsonOrThrow(
+    url: string,
+    postData: Object,
+    options: https.RequestOptions = {}
+  ): Promise<string> {
+    const postDataString = JSON.stringify(postData);
+
+    const opts = {
+      method: 'POST',
+      ...options,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Length': Buffer.byteLength(postDataString),
+        ...options.headers,
+      },
+    };
 
     return new Promise((resolve, reject) => {
       const req = https

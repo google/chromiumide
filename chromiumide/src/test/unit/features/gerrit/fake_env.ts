@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 import * as https from 'https';
+import {Https} from '../../../../common/https';
 import * as api from '../../../../features/gerrit/api';
 import * as git from '../../../../features/gerrit/git';
-import {Https} from '../../../../features/gerrit/https';
 import * as fakeData from './fake_data';
 
 export type FakeGerritInitialOpts = Readonly<{

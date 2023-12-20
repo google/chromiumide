@@ -5,10 +5,10 @@
 import * as fs from 'fs';
 import * as https from 'https';
 import * as path from 'path';
-import * as netUtil from '../../../../common/net_util';
-import {Https} from '../../../../features/gerrit/https';
+import {Https} from '../../../common/https';
+import * as netUtil from '../../../common/net_util';
 
-const TEST_DATA = '../../../../../src/test/testdata/https/';
+const TEST_DATA = '../../../../src/test/testdata/https/';
 
 const serverOptions = {
   key: fs.readFileSync(path.resolve(__dirname, TEST_DATA, 'key.pem')),
@@ -17,7 +17,6 @@ const serverOptions = {
 
 const requestOptions = {
   ca: [fs.readFileSync(path.resolve(__dirname, TEST_DATA, 'cert.pem'))],
-  method: 'GET',
   rejectUnauthorized: true,
   requestCert: true,
   agent: false,
