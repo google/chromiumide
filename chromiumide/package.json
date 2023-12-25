@@ -11,7 +11,7 @@
   "license": "BSD-3-Clause",
   "engines": {
     "vscode": "^1.75.1",
-    "node": "16.x"
+    "node": ">=16"
   },
   "icon": "media/cros-device.png",
   "categories": [
@@ -1359,7 +1359,7 @@
     "@types/glob": "^7.1.4",
     "@types/jasmine": "^4.0.0",
     "@types/mock-fs": "^4.13.1",
-    "@types/node": "16.x",
+    "@types/node": "18.15.0",
     "@types/react": "^18.0.21",
     "@types/react-dom": "^18.0.6",
     "@types/semver": "^7.3.9",

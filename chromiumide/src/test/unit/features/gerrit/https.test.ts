@@ -87,6 +87,6 @@ describe('http request', () => {
     // due to a self-signed certificated.
     await expectAsync(
       Https.getOrThrow(`https://localhost:${port}/`)
-    ).toBeRejectedWith(new Error('self signed certificate'));
+    ).toBeRejectedWith(new Error('self-signed certificate'));
   });
 });
