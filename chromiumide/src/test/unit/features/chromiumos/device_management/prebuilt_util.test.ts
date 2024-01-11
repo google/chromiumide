@@ -103,6 +103,6 @@ bcbb260575b8ad07f82e3f748e671a9adfcbfd71 refs/heads/stabilize-10032.111.B
     const milestones = await prebuiltUtil.getChromeMilestones(
       async () => FAKE_STDOUT
     );
-    expect(milestones).toEqual([103, 102, 101, 100]);
+    expect(milestones).toEqual([104, 103, 102, 101, 100]);
   });
 });

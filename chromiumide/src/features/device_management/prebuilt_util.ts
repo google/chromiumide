@@ -44,7 +44,12 @@ export async function getChromeMilestones(
   getManifestRefs = fetchChromiumOsManifestRefs
 ): Promise<number[]> {
   const output = await getManifestRefs();
-  return parseChromiumOsManifestRefs(output);
+  const milestones = parseChromiumOsManifestRefs(output);
+  // The ChromiumOS manifest contains only the milestones after branch point, but there is always a
+  // newer milestone in development (i.e. release and postsubmit builders for it exist).
+  // See go/chrome-cycle.
+  milestones.unshift(milestones[0] + 1);
+  return milestones;
 }
 
 function fetchChromiumOsManifestRefs(): Promise<string> {
