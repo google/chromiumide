@@ -18,13 +18,17 @@ export class Https {
     return new Promise((resolve, reject) => {
       https
         .get(url, {...options, method: 'GET'}, res => {
+          const body: Uint8Array[] = [];
           if (res.statusCode === 404) {
             resolve(undefined);
           }
           if (res.statusCode !== 200) {
-            reject(new Error(`GET ${url}: status code: ${res.statusCode}`));
+            reject(
+              new Error(
+                `GET ${url}: status code: ${res.statusCode}: ${body.toString()}`
+              )
+            );
           }
-          const body: Uint8Array[] = [];
           res.on('data', data => body.push(data));
           res.on('end', () => {
             resolve(Buffer.concat(body).toString());
@@ -41,20 +45,26 @@ export class Https {
    */
   static async deleteOrThrow(
     url: string,
-    options: https.RequestOptions
+    options: https.RequestOptions = {}
   ): Promise<void> {
     return new Promise((resolve, reject) => {
       https
         .request(url, {...options, method: 'DELETE'}, res => {
+          const body: Uint8Array[] = [];
           if (
             !res.statusCode ||
             res.statusCode < 200 ||
             300 <= res.statusCode
           ) {
-            reject(new Error(`DELETE ${url}: status code: ${res.statusCode}`));
+            reject(
+              new Error(
+                `DELETE ${url}: status code: ${
+                  res.statusCode
+                }: ${body.toString()}`
+              )
+            );
             return;
           }
-          const body: Uint8Array[] = [];
           res.on('data', data => body.push(data));
           res.on('end', () => {
             resolve();
@@ -100,7 +110,9 @@ export class Https {
               return;
             }
             reject(
-              new Error(`status code ${res.statusCode}: ${body.toString()}`)
+              new Error(
+                `PUT ${url}: status code: ${res.statusCode}: ${body.toString()}`
+              )
             );
           });
         })
@@ -146,7 +158,11 @@ export class Https {
               return;
             }
             reject(
-              new Error(`status code ${res.statusCode}: ${body.toString()}`)
+              new Error(
+                `POST ${url}: status code: ${
+                  res.statusCode
+                }: ${body.toString()}`
+              )
             );
           });
         })
