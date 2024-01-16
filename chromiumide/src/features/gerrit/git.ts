@@ -59,7 +59,10 @@ export async function getRepoId(
 
       return remoteName;
     }
-    if (repoUrl.startsWith('https://chromium.googlesource.com/chromium/')) {
+    if (
+      repoUrl.startsWith('https://chromium.googlesource.com/chromium/') ||
+      repoUrl.startsWith('https://chromium.googlesource.com/a/chromium/')
+    ) {
       sink.appendLine(`Public Chromium remote repo detected at ${gitDir}`);
       return 'chromium';
     }
