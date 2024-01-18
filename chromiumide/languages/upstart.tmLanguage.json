@@ -2,28 +2,28 @@
   "name": "upstart",
   "scopeName": "source.upstart",
   "patterns": [
-    { "include": "#comment" },
-    { "include": "#exec" },
-    { "include": "#script" },
-    { "include": "#env" },
-    { "include": "#export" },
-    { "include": "#expect" },
-    { "include": "#kill-reload-signal" },
-    { "include": "#kill-timeout" },
-    { "include": "#documentation" },
-    { "include": "#emits" },
-    { "include": "#event-definition" },
-    { "include": "#normal-exit" },
-    { "include": "#respawn-limit" },
-    { "include": "#tasks-respawning" },
-    { "include": "#console" },
-    { "include": "#limit" },
-    { "include": "#nice" },
-    { "include": "#oom-score" },
-    { "include": "#umask" },
-    { "include": "#instance" },
-    { "include": "#import" },
-    { "include": "#tmpfiles" }
+    {"include": "#comment"},
+    {"include": "#exec"},
+    {"include": "#script"},
+    {"include": "#env"},
+    {"include": "#export"},
+    {"include": "#expect"},
+    {"include": "#kill-reload-signal"},
+    {"include": "#kill-timeout"},
+    {"include": "#documentation"},
+    {"include": "#emits"},
+    {"include": "#event-definition"},
+    {"include": "#normal-exit"},
+    {"include": "#respawn-limit"},
+    {"include": "#tasks-respawning"},
+    {"include": "#console"},
+    {"include": "#limit"},
+    {"include": "#nice"},
+    {"include": "#oom-score"},
+    {"include": "#umask"},
+    {"include": "#instance"},
+    {"include": "#import"},
+    {"include": "#tmpfiles"}
   ],
   "repository": {
     "comment": {
@@ -36,42 +36,38 @@
       "end": "^end script",
       "name": "meta.script.upstart",
       "beginCaptures": {
-        "0": { "name": "storage.type.script.upstart" }
+        "0": {"name": "storage.type.script.upstart"}
       },
       "endCaptures": {
-        "0": { "name": "storage.type.script.upstart" }
+        "0": {"name": "storage.type.script.upstart"}
       },
       "contentName": "meta.embedded.block.shellscript",
-      "patterns": [
-        { "include": "source.shell" }
-      ]
+      "patterns": [{"include": "source.shell"}]
     },
     "exec": {
       "begin": "^((pre|post)-(start|stop) )?exec",
       "end": "(?<!\\\\)\\n",
       "name": "meta.exec.upstart",
       "beginCaptures": {
-        "0": { "name": "storage.type.exec.upstart" }
+        "0": {"name": "storage.type.exec.upstart"}
       },
       "contentName": "meta.embedded.block.shellscript",
-      "patterns": [
-        { "include": "source.shell" }
-      ]
+      "patterns": [{"include": "source.shell"}]
     },
     "env": {
       "match": "^env\\s+(\\w+)(?:(=)(.+))?$",
       "name": "keyword.other.env.upstart",
       "captures": {
-        "1": { "name": "variable.upstart" },
-        "2": { "name": "keyword.operator.equals.upstart" },
-        "3": { "name": "string.upstart" }
+        "1": {"name": "variable.upstart"},
+        "2": {"name": "keyword.operator.equals.upstart"},
+        "3": {"name": "string.upstart"}
       }
     },
     "export": {
       "match": "^export (\\w+)$",
       "name": "keyword.other.export.upstart",
       "captures": {
-        "1": { "name": "variable.upstart"}
+        "1": {"name": "variable.upstart"}
       }
     },
     "expect": {
@@ -90,12 +86,9 @@
       "begin": "^(kill|reload) signal",
       "end": "$",
       "beginCaptures": {
-        "0": { "name": "keyword.other.kill-reload.upstart" }
+        "0": {"name": "keyword.other.kill-reload.upstart"}
       },
-      "patterns": [
-        { "include": "#unsigned-number" },
-        { "include": "#signal-name" }
-      ]
+      "patterns": [{"include": "#unsigned-number"}, {"include": "#signal-name"}]
     },
     "number": {
       "match": "\\b\\d+\\b",
@@ -105,11 +98,9 @@
       "begin": "^kill timeout",
       "end": "$",
       "beginCaptures": {
-        "0": { "name": "keyword.other.kill-timeout.upstart" }
+        "0": {"name": "keyword.other.kill-timeout.upstart"}
       },
-      "patterns": [
-        { "include": "#number" }
-      ]
+      "patterns": [{"include": "#number"}]
     },
     "double-quoted-string": {
       "begin": "\"",
@@ -120,17 +111,15 @@
       "begin": "^(author|description|version|usage)",
       "end": "$",
       "beginCaptures": {
-        "0": { "name": "keyword.other.documentation.upstart"}
+        "0": {"name": "keyword.other.documentation.upstart"}
       },
-      "patterns":[
-        { "include": "#double-quoted-string" }
-      ]
+      "patterns": [{"include": "#double-quoted-string"}]
     },
     "emits": {
       "begin": "^emits",
       "end": "$",
       "beginCaptures": {
-        "0": { "name": "keyword.other.emits.upstart" }
+        "0": {"name": "keyword.other.emits.upstart"}
       },
       "patterns": [
         {
@@ -144,9 +133,9 @@
       "begin": "^(start|stop) on",
       "end": "$",
       "beginCaptures": {
-        "0": { "name": "keyword.other.event-definition.upstart" }
+        "0": {"name": "keyword.other.event-definition.upstart"}
       },
-      "patterns":[
+      "patterns": [
         {
           "match": "\\b(started|starting|stopped|stopping)\\b",
           "name": "keyword.operator.modifier.upstart"
@@ -165,21 +154,18 @@
       "begin": "^normal exit",
       "end": "$",
       "beginCaptures": {
-        "0": { "name": "keyword.other.normal-exit.upstart" }
+        "0": {"name": "keyword.other.normal-exit.upstart"}
       },
-      "patterns": [
-        { "include": "#unsigned-number" },
-        { "include": "#signal-name"}
-      ]
+      "patterns": [{"include": "#unsigned-number"}, {"include": "#signal-name"}]
     },
     "respawn-limit": {
       "match": "^(respawn limit) (?:(\\d+) (\\d+)|(unlimited))",
       "name": "meta.respawn-limit.upstart",
       "captures": {
-        "1": { "name": "keyword.other.respawn-limit.upstart" },
-        "2": { "name": "constant.numeric.upstart" },
-        "3": { "name": "constant.numeric.upstart" },
-        "4": { "name": "constant.language.unlimited.upstart" }
+        "1": {"name": "keyword.other.respawn-limit.upstart"},
+        "2": {"name": "constant.numeric.upstart"},
+        "3": {"name": "constant.numeric.upstart"},
+        "4": {"name": "constant.language.unlimited.upstart"}
       }
     },
     "tasks-respawning": {
@@ -194,32 +180,32 @@
       "begin": "^(limit) (\\w+)",
       "end": "$",
       "beginCaptures": {
-        "1": { "name": "keyword.other.limit.upstart" },
-        "2": { "name": "entity.name.other.resource.upstart" }
+        "1": {"name": "keyword.other.limit.upstart"},
+        "2": {"name": "entity.name.other.resource.upstart"}
       },
       "patterns": [
         {
           "match": "\\bunlimited\\b",
           "name": "constant.language.unlimited.upstart"
         },
-        { "include": "#unsigned-number" }
+        {"include": "#unsigned-number"}
       ]
     },
     "nice": {
       "match": "^(nice) (\\d+)+",
       "name": "meta.nice.upstart",
       "captures": {
-        "1": { "name": "keyword.other.nice.upstart" },
-        "2": { "name": "constant.numeric.upstart" }
+        "1": {"name": "keyword.other.nice.upstart"},
+        "2": {"name": "constant.numeric.upstart"}
       }
     },
     "oom-score": {
       "match": "^(oom score) (?:(-?\\d+)|(never))",
       "name": "meta.oom-score.upstart",
-      "captures" : {
-        "1": { "name": "keyword.other.oom-score.upstart" },
-        "2": { "name": "constant.numeric.upstart" },
-        "3": { "name": "constant.language.never.upstart" }
+      "captures": {
+        "1": {"name": "keyword.other.oom-score.upstart"},
+        "2": {"name": "constant.numeric.upstart"},
+        "3": {"name": "constant.language.never.upstart"}
       }
     },
     "umask": {
@@ -230,23 +216,23 @@
       "match": "^(instance) (\\$\\S+)",
       "name": "meta.instance.upstart",
       "captures": {
-        "1": { "name": "keyword.other.instance.upstart" },
-        "2": { "name": "variable.other.instance.upstart" }
+        "1": {"name": "keyword.other.instance.upstart"},
+        "2": {"name": "variable.other.instance.upstart"}
       }
     },
     "import": {
       "match": "^(import) (\\w+)$",
       "name": "meta.import.upstart",
       "captures": {
-        "1": { "name": "keyword.other.import.upstart" },
-        "2": { "name": "variable.upstart" }
+        "1": {"name": "keyword.other.import.upstart"},
+        "2": {"name": "variable.upstart"}
       }
     },
     "tmpfiles": {
       "begin": "^tmpfiles",
       "end": "$",
-      "beginCaptures" : {
-        "0" : { "name": "keyword.other.tmpfiles.upstart" }
+      "beginCaptures": {
+        "0": {"name": "keyword.other.tmpfiles.upstart"}
       },
       "name": "meta.tmpfiles.upstart",
       "patterns": [

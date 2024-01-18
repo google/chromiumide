@@ -1253,8 +1253,11 @@
     "e2e-test": "wireit",
     "lint": "wireit",
     "lint-code": "wireit",
+    "lint-json": "wireit",
     "lint-license": "wireit",
     "fix": "wireit",
+    "fix-code": "wireit",
+    "fix-json": "wireit",
     "preupload": "wireit",
     "vscode:prepublish": "wireit"
   },
@@ -1311,6 +1314,7 @@
     "lint": {
       "dependencies": [
         "lint-code",
+        "lint-json",
         "lint-license"
       ]
     },
@@ -1318,12 +1322,25 @@
       "command": "gts lint",
       "output": []
     },
-    "fix": {
-      "command": "gts fix"
+    "lint-json": {
+      "command": "prettier '**/*.json' !package-lock.json --check --ignore-path .gitignore",
+      "output": []
     },
     "lint-license": {
       "command": "jsgl --local .",
       "output": []
+    },
+    "fix": {
+      "dependencies": [
+        "fix-code",
+        "fix-json"
+      ]
+    },
+    "fix-code": {
+      "command": "gts fix"
+    },
+    "fix-json": {
+      "command": "prettier '**/*.json' !package-lock.json --write --ignore-path .gitignore"
     },
     "test": {
       "dependencies": [
