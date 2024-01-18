@@ -5,6 +5,7 @@
 import * as https from 'https';
 import * as vscode from 'vscode';
 import * as semver from 'semver';
+import {Https} from '../../common/https';
 import {vscodeRegisterCommand} from '../../common/vscode/commands';
 import * as config from '../../services/config';
 import * as metricsConfig from './metrics_config';
@@ -110,10 +111,6 @@ export class Analytics {
       }&measurement_id=${
         mode === MetricsMode.Testing ? measurementIdTesting : measurementIdReal
       }`,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
     };
   }
 
@@ -158,7 +155,7 @@ export class Analytics {
   /**
    * Send event as query. Does not wait for its response.
    */
-  send(event: metricsEvent.Event, options = this.options): void {
+  send(event: metricsEvent.Event): void {
     if (!this.shouldSend()) {
       return;
     }
@@ -175,26 +172,10 @@ export class Analytics {
       vscode.version,
       extensionVersion
     );
-    console.debug(`sending query ${query} to GA4 ${this.options.path}`);
-
-    const req = https.request(options, res => {
-      console.debug(`Sent request, status code = ${res.statusCode}`);
-      const body: Buffer[] = [];
-      res.on('data', (chunk: Buffer) => {
-        body.push(chunk);
-      });
-      res.on('end', () => {
-        const resString = Buffer.concat(body).toString();
-        console.debug(`Sent request, response = ${resString}`);
-      });
-    });
-
-    req.on('error', error => {
-      console.error(error);
-    });
-
-    req.write(query);
-    req.end();
+    // Calling Https.postJsonOrThrow with url constructed from the options
+    // ('https://www.google-analytics.com/mp/collect?api_secret=...') without custom options will
+    // fail to have the metrics event reported on GA.
+    void Https.postJsonOrThrow('', query, this.options);
   }
 }
 

@@ -95,7 +95,7 @@ export function eventToRequestBodyGA4(
   vscodeName: string,
   vscodeVersion: string,
   extensionVersion: string | undefined
-): string {
+): Object {
   // The unused variables are needed for object destruction of event and match customFields.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const {category, group, name, description, ...customFields} = event;
@@ -119,7 +119,7 @@ export function eventToRequestBodyGA4(
     ...customFields,
   };
 
-  return JSON.stringify({
+  return {
     client_id: clientId,
     user_id: clientId,
     events: [
@@ -128,5 +128,5 @@ export function eventToRequestBodyGA4(
         params: params,
       },
     ],
-  });
+  };
 }
