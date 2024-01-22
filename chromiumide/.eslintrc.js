@@ -130,7 +130,7 @@ module.exports = {
       },
       overrides: [
         {
-          files: ['src/**/*.ts'],
+          files: ['shared/**/*.ts', 'src/**/*.ts'],
           parserOptions: {
             project: 'tsconfig.json',
           },

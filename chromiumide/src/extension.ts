@@ -9,6 +9,7 @@
  */
 import * as vscode from 'vscode';
 import * as sourceMapSupport from 'source-map-support';
+import {activate as activateSharedFeatures} from '../shared/app/extension';
 import * as cipd from './common/cipd';
 import * as commonUtil from './common/common_util';
 import {vscodeRegisterCommand} from './common/vscode/commands';
@@ -150,6 +151,8 @@ async function postMetricsActivate(
       gitDirsWatcher
     );
   }
+
+  activateSharedFeatures(context);
 
   // We want to know if some users flip enablement bit.
   // If the feature is disabled it could mean that it's annoying.

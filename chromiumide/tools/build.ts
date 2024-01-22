@@ -96,11 +96,13 @@ async function runWebpack(production: boolean): Promise<void> {
  * Does the equivalent of `tsc -p . --outDir out` faster.
  */
 async function buildTests() {
-  const entryPoints = glob.sync('./src/**/*.ts');
+  const entryPoints = glob.sync('./{shared,src}/**/*.ts');
   const options: BuildOptions = {
     ...commonOptions(/* production = */ false),
     format: 'cjs',
     platform: 'node',
+    // TODO(oka): Remove outbase now that shared/ directory is introduced, which is located in a
+    // weird place (./out/_.._/shared).
     outbase: './src',
     outdir: './out',
     tsconfig: './tsconfig.json',

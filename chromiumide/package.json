@@ -383,6 +383,12 @@
         "title": "git cl format",
         "icon": "$(whitespace)",
         "category": "Chromium"
+      },
+      {
+        "command": "chromiumideShared.demo.showRandomUuid",
+        "title": "Show Random UUID",
+        "category": "Demo",
+        "enablement": "config.chromiumideShared.demo.enable"
       }
     ],
     "viewsContainers": {
@@ -1067,6 +1073,11 @@
         "chromiumide.paths.depotTools": {
           "type": "string",
           "markdownDescription": "Path to depot tools. By default we search for depot tools in the `$PATH` and then in `~/depot_tools`. When set, the path specified here will be searched first. Use it to point ChromiumIDE to commands such as `cipd`."
+        },
+        "chromiumideShared.demo.enable": {
+          "type": "boolean",
+          "description": "Enable demo features for initial development",
+          "default": false
         }
       }
     },
