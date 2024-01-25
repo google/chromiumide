@@ -129,6 +129,7 @@ export async function promptTargetPackageWithCache(
   const task: Promise<string | undefined> = new Promise(resolve => {
     Object.assign(picker, {
       ignoreFocusOut: true,
+      sortByLabel: false,
       title: 'Package to deploy',
     });
     picker.items = [];
