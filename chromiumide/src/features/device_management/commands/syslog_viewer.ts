@@ -4,7 +4,6 @@
 
 import * as vscode from 'vscode';
 import {Metrics} from '../../metrics/metrics';
-import * as provider from '../device_tree_data_provider';
 import {SyslogPanel} from '../syslog/panel';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
 
@@ -76,7 +75,7 @@ async function askRemoteSyslogPath(): Promise<string | undefined> {
 
 export async function openSystemLogViewer(
   context: CommandContext,
-  item?: provider.DeviceItem
+  selectedHostname?: string
 ): Promise<void> {
   Metrics.send({
     category: 'interactive',
@@ -87,7 +86,7 @@ export async function openSystemLogViewer(
 
   const hostname = await promptKnownHostnameIfNeeded(
     'Open System Log Viewer',
-    item,
+    selectedHostname,
     context.deviceRepository
   );
   if (!hostname) {

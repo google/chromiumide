@@ -71,25 +71,27 @@ export function registerCommands(
     ),
     vscodeRegisterCommand(
       'chromiumide.deviceManagement.deleteDevice',
-      (item?: provider.DeviceItem) => deleteDevice(context, item)
+      (item?: provider.DeviceItem) => deleteDevice(context, item?.hostname)
     ),
     vscodeRegisterCommand(
       'chromiumide.deviceManagement.connectToDeviceForScreen',
       (item?: provider.DeviceItem) =>
-        connectToDeviceForScreen(context, /* rotate = */ false, item)
+        connectToDeviceForScreen(context, /* rotate = */ false, item?.hostname)
     ),
     vscodeRegisterCommand(
       'chromiumide.deviceManagement.connectToDeviceForRotatedScreen',
       (item?: provider.DeviceItem) =>
-        connectToDeviceForScreen(context, /* rotate = */ true, item)
+        connectToDeviceForScreen(context, /* rotate = */ true, item?.hostname)
     ),
     vscodeRegisterCommand(
       'chromiumide.deviceManagement.connectToDeviceForShell',
-      (item?: provider.DeviceItem) => connectToDeviceForShell(context, item)
+      (item?: provider.DeviceItem) =>
+        connectToDeviceForShell(context, item?.hostname)
     ),
     vscodeRegisterCommand(
       'chromiumide.deviceManagement.openSystemLogViewer',
-      (item?: provider.DeviceItem) => openSystemLogViewer(context, item)
+      (item?: provider.DeviceItem) =>
+        openSystemLogViewer(context, item?.hostname)
     ),
     vscodeRegisterCommand('chromiumide.deviceManagement.crosfleetLogin', () =>
       crosfleetLogin(context)
@@ -102,7 +104,7 @@ export function registerCommands(
     ),
     vscodeRegisterCommand(
       'chromiumide.deviceManagement.abandonLease',
-      (item?: provider.DeviceItem) => abandonLease(context, item)
+      (item?: provider.DeviceItem) => abandonLease(context, item?.hostname)
     ),
     vscodeRegisterCommand(
       'chromiumide.deviceManagement.copyHostname',
@@ -147,7 +149,7 @@ function registerChromiumosCommands(
       vscodeRegisterCommand(
         'chromiumide.deviceManagement.flashPrebuiltImage',
         (item?: provider.DeviceItem) =>
-          flashPrebuiltImage(context, chrootService, item)
+          flashPrebuiltImage(context, chrootService, item?.hostname)
       )
     );
 
@@ -155,7 +157,7 @@ function registerChromiumosCommands(
       vscodeRegisterCommand(
         'chromiumide.deviceManagement.deployToDevice',
         (item?: provider.DeviceItem) =>
-          deployToDevice(context, chrootService, item)
+          deployToDevice(context, chrootService, item?.hostname)
       )
     );
 

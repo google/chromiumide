@@ -12,7 +12,6 @@ import {ImageVersion, getChromeMilestones} from '../../../common/image_version';
 import * as services from '../../../services';
 import {Metrics} from '../../metrics/metrics';
 import {DeviceClient} from '../device_client';
-import * as provider from '../device_tree_data_provider';
 import * as prebuiltUtil from '../prebuilt_util';
 import {
   SimplePickItem,
@@ -295,7 +294,7 @@ async function flashImageToDevice(
 export async function flashPrebuiltImage(
   context: CommandContext,
   chrootService?: services.chromiumos.ChrootService,
-  item?: provider.DeviceItem
+  selectedHostname?: string
 ): Promise<void> {
   if (!chrootService) {
     void showMissingInternalRepoErrorMessage('Flashing prebuilt image');
@@ -304,7 +303,7 @@ export async function flashPrebuiltImage(
 
   const hostname = await promptKnownHostnameIfNeeded(
     'Device to Flash',
-    item,
+    selectedHostname,
     context.deviceRepository
   );
   if (!hostname) {

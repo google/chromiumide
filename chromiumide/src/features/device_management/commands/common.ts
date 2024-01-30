@@ -8,7 +8,6 @@ import * as abandonedDevices from '../abandoned_devices';
 import * as crosfleet from '../crosfleet';
 import * as client from '../device_client';
 import * as repository from '../device_repository';
-import * as provider from '../device_tree_data_provider';
 import * as sshConfig from '../ssh_config';
 import {SshIdentity} from '../ssh_identity';
 import * as ssh from '../ssh_session';
@@ -48,14 +47,14 @@ export async function promptNewHostname(
  */
 export async function promptKnownHostnameIfNeeded(
   title: string,
-  item: provider.DeviceItem | undefined,
+  hostname: string | undefined,
   deviceRepository:
     | repository.DeviceRepository
     | repository.OwnedDeviceRepository
     | repository.LeasedDeviceRepository
 ): Promise<string | undefined> {
-  if (item) {
-    return item.hostname;
+  if (hostname) {
+    return hostname;
   }
 
   const devices = await deviceRepository.getDevices();

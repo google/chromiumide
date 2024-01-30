@@ -8,7 +8,6 @@ import {MemoryOutputChannel} from '../../../common/memory_output_channel';
 import * as shutil from '../../../common/shutil';
 import {TeeOutputChannel} from '../../../common/tee_output_channel';
 import {Metrics} from '../../metrics/metrics';
-import * as provider from '../device_tree_data_provider';
 import {
   createShowLogsButton,
   diagnoseSshError,
@@ -19,7 +18,7 @@ import {CommandContext, promptKnownHostnameIfNeeded} from './common';
 
 export async function connectToDeviceForShell(
   context: CommandContext,
-  item?: provider.DeviceItem
+  selectedHostname?: string
 ): Promise<void> {
   Metrics.send({
     category: 'interactive',
@@ -30,7 +29,7 @@ export async function connectToDeviceForShell(
 
   const hostname = await promptKnownHostnameIfNeeded(
     'Connect to Device',
-    item,
+    selectedHostname,
     context.deviceRepository
   );
   if (!hostname) {

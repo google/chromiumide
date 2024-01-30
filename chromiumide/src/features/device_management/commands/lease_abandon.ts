@@ -4,12 +4,11 @@
 
 import * as vscode from 'vscode';
 import {Metrics} from '../../metrics/metrics';
-import * as provider from '../device_tree_data_provider';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
 
 export async function abandonLease(
   context: CommandContext,
-  item?: provider.DeviceItem
+  selectedHostname?: string
 ): Promise<void> {
   Metrics.send({
     category: 'interactive',
@@ -20,7 +19,7 @@ export async function abandonLease(
 
   const hostname = await promptKnownHostnameIfNeeded(
     'Device to Abandon',
-    item,
+    selectedHostname,
     context.deviceRepository.leased
   );
   if (!hostname) {

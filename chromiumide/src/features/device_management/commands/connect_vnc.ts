@@ -3,14 +3,13 @@
 // found in the LICENSE file.
 
 import {Metrics} from '../../metrics/metrics';
-import * as provider from '../device_tree_data_provider';
 import * as vnc from '../vnc_session';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
 
 export async function connectToDeviceForScreen(
   context: CommandContext,
   rotate: boolean,
-  item?: provider.DeviceItem
+  selectedHostname?: string
 ): Promise<void> {
   Metrics.send({
     category: 'interactive',
@@ -21,7 +20,7 @@ export async function connectToDeviceForScreen(
 
   const hostname = await promptKnownHostnameIfNeeded(
     'Connect to Device',
-    item,
+    selectedHostname,
     context.deviceRepository
   );
   if (!hostname) {

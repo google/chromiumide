@@ -4,13 +4,12 @@
 
 import * as vscode from 'vscode';
 import {Metrics} from '../../metrics/metrics';
-import * as provider from '../device_tree_data_provider';
 import * as sshConfig from '../ssh_config';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
 
 export async function deleteDevice(
   context: CommandContext,
-  item?: provider.DeviceItem
+  selectedHostname?: string
 ): Promise<void> {
   Metrics.send({
     category: 'interactive',
@@ -21,7 +20,7 @@ export async function deleteDevice(
 
   const hostname = await promptKnownHostnameIfNeeded(
     'Delete Device',
-    item,
+    selectedHostname,
     context.deviceRepository.owned
   );
   if (!hostname) {

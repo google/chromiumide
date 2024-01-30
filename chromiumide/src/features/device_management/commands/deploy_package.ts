@@ -11,7 +11,6 @@ import {
   Package,
   packageCmp,
 } from '../../chromiumos/boards_and_packages/package';
-import {DeviceItem} from '../device_tree_data_provider';
 import {
   CommandContext,
   ensureSshSession,
@@ -40,7 +39,7 @@ const GLOBAL_BOARD_TO_PACKAGE_CACHE = new LruCache<string, Package[]>(
 export async function deployToDevice(
   context: CommandContext,
   chrootService?: services.chromiumos.ChrootService,
-  item?: DeviceItem
+  selectedHostname?: string
 ): Promise<void> {
   if (!chrootService) {
     void showMissingInternalRepoErrorMessage('Deploying package to device');
@@ -49,7 +48,7 @@ export async function deployToDevice(
 
   const hostname = await promptKnownHostnameIfNeeded(
     'Device to deploy package to',
-    item,
+    selectedHostname,
     context.deviceRepository
   );
   if (!hostname) return;
