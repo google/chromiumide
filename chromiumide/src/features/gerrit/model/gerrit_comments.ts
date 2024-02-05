@@ -133,10 +133,13 @@ export class GerritComments implements vscode.Disposable {
     const repoId = await git.getRepoId(gitDir, sink);
     if (repoId === undefined) return;
     const authCookie = await auth.readAuthCookie(repoId, sink);
-    let gitLogInfos: git.GitLogInfo[];
+    let gitLogInfos: git.GitLogInfo[] = [];
     if (repoId === 'chromium') {
       gitLogInfos = await git.readChangeIdsUsingGitCl(gitDir, sink);
-    } else {
+    }
+    // For ChromeOS repositories, and if a Chromium developer uses a detached HEAD workflow where
+    // `git cl issue` does not work and the Change-ID of commits in git log should be parsed.
+    if (gitLogInfos.length === 0) {
       gitLogInfos = await git.readGitLog(gitDir, sink);
     }
     if (gitLogInfos.length === 0) return;
