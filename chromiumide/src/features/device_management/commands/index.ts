@@ -6,6 +6,7 @@ import * as vscode from 'vscode';
 import {vscodeRegisterCommand} from '../../../common/vscode/commands';
 import * as services from '../../../services';
 import {underDevelopment} from '../../../services/config';
+import {Metrics} from '../../metrics/metrics';
 import * as abandonedDevices from '../abandoned_devices';
 import * as crosfleet from '../crosfleet';
 import * as client from '../device_client';
@@ -167,12 +168,30 @@ function registerChromiumosCommands(
       subscriptions.push(
         vscodeRegisterCommand(
           'chromiumide.deviceManagement.checkDeviceImageCompatibilityOrSuggest',
-          (item: provider.DeviceItem) =>
-            checkDeviceImageCompatibilityOrSuggest(
+          async (item: provider.DeviceItem) => {
+            const outcome = await checkDeviceImageCompatibilityOrSuggest(
               context,
               chrootService,
               item?.hostname
-            )
+            );
+            if (outcome instanceof Error) {
+              Metrics.send({
+                category: 'error',
+                group: 'device',
+                name: 'device_management_check_or_suggest_image_error',
+                description: 'check image compatibility command failed',
+                outcome: 'error flashing image',
+              });
+            } else {
+              Metrics.send({
+                category: 'interactive',
+                group: 'device',
+                name: 'device_management_check_or_suggest_image',
+                description: 'check image compatibility command completed',
+                outcome: outcome,
+              });
+            }
+          }
         ),
         vscodeRegisterCommand('chromiumide.deviceManagement.runTastTests', () =>
           runTastTests(context, chrootService)

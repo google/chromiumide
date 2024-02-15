@@ -21,22 +21,31 @@ const FLASH_ANY_IMAGE_OPTION = 'Yes, show flash image menu.';
 const OPEN_VERSION_THRESHOLD_OPTION =
   'No, open extension config to change version skew threshold.';
 
+export enum CheckOutcome {
+  CANCELLED = 'cancelled',
+  PASSED = 'passed',
+  FLASHED_FROM_MENU = 'flashed arbitrary image from menu',
+  SKIPPED_FLASH = 'skipped flash new image suggestion',
+  OPEN_VERSION_MAX_SKEW_CONFIG = 'open settings for version max skew',
+}
+
 /*
  * Runs cros-debug flag and CrOS image version check on device image.
+ * Returns whether the check passed and user action otherwise.
  * TODO(hscham): Suggest new image to flash if deemed incompatible.
  */
 export async function checkDeviceImageCompatibilityOrSuggest(
   context: CommandContext,
   chrootService: chromiumos.ChrootService,
   deviceHostname?: string
-): Promise<void> {
+): Promise<CheckOutcome | Error> {
   const hostname = await promptKnownHostnameIfNeeded(
     'Target Device',
     deviceHostname,
     context.deviceRepository
   );
   if (!hostname) {
-    return;
+    return CheckOutcome.CANCELLED;
   }
   const {input, output} = await vscode.window.withProgress(
     {
@@ -59,7 +68,7 @@ export async function checkDeviceImageCompatibilityOrSuggest(
       detail: resultSummary.details,
       modal: true,
     });
-    return;
+    return CheckOutcome.PASSED;
   }
 
   // TODO(hscham) Implement a simpler choice where user can choose from a list of images with item
@@ -79,11 +88,18 @@ export async function checkDeviceImageCompatibilityOrSuggest(
     ...options
   );
   if (option === FLASH_ANY_IMAGE_OPTION) {
-    await flashPrebuiltImage(context, chrootService, hostname);
+    const flashImageStatus = await flashPrebuiltImage(
+      context,
+      chrootService,
+      hostname
+    );
+    if (flashImageStatus instanceof Error) return flashImageStatus;
+    if (flashImageStatus) return CheckOutcome.FLASHED_FROM_MENU;
   } else if (option === OPEN_VERSION_THRESHOLD_OPTION) {
     void deviceManagement.imageVersionMaxSkew.openSettings();
+    return CheckOutcome.OPEN_VERSION_MAX_SKEW_CONFIG;
   }
-  return;
+  return CheckOutcome.SKIPPED_FLASH;
 }
 
 /*

@@ -242,6 +242,16 @@ type DeviceManagementEvent = EventBase & {group: 'device'} & (
       }
     | {
         category: 'interactive';
+        name: 'device_management_check_or_suggest_image';
+        outcome: string;
+      }
+    | {
+        category: 'error';
+        name: 'device_management_check_or_suggest_image_error';
+        outcome: string;
+      }
+    | {
+        category: 'interactive';
         name: 'device_management_copy_device_attribute';
         attribute: string;
       }
