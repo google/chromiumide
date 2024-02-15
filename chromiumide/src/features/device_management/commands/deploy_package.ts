@@ -4,6 +4,7 @@
 
 import * as vscode from 'vscode';
 import {Board} from '../../../common/chromiumos/board_or_host/board';
+import {parseQualifiedPackageName} from '../../../common/chromiumos/portage/ebuild';
 import {LruCache} from '../../../common/lru_cache';
 import * as services from '../../../services';
 import {
@@ -11,6 +12,12 @@ import {
   Package,
   packageCmp,
 } from '../../chromiumos/boards_and_packages/package';
+import {Metrics} from '../../metrics/metrics';
+import {
+  checkDeviceImageCompatibilityOrSuggest,
+  CheckOutcome,
+  ResultDisplayMode,
+} from './check_image/check_image';
 import {
   CommandContext,
   ensureSshSession,
@@ -36,10 +43,12 @@ const GLOBAL_BOARD_TO_PACKAGE_CACHE = new LruCache<string, Package[]>(
   CACHE_CAPACITY
 );
 
+// TODO(b/308059094): add command entry point from boards and packages panel.
 export async function deployToDevice(
   context: CommandContext,
   chrootService?: services.chromiumos.ChrootService,
-  selectedHostname?: string
+  selectedHostname?: string,
+  selectedPackage?: string
 ): Promise<void> {
   if (!chrootService) {
     void showMissingInternalRepoErrorMessage('Deploying package to device');
@@ -67,12 +76,50 @@ export async function deployToDevice(
     return;
   }
 
-  const targetPackage = await promptTargetPackageWithCache(
-    board,
-    GLOBAL_BOARD_TO_PACKAGE_CACHE,
-    () => loadPackagesOnBoardOrThrow(board, context, chrootService)
-  );
+  const targetPackage =
+    selectedPackage ??
+    (await promptTargetPackageWithCache(
+      board,
+      GLOBAL_BOARD_TO_PACKAGE_CACHE,
+      () => loadPackagesOnBoardOrThrow(board, context, chrootService)
+    ));
   if (!targetPackage) return;
+
+  // Check device is compatible with respect to device and package. User will be prompted to
+  // optionally flash the device with a new image first if the check fails.
+  // Abort this command if user cancels the check at any point, implying deploy package should also
+  // be cancelled.
+  const checkOutcome = await checkDeviceImageCompatibilityOrSuggest(
+    context,
+    chrootService,
+    hostname,
+    parseQualifiedPackageName(targetPackage),
+    ResultDisplayMode.QUICKPICK,
+    'No, deploy package directly.'
+  );
+  // Report on outcome to understand usefulness of the feature.
+  Metrics.send({
+    category: 'interactive',
+    group: 'device',
+    name: 'device_management_deploy_package',
+    description: 'deploy package',
+    package: targetPackage,
+    outcome: checkOutcome instanceof Error ? 'error' : checkOutcome,
+  });
+
+  // Option to cancel deploy package command if the flashing step fails.
+  if (checkOutcome instanceof Error) {
+    const option = await vscode.window.showErrorMessage(
+      'Failed to flash image to device, continue to deploy package?',
+      'Yes',
+      'No'
+    );
+    if (option === 'No') return;
+  }
+
+  if (checkOutcome === CheckOutcome.CANCELLED) {
+    return;
+  }
 
   // Port forwarding is necessary for connecting to device to run cros deploy from chroot.
   const port = await ensureSshSession(context, hostname);

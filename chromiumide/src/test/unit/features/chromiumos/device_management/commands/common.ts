@@ -4,14 +4,24 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
+import {
+  BoardOrHost,
+  parseBoardOrHost,
+} from '../../../../../../common/chromiumos/board_or_host';
 import * as commonUtil from '../../../../../../common/common_util';
 import {
   CommandContext,
   SimplePickItem,
 } from '../../../../../../features/device_management/commands/common';
 import {TEST_ONLY} from '../../../../../../features/device_management/commands/tast/tast_common';
+import {
+  DeviceAttributes,
+  DeviceClient,
+} from '../../../../../../features/device_management/device_client';
 import {DeviceCategory} from '../../../../../../features/device_management/device_repository';
+import {SshIdentity} from '../../../../../../features/device_management/ssh_identity';
 import {Metrics} from '../../../../../../features/metrics/metrics';
+import {ChromiumosServiceModule} from '../../../../../../services/chromiumos';
 import * as testing from '../../../../../testing';
 import {VscodeGetters, VscodeSpy} from '../../../../../testing/doubles';
 import {arrayWithPrefix} from '../../../../testing/jasmine/asymmetric_matcher';
@@ -33,6 +43,15 @@ export type Config = {
     /** Name of the Tast test to pick from the listed tests. */
     testsToPick: string[];
   };
+  boardConfig?: {
+    boardName: string;
+    prebuiltCrosMajorVersion?: number;
+    packageConfigs: {
+      packageName: string;
+      crosDebugFlag: boolean | undefined;
+    }[];
+  };
+  deviceConfig?: DeviceAttributes;
 };
 
 /**
@@ -47,7 +66,7 @@ export async function prepareCommonFakes(
   config: Config,
   subscriptions: vscode.Disposable[]
 ): Promise<CommandContext> {
-  const {chromiumos, tastTestConfig} = config;
+  const {chromiumos, tastTestConfig, boardConfig, deviceConfig} = config;
 
   // Prepare a fake chroot.
   await testing.buildFakeChroot(chromiumos);
@@ -67,6 +86,14 @@ export async function prepareCommonFakes(
     {hostname: hostname, category: DeviceCategory.OWNED},
     {hostname: 'other', category: DeviceCategory.OWNED},
   ]);
+  const deviceClient = new DeviceClient(
+    deviceRepository,
+    new SshIdentity(testing.getExtensionUri(), new ChromiumosServiceModule()),
+    vscode.window.createOutputChannel('void'),
+    new Map<string, DeviceAttributes>(
+      deviceConfig ? [[hostname, deviceConfig]] : []
+    )
+  );
 
   const hostnameItem = new SimplePickItem(hostname);
   const otherHostnameItem = new SimplePickItem('other');
@@ -103,10 +130,77 @@ export async function prepareCommonFakes(
     );
   }
 
+  if (boardConfig) {
+    const {boardName, prebuiltCrosMajorVersion, packageConfigs} = boardConfig;
+    if (prebuiltCrosMajorVersion) {
+      const files: {[name: string]: string} = {};
+      files[
+        `src/private-overlays/chromeos-partner-overlay/chromeos/binhost/target/${boardName}-POSTSUBMIT_BINHOST.conf`
+      ] = `POSTSUBMIT_BINHOST="gs://chromeos-prebuilt/board/${boardName}/postsubmit-R1-${prebuiltCrosMajorVersion}.0.0-93635-8758349179001996977/packages gs://chromeos-prebuilt/board/${boardName}/postsubmit-R1-${prebuiltCrosMajorVersion}.0.0-93676-8758270828991947137/packages"`;
+      await testing.putFiles(chromiumos, files);
+    }
+    for (const packageConfig of packageConfigs) {
+      const {packageName, crosDebugFlag} = packageConfig;
+      installEmergeForUseFlagsCommandHandler(
+        fakeExec,
+        chromiumos,
+        parseBoardOrHost(boardName),
+        packageName,
+        `
+These are the packages that would be merged, in order:
+
+[binary   R   *] ${packageName}-9999:0/9999::chromiumos to /build/${boardName}/ USE="${
+          crosDebugFlag !== undefined
+            ? `${crosDebugFlag ? '' : '-'}cros-debug`
+            : ''
+        }" 0 KiB
+
+Total: 1 package (1 reinstall, 1 binary), Size of downloads: 0 KiB
+`
+      );
+    }
+  }
+
   return {
     deviceRepository,
+    deviceClient,
     sshIdentity: sshServer.sshIdentity,
     sshSessions: new Map(),
     output: new testing.fakes.VoidOutputChannel() as vscode.OutputChannel,
   } as CommandContext;
+}
+
+export function installEmergeForUseFlagsCommandHandler(
+  fakeExec: testing.FakeExec,
+  sourcePath: string,
+  board: BoardOrHost,
+  packageName: string,
+  stdout: string,
+  stderr?: string,
+  exitSatus?: number
+): void {
+  const cmd = board.suffixedExecutable('emerge');
+  const args = [
+    '--pretend',
+    '--verbose',
+    '--nodeps',
+    '--usepkgonly',
+    packageName,
+  ];
+  testing.fakes.installChrootCommandHandler(
+    fakeExec,
+    sourcePath as commonUtil.Source,
+    cmd,
+    args,
+    async () =>
+      exitSatus
+        ? new commonUtil.AbnormalExitError(
+            cmd,
+            args,
+            exitSatus,
+            stdout,
+            stderr ?? ''
+          )
+        : stdout
+  );
 }

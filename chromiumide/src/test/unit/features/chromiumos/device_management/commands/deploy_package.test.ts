@@ -3,11 +3,16 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import * as commonUtil from '../../../../../../common/common_util';
 import {LruCache} from '../../../../../../common/lru_cache';
 import {Package} from '../../../../../../features/chromiumos/boards_and_packages/package';
 import * as deployPackages from '../../../../../../features/device_management/commands/deploy_package';
+import {ChrootService} from '../../../../../../services/chromiumos';
 import * as testing from '../../../../../testing';
+import {installChrootCommandHandler} from '../../../../../testing/fakes';
 import {FakeQuickPick} from '../../../../../testing/fakes/quick_pick';
+import {arrayWithPrefix} from '../../../../testing/jasmine/asymmetric_matcher';
+import {prepareCommonFakes} from './common';
 
 const PACKAGES_LIST = [
   {
@@ -156,5 +161,73 @@ describe('Prompt target package', () => {
     state.picker.accept();
 
     expect(await gettingTargetPackage).toEqual(PACKAGE_FULL_NAME_NEW);
+  });
+});
+
+describe('deploy package command', () => {
+  const {vscodeSpy, vscodeEmitters, vscodeGetters} =
+    testing.installVscodeDouble();
+  testing.installFakeConfigs(vscodeSpy, vscodeEmitters);
+
+  const {fakeExec} = testing.installFakeExec();
+
+  const tempDir = testing.tempDir();
+
+  const subscriptions: vscode.Disposable[] = [];
+  afterEach(() => {
+    vscode.Disposable.from(...subscriptions.splice(0).reverse()).dispose();
+  });
+
+  it('runs successfully', async () => {
+    // Prepare a fake chroot.
+    const chromiumos = tempDir.path as commonUtil.Source;
+
+    const context = await prepareCommonFakes(
+      fakeExec,
+      vscodeGetters,
+      vscodeSpy,
+      {
+        chromiumos,
+        boardConfig: {
+          boardName: 'foo',
+          prebuiltCrosMajorVersion: 2,
+          packageConfigs: [
+            {
+              packageName: 'chromeos-base/bar',
+              crosDebugFlag: true,
+            },
+          ],
+        },
+        deviceConfig: {
+          board: 'foo',
+          imageType: 'local',
+          builderPath: undefined,
+          chromeosMajorVersion: 2,
+          chromeosReleaseVersion: '2.0.0',
+        },
+      },
+      subscriptions
+    );
+
+    // Prepare external command responses.
+    installChrootCommandHandler(
+      fakeExec,
+      chromiumos,
+      'cros',
+      arrayWithPrefix('deploy'),
+      async () => '' // OK
+    );
+
+    await deployPackages.deployToDevice(
+      context,
+      ChrootService.maybeCreate(chromiumos, /* setContext = */ false)!,
+      undefined, // prepareCommonFakes will return the faked local host
+      'chromeos-base/bar'
+    );
+    expect(vscodeSpy.window.showErrorMessage).toHaveBeenCalledTimes(0);
+    expect(vscodeSpy.window.showWarningMessage).toHaveBeenCalledTimes(0);
+    expect(vscodeSpy.window.showInformationMessage).toHaveBeenCalledOnceWith(
+      jasmine.stringMatching(/cros deploy.*succeeded/)
+    );
   });
 });

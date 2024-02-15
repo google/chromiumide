@@ -253,6 +253,12 @@ type DeviceManagementEvent = EventBase & {group: 'device'} & (
       }
     | {
         category: 'interactive';
+        name: 'device_management_deploy_package';
+        package: string;
+        outcome: string;
+      }
+    | {
+        category: 'interactive';
         name: 'device_management_copy_device_attribute';
         attribute: string;
       }
