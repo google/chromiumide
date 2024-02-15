@@ -18,6 +18,7 @@ import {
   CommandContext,
   promptKnownHostnameIfNeeded,
   showMissingInternalRepoErrorMessage,
+  missingInternalRepoErrorMessage,
 } from './common';
 
 // Path to the private credentials needed to access prebuilts, relative to
@@ -244,7 +245,7 @@ async function flashImageToDevice(
   deviceClient: DeviceClient,
   root: Source,
   output: vscode.OutputChannel
-): Promise<void> {
+): Promise<boolean | Error> {
   const res = await vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
@@ -282,23 +283,36 @@ async function flashImageToDevice(
         output.show();
       }
     })();
-    return;
+    if (res instanceof vscode.CancellationError) return false;
+    return res;
   }
   void vscode.window.showInformationMessage(
     `cros flash ${imagePath} to ${hostname} succeeded`
   );
 
   void deviceClient.refresh([hostname]);
+  return true;
 }
 
+/*
+ * Flashes device with image after prompting all necessary information.
+ * Returns whether the operation completes (possibly cancelled by user, by not responding to prompts
+ * for device, etc) or error, if any.
+ *
+ * The specific step that fails are responsible for showing the error message to user, if
+ * appropriate, since they are able to and might want to customize extra action item.
+ * Callsites of `flashPrebuiltImage` are not expected to do it.
+ */
 export async function flashPrebuiltImage(
   context: CommandContext,
   chrootService?: services.chromiumos.ChrootService,
   selectedHostname?: string
-): Promise<void> {
+): Promise<boolean | Error> {
   if (!chrootService) {
     void showMissingInternalRepoErrorMessage('Flashing prebuilt image');
-    return;
+    return new Error(
+      missingInternalRepoErrorMessage('Flashing prebuilt image')
+    );
   }
 
   const hostname = await promptKnownHostnameIfNeeded(
@@ -307,7 +321,7 @@ export async function flashPrebuiltImage(
     context.deviceRepository
   );
   if (!hostname) {
-    return;
+    return false;
   }
 
   const attributes = await context.deviceClient.getDeviceAttributes(hostname);
@@ -322,7 +336,7 @@ export async function flashPrebuiltImage(
     ignoreFocusOut: true,
   });
   if (!board) {
-    return;
+    return false;
   }
 
   const imageType = await vscode.window.showQuickPick(
@@ -330,7 +344,7 @@ export async function flashPrebuiltImage(
     {ignoreFocusOut: true}
   );
   if (!imageType) {
-    return;
+    return false;
   }
 
   const imagePath =
@@ -353,7 +367,7 @@ export async function flashPrebuiltImage(
         );
 
   // Version is undefined because user hide the picker (by pressing esc).
-  if (!imagePath) return;
+  if (!imagePath) return false;
 
   Metrics.send({
     category: 'interactive',
@@ -362,7 +376,7 @@ export async function flashPrebuiltImage(
     description: 'flash prebuilt image',
     image_type: imageType,
   });
-  await flashImageToDevice(
+  return await flashImageToDevice(
     hostname,
     imagePath,
     context.deviceClient,

@@ -176,6 +176,10 @@ export async function ensureSshSession(
   return port;
 }
 
+export function missingInternalRepoErrorMessage(command: string): string {
+  return `${command} requires internal chromiumos source code. Please set it up following the official guide, and open a folder in chromiumos repository.`;
+}
+
 export async function showMissingInternalRepoErrorMessage(
   command: string
 ): Promise<void> {
@@ -184,7 +188,7 @@ export async function showMissingInternalRepoErrorMessage(
 
   switch (
     await vscode.window.showErrorMessage(
-      `${command} requires internal chromiumos source code. Please set it up following the official guide, and open a folder in chromiumos repository.`,
+      missingInternalRepoErrorMessage(command),
       openGuide,
       openFolder
     )
