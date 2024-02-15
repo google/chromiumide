@@ -170,7 +170,12 @@ export function activate(
             path.join(srcPath, CURRENT_LINK_NAME)
           ))
         ) {
-          return vscode.window.showErrorMessage('Unable to update symlink.');
+          // Report to user with action item if we cannot update out/current_link because it already
+          // exists but is not a symlink (i.e. not created by the extension, maybe the user created
+          // an out directory with the same name).
+          return vscode.window.showErrorMessage(
+            'Unable to update output directory because out/current_link exists but is not a symlink. Please rename or remove out/current_link and retry.'
+          );
         }
         await Promise.all([
           vscode.window.showInformationMessage(
