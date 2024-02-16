@@ -84,6 +84,11 @@
         "title": "Generate C++ xrefs for the active file"
       },
       {
+        "command": "chromiumide.deviceManagement.setDefaultDevice",
+        "category": "CrOS",
+        "title": "Set as Default Device"
+      },
+      {
         "command": "chromiumide.deviceManagement.connectToDeviceForScreen",
         "category": "CrOS",
         "title": "Connect to Device (VNC)",
@@ -614,6 +619,11 @@
           "group": "inline"
         },
         {
+          "command": "chromiumide.deviceManagement.setDefaultDevice",
+          "when": "view == devices && viewItem =~ /^device-/ && !(viewItem =~ /-default$/)",
+          "group": "0_set"
+        },
+        {
           "command": "chromiumide.cppxrefs.forceGenerate",
           "when": "view == chromiumide-status && viewItem == cppxrefs",
           "group": "1_generate"
@@ -813,6 +823,10 @@
           "when": "false"
         },
         {
+          "command": "chromiumide.deviceManagement.setDefaultDevice",
+          "when": "false"
+        },
+        {
           "command": "chromiumide.deviceManagement.copyHostname",
           "when": "false"
         },
@@ -971,6 +985,10 @@
           "items": {
             "type": "string"
           }
+        },
+        "chromiumide.deviceManagement.default": {
+          "type": "string",
+          "description": "Hostname of the default device"
         },
         "chromiumide.deviceManagement.imageVersionMaxSkew": {
           "type": "number",

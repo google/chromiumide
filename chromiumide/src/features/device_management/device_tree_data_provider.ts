@@ -37,34 +37,54 @@ export class DeviceAttributeItem extends vscode.TreeItem {
 export class DeviceItem extends vscode.TreeItem {
   readonly kind = ItemKind.DEVICE;
   readonly hostname: string;
-  override readonly iconPath = new vscode.ThemeIcon('device-desktop');
+  override readonly iconPath: vscode.ThemeIcon;
 
-  constructor(readonly device: repository.Device) {
-    // Expand by default to show device attributes. There are at most three items now (board, model,
-    // builder path) so the view is not too cramped. Revisit the choice if more items are added.
-    super(device.hostname, vscode.TreeItemCollapsibleState.Expanded);
+  constructor(readonly device: repository.Device, isDefault: boolean) {
+    // Expand by default to show device attributes of the default device only to avoid cluttering.
+    super(
+      device.hostname,
+      isDefault
+        ? vscode.TreeItemCollapsibleState.Expanded
+        : vscode.TreeItemCollapsibleState.Collapsed
+    );
     this.hostname = device.hostname;
+    this.iconPath = new vscode.ThemeIcon(
+      // 'vm-active' is the same as 'device-desktop' with a tick. There is no equivalent icon with
+      // the desktop prefix.
+      isDefault ? 'vm-active' : 'device-desktop'
+    );
+    if (isDefault) {
+      this.description = 'default';
+    }
   }
 }
 
 export class OwnedDeviceItem extends DeviceItem {
-  override readonly contextValue = 'device-owned';
+  override readonly contextValue;
 
-  constructor(override readonly device: repository.OwnedDevice) {
-    super(device);
+  constructor(
+    override readonly device: repository.OwnedDevice,
+    isDefault = false
+  ) {
+    super(device, isDefault);
+    this.contextValue = isDefault ? 'device-owned-default' : 'device-owned';
   }
 }
 
 export class LeasedDeviceItem extends DeviceItem {
-  override readonly contextValue = 'device-leased';
+  override readonly contextValue;
 
-  constructor(override readonly device: repository.LeasedDevice) {
-    super(device);
+  constructor(
+    override readonly device: repository.LeasedDevice,
+    isDefault = false
+  ) {
+    super(device, isDefault);
     const now = new Date();
     if (device.deadline) {
       const distance = dateFns.differenceInMinutes(device.deadline, now);
-      this.description = ` (${distance}m remaining)`;
+      this.description = `${this.description} (${distance}m remaining)`;
     }
+    this.contextValue = isDefault ? 'device-leased-default' : 'device-leased';
   }
 }
 
@@ -176,7 +196,13 @@ export class DeviceTreeDataProvider
           items.push(
             ...this.deviceRepository.owned
               .getDevices()
-              .map(d => new OwnedDeviceItem(d))
+              .map(
+                d =>
+                  new OwnedDeviceItem(
+                    d,
+                    d.hostname === this.deviceRepository.defaultDevice
+                  )
+              )
           );
           break;
         case repository.DeviceCategory.LEASED:
@@ -185,7 +211,11 @@ export class DeviceTreeDataProvider
           } else {
             items.push(
               ...(await this.deviceRepository.leased.getDevices()).map(
-                d => new LeasedDeviceItem(d)
+                d =>
+                  new LeasedDeviceItem(
+                    d,
+                    d.hostname === this.deviceRepository.defaultDevice
+                  )
               )
             );
           }

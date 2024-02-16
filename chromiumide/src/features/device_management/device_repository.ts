@@ -224,6 +224,7 @@ export class DeviceRepository {
 
   readonly owned: OwnedDeviceRepository;
   readonly leased: LeasedDeviceRepository;
+  private defaultDeviceInternal: string;
 
   constructor(
     crosfleetRunner: crosfleet.CrosfleetRunner,
@@ -231,6 +232,7 @@ export class DeviceRepository {
   ) {
     this.owned = new OwnedDeviceRepository();
     this.leased = new LeasedDeviceRepository(crosfleetRunner, abandonedDevices);
+    this.defaultDeviceInternal = config.deviceManagement.default.get();
 
     this.subscriptions.push(this.owned, this.leased);
 
@@ -239,6 +241,10 @@ export class DeviceRepository {
         this.onDidChangeEmitter.fire();
       }),
       this.leased.onDidChange(() => {
+        this.onDidChangeEmitter.fire();
+      }),
+      config.deviceManagement.default.onDidChange(defaultDevice => {
+        this.defaultDeviceInternal = defaultDevice;
         this.onDidChangeEmitter.fire();
       })
     );
@@ -256,5 +262,9 @@ export class DeviceRepository {
 
   async getHostnames(): Promise<string[]> {
     return (await this.getDevices()).map(device => device.hostname);
+  }
+
+  get defaultDevice(): string {
+    return this.defaultDeviceInternal;
   }
 }

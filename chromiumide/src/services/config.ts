@@ -179,6 +179,7 @@ export const underDevelopment = {
 
 export const deviceManagement = {
   devices: new ConfigValue<string[]>('deviceManagement.devices'),
+  default: new ConfigValue<string>('deviceManagement.default'),
   // For checking image compatibility with local environment (maximum difference between the
   // ChromeOS major version on device and local prebuilt).
   imageVersionMaxSkew: new ConfigValue<number>(

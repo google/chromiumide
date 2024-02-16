@@ -29,6 +29,7 @@ import {flashPrebuiltImage} from './flash_prebuilt_image';
 import {abandonLease} from './lease_abandon';
 import {addLease} from './lease_add';
 import {refreshLeases} from './lease_refresh';
+import {setDefaultDevice} from './set_default_device';
 import {openSystemLogViewer} from './syslog_viewer';
 import {debugTastTests, runTastTests} from './tast';
 
@@ -70,6 +71,10 @@ export function registerCommands(
     ),
     vscodeRegisterCommand('chromiumide.deviceManagement.addExistingHosts', () =>
       addExistingHostsCommand(context)
+    ),
+    vscodeRegisterCommand(
+      'chromiumide.deviceManagement.setDefaultDevice',
+      (item: provider.DeviceItem) => setDefaultDevice(item.hostname)
     ),
     vscodeRegisterCommand(
       'chromiumide.deviceManagement.deleteDevice',
