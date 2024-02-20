@@ -250,6 +250,11 @@ type DeviceManagementEvent = EventBase & {group: 'device'} & (
         outcome: string;
       }
     | {
+        category: 'background';
+        name: 'device_management_default_device_image_check';
+        outcome: string;
+      }
+    | {
         category: 'error';
         name: 'device_management_check_or_suggest_image_error';
         outcome: string;

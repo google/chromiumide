@@ -16,7 +16,10 @@ import {SshIdentity} from '../ssh_identity';
 import * as ssh from '../ssh_session';
 import * as vnc from '../vnc_session';
 import {addExistingHostsCommand} from './add_existing_hosts';
-import {checkDeviceImageCompatibilityOrSuggest} from './check_image';
+import {
+  checkDeviceImageCompatibilityOrSuggest,
+  ResultDisplayMode,
+} from './check_image';
 import {CommandContext} from './common';
 import {connectToDeviceForShell} from './connect_ssh';
 import {connectToDeviceForScreen} from './connect_vnc';
@@ -218,7 +221,35 @@ function registerChromiumosCommands(
   return vscode.Disposable.from(
     chromiumosServices.onDidUpdate(event => {
       updateChromiumosCommands(event?.chrootService);
+
+      if (event?.chrootService) {
+        void checkImageOfDefaultDevice(context, event.chrootService);
+      }
     }),
     new vscode.Disposable(disposeSubscriptions)
   );
+}
+
+async function checkImageOfDefaultDevice(
+  context: CommandContext,
+  chrootService: services.chromiumos.ChrootService
+): Promise<void> {
+  const defaultDevice = (await context.deviceRepository.getDevices()).find(d =>
+    repository.isDefaultDevice(d)
+  );
+  if (!defaultDevice) return;
+  const outcome = await checkDeviceImageCompatibilityOrSuggest(
+    context,
+    chrootService,
+    defaultDevice.hostname,
+    ResultDisplayMode.MESSAGE
+  );
+  // Report on outcome to understand usefulness of the feature.
+  Metrics.send({
+    category: 'background',
+    group: 'device',
+    name: 'device_management_default_device_image_check',
+    description: 'image check of default device on activation',
+    outcome: outcome instanceof Error ? 'error' : outcome,
+  });
 }
