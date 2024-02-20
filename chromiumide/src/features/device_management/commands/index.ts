@@ -66,9 +66,6 @@ export function registerCommands(
   };
 
   return vscode.Disposable.from(
-    vscodeRegisterCommand('chromiumide.deviceManagement.addDevice', () =>
-      addDevice(context)
-    ),
     vscodeRegisterCommand('chromiumide.deviceManagement.addExistingHosts', () =>
       addExistingHostsCommand(context)
     ),
@@ -157,6 +154,9 @@ function registerChromiumosCommands(
     disposeSubscriptions();
 
     subscriptions.push(
+      vscodeRegisterCommand('chromiumide.deviceManagement.addDevice', () =>
+        addDevice(context, chrootService)
+      ),
       vscodeRegisterCommand(
         'chromiumide.deviceManagement.flashPrebuiltImage',
         (item?: provider.DeviceItem) =>

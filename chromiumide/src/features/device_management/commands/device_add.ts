@@ -2,10 +2,16 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import {chromiumos} from '../../../services';
 import {Metrics} from '../../metrics/metrics';
+import {checkDeviceImageCompatibilityOrSuggest} from './check_image';
+import {ResultDisplayMode} from './check_image/check_image';
 import {CommandContext, promptNewHostname} from './common';
 
-export async function addDevice(context: CommandContext): Promise<void> {
+export async function addDevice(
+  context: CommandContext,
+  chrootService?: chromiumos.ChrootService
+): Promise<void> {
   Metrics.send({
     category: 'interactive',
     group: 'device',
@@ -21,4 +27,22 @@ export async function addDevice(context: CommandContext): Promise<void> {
     return;
   }
   await context.deviceRepository.owned.addDevice(hostname);
+
+  if (chrootService) {
+    const checkOutcome = await checkDeviceImageCompatibilityOrSuggest(
+      context,
+      chrootService,
+      hostname,
+      undefined,
+      ResultDisplayMode.MESSAGE
+    );
+    // Report on outcome to understand usefulness of the feature.
+    Metrics.send({
+      category: 'interactive',
+      group: 'device',
+      name: 'device_management_add_device_image_check',
+      description: 'image check on adding device',
+      outcome: checkOutcome instanceof Error ? 'error' : checkOutcome,
+    });
+  }
 }

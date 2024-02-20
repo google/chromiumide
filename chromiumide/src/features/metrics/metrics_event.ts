@@ -243,7 +243,9 @@ type DeviceManagementEvent = EventBase & {group: 'device'} & (
       }
     | {
         category: 'interactive';
-        name: 'device_management_check_or_suggest_image';
+        name:
+          | 'device_management_check_or_suggest_image'
+          | 'device_management_add_device_image_check';
         outcome: string;
       }
     | {
