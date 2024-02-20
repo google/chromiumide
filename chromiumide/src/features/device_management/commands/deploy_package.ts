@@ -93,9 +93,9 @@ export async function deployToDevice(
     context,
     chrootService,
     hostname,
-    parseQualifiedPackageName(targetPackage),
     ResultDisplayMode.QUICKPICK,
-    'No, deploy package directly.'
+    'No, deploy package directly.',
+    parseQualifiedPackageName(targetPackage)
   );
   // Report on outcome to understand usefulness of the feature.
   Metrics.send({

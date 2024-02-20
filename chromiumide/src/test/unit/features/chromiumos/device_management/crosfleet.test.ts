@@ -105,12 +105,14 @@ describe('CrosfleetRunner', () => {
   it('requests a new lease', async () => {
     expect(await state.runner.listLeases()).toEqual([]);
 
-    await state.runner.requestLeaseOrThrow({
+    const hostname = await state.runner.requestLeaseOrThrow({
       durationInMinutes: 60,
       board: 'board1',
       model: 'model1',
       hostname: 'host1',
     });
+
+    expect(hostname).toEqual('host1');
 
     expect(await state.runner.listLeases()).toEqual([
       {

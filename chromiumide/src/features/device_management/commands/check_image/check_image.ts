@@ -61,19 +61,19 @@ export enum ResultDisplayMode {
  *
  * Return the outcome of check (passed, or user action otherwise).
  *
- * TODO(hscham): call image check at extension activation time and when new device is added. These
- * would run in background and result will be displayed in MESSAGE mode.
+ * TODO(hscham): call image check at extension activation time. It would run in background and
+ * result will be displayed in MESSAGE mode.
  */
 export async function checkDeviceImageCompatibilityOrSuggest(
   context: CommandContext,
   chrootService: chromiumos.ChrootService,
   deviceHostname?: string,
+  mode = ResultDisplayMode.MODAL_MESSAGE,
+  ignoreWarningOption: string = PostFailedImageCheckOptions.DEFAULT_IGNORE_WARNING_OPTION,
   targetPackage: ParsedPackageName = {
     category: 'chromeos-base',
     name: 'libchrome',
-  },
-  mode = ResultDisplayMode.MODAL_MESSAGE,
-  ignoreWarningOption: string = PostFailedImageCheckOptions.DEFAULT_IGNORE_WARNING_OPTION
+  }
 ): Promise<CheckOutcome | Error> {
   const hostname = await promptKnownHostnameIfNeeded(
     'Target Device',

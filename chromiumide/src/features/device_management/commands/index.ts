@@ -103,9 +103,6 @@ export function registerCommands(
     vscodeRegisterCommand('chromiumide.deviceManagement.refreshLeases', () =>
       refreshLeases(context)
     ),
-    vscodeRegisterCommand('chromiumide.deviceManagement.addLease', () =>
-      addLease(context)
-    ),
     vscodeRegisterCommand(
       'chromiumide.deviceManagement.abandonLease',
       (item?: provider.DeviceItem) => abandonLease(context, item?.hostname)
@@ -156,6 +153,9 @@ function registerChromiumosCommands(
     subscriptions.push(
       vscodeRegisterCommand('chromiumide.deviceManagement.addDevice', () =>
         addDevice(context, chrootService)
+      ),
+      vscodeRegisterCommand('chromiumide.deviceManagement.addLease', () =>
+        addLease(context, chrootService)
       ),
       vscodeRegisterCommand(
         'chromiumide.deviceManagement.flashPrebuiltImage',

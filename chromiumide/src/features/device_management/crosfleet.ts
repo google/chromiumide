@@ -130,11 +130,13 @@ export class CrosfleetRunner {
   }
 
   /**
-   * Requests to lease a new device.
+   * Requests to lease a new device and returns its hostname on success.
    *
    * @throws Error on command execution failure
    */
-  async requestLeaseOrThrow(options: LeaseOptions): Promise<void> {
+  async requestLeaseOrThrow(
+    options: LeaseOptions
+  ): Promise<string | undefined> {
     const args = [
       'dut',
       'lease',
@@ -156,6 +158,11 @@ export class CrosfleetRunner {
       throw result;
     }
     this.onDidChangeEmitter.fire();
+
+    // The new lease info is printed to stderr, see
+    // https://source.corp.google.com/h/chromium/infra/infra_superproject/+/main:infra/go/src/infra/cmd/crosfleet/internal/dut/lease.go
+    const hostnameMatch = result.stderr.match(/DUT_HOSTNAME=(.*)/);
+    return hostnameMatch ? hostnameMatch[1] : undefined;
   }
 
   /**

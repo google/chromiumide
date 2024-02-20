@@ -2,4 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-export {checkDeviceImageCompatibilityOrSuggest} from './check_image';
+export {
+  checkDeviceImageCompatibilityOrSuggest,
+  ResultDisplayMode,
+} from './check_image';

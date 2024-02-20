@@ -3,9 +3,14 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {chromiumos} from '../../../services';
 import {Metrics} from '../../metrics/metrics';
 import * as crosfleet from '../crosfleet';
 import * as sshConfig from '../ssh_config';
+import {
+  checkDeviceImageCompatibilityOrSuggest,
+  ResultDisplayMode,
+} from './check_image';
 import {CommandContext} from './common';
 
 interface Filter extends vscode.QuickPickItem {
@@ -32,7 +37,10 @@ const FILTERS: Filter[] = [
   },
 ];
 
-export async function addLease(context: CommandContext): Promise<void> {
+export async function addLease(
+  context: CommandContext,
+  chrootService?: chromiumos.ChrootService
+): Promise<void> {
   Metrics.send({
     category: 'interactive',
     group: 'device',
@@ -86,11 +94,28 @@ export async function addLease(context: CommandContext): Promise<void> {
       },
       async (_progress, token) => {
         try {
-          await context.crosfleetRunner.requestLeaseOrThrow({
+          const hostname = await context.crosfleetRunner.requestLeaseOrThrow({
             token: token,
             durationInMinutes: Number(durationStr),
             [filter.key]: filterValue,
           });
+
+          if (chrootService && hostname) {
+            const checkOutcome = await checkDeviceImageCompatibilityOrSuggest(
+              context,
+              chrootService,
+              hostname,
+              ResultDisplayMode.MESSAGE
+            );
+            // Report on outcome to understand usefulness of the feature.
+            Metrics.send({
+              category: 'interactive',
+              group: 'device',
+              name: 'device_management_lease_device_image_check',
+              description: 'image check on leasing device',
+              outcome: checkOutcome instanceof Error ? 'error' : checkOutcome,
+            });
+          }
         } catch (err) {
           if (token.isCancellationRequested) {
             return true;

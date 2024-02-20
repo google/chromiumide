@@ -33,7 +33,6 @@ export async function addDevice(
       context,
       chrootService,
       hostname,
-      undefined,
       ResultDisplayMode.MESSAGE
     );
     // Report on outcome to understand usefulness of the feature.
