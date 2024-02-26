@@ -13,17 +13,22 @@ import {getCrosPrebuiltVersionsFromBinHost} from '../../../../common/chromiumos/
 import {chromiumos} from '../../../../services';
 import {deviceManagement} from '../../../../services/config';
 import {CommandContext, promptKnownHostnameIfNeeded} from '../common';
-import {flashPrebuiltImage} from '../flash_prebuilt_image';
+import {flashImageToDevice, flashPrebuiltImage} from '../flash_prebuilt_image';
 import {CompatibilityChecker} from './compatibility';
+import {showSuggestedImagesInputBox} from './suggest_image';
 import {CheckerInput, CheckerConfig, CheckerOutput} from './types';
 
-const FLASH_ANY_IMAGE_OPTION = 'Yes, show flash image menu.';
-const OPEN_VERSION_THRESHOLD_OPTION =
-  'No, open extension config to change version skew threshold.';
+enum PostFailedImageCheckOptions {
+  FLASH_SUGGESTED_IMAGE_OPTION = 'Yes, show list of suggested images.',
+  FLASH_ANY_IMAGE_OPTION = 'Yes, show flash image menu.',
+  OPEN_VERSION_THRESHOLD_OPTION = 'No, open extension config to change version skew threshold.',
+  DEFAULT_IGNORE_WARNING_OPTION = 'No, ignore warning.',
+}
 
 export enum CheckOutcome {
   CANCELLED = 'cancelled',
   PASSED = 'passed',
+  FLASHED_FROM_SUGGESTION = 'flashed from suggested images',
   FLASHED_FROM_MENU = 'flashed arbitrary image from menu',
   SKIPPED_FLASH = 'skipped flash new image suggestion',
   OPEN_VERSION_MAX_SKEW_CONFIG = 'open settings for version max skew',
@@ -31,8 +36,8 @@ export enum CheckOutcome {
 
 /*
  * Runs cros-debug flag and CrOS image version check on device image.
- * Returns whether the check passed and user action otherwise.
- * TODO(hscham): Suggest new image to flash if deemed incompatible.
+ * User may choose to flash device from list of suggested image or manually select one via the usual
+ * flash image steps.
  */
 export async function checkDeviceImageCompatibilityOrSuggest(
   context: CommandContext,
@@ -47,7 +52,7 @@ export async function checkDeviceImageCompatibilityOrSuggest(
   if (!hostname) {
     return CheckOutcome.CANCELLED;
   }
-  const {input, output} = await vscode.window.withProgress(
+  const {config, input, output} = await vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
       title: `Checking ${hostname} compatibility with local environment...`,
@@ -61,33 +66,31 @@ export async function checkDeviceImageCompatibilityOrSuggest(
     }
   );
 
-  const resultSummary = stringifyCheckerOutput(input, output);
+  const option = await reportResultAndPromptActionOnFailedCheck(input, output);
 
-  if (output.passed) {
-    await vscode.window.showInformationMessage(resultSummary.title, {
-      detail: resultSummary.details,
-      modal: true,
-    });
-    return CheckOutcome.PASSED;
-  }
+  // No follow-up action required if check passed.
+  if (output.passed) return CheckOutcome.PASSED;
 
-  // TODO(hscham) Implement a simpler choice where user can choose from a list of images with item
-  // 'Yes, choose from list of suggested images.'
-  const options = [FLASH_ANY_IMAGE_OPTION];
-  if (output.results.version.status === 'FAILED') {
-    // Add option to open extension setting to update threshold only if the version check fails.
-    options.push(OPEN_VERSION_THRESHOLD_OPTION);
-  }
-
-  const option = await vscode.window.showWarningMessage(
-    resultSummary.title,
-    {
-      detail: `${resultSummary.details}\nFlash device with a different image?`,
-      modal: true,
-    },
-    ...options
-  );
-  if (option === FLASH_ANY_IMAGE_OPTION) {
+  if (option === PostFailedImageCheckOptions.FLASH_SUGGESTED_IMAGE_OPTION) {
+    const imagePath = await showSuggestedImagesInputBox(
+      hostname,
+      config,
+      input,
+      chrootService,
+      context.output
+    );
+    if (imagePath !== undefined) {
+      const flashImageStatus = await flashImageToDevice(
+        hostname,
+        imagePath,
+        context.deviceClient,
+        chrootService.source.root,
+        context.output
+      );
+      if (flashImageStatus instanceof Error) return flashImageStatus;
+      if (flashImageStatus) return CheckOutcome.FLASHED_FROM_MENU;
+    }
+  } else if (option === PostFailedImageCheckOptions.FLASH_ANY_IMAGE_OPTION) {
     const flashImageStatus = await flashPrebuiltImage(
       context,
       chrootService,
@@ -95,10 +98,13 @@ export async function checkDeviceImageCompatibilityOrSuggest(
     );
     if (flashImageStatus instanceof Error) return flashImageStatus;
     if (flashImageStatus) return CheckOutcome.FLASHED_FROM_MENU;
-  } else if (option === OPEN_VERSION_THRESHOLD_OPTION) {
+  } else if (
+    option === PostFailedImageCheckOptions.OPEN_VERSION_THRESHOLD_OPTION
+  ) {
     void deviceManagement.imageVersionMaxSkew.openSettings();
     return CheckOutcome.OPEN_VERSION_MAX_SKEW_CONFIG;
   }
+  // User chose 'cancel' or not to do anything.
   return CheckOutcome.SKIPPED_FLASH;
 }
 
@@ -188,4 +194,70 @@ function stringifyCheckerOutput(
     .join('\n');
 
   return {title, details};
+}
+
+/*
+ * Display result of image check given its input and output.
+ * If the check had failed, prompt user for and returns their choice of follow-up action.
+ * Otherwise (check had passed), do nothing and returns undefined.
+ */
+async function reportResultAndPromptActionOnFailedCheck(
+  input: CheckerInput,
+  output: CheckerOutput
+): Promise<PostFailedImageCheckOptions | undefined> {
+  const resultSummary = stringifyCheckerOutput(input, output);
+
+  if (output.passed) {
+    await vscode.window.showInformationMessage(resultSummary.title, {
+      detail: resultSummary.details,
+      modal: true,
+    });
+    return;
+  }
+
+  // vscode API assumes the list is ordered by priority of items.
+  const options: vscode.MessageItem[] = [
+    {
+      title: PostFailedImageCheckOptions.FLASH_ANY_IMAGE_OPTION,
+      isCloseAffordance: false,
+    },
+  ];
+  // Suggestions are only available when the device and local environment attributes are known.
+  if (
+    !(
+      input.device instanceof Error ||
+      input.local.debugFlag instanceof Error ||
+      input.local.chromeosMajorVersion instanceof Error
+    )
+  ) {
+    // Add to start of array so that the option will be showed as default with more prominent visual
+    // cue.
+    options.unshift({
+      title: PostFailedImageCheckOptions.FLASH_SUGGESTED_IMAGE_OPTION,
+      isCloseAffordance: false,
+    });
+  }
+  // Add option to open extension setting to update threshold only if the version check fails.
+  if (output.results.version.status === 'FAILED') {
+    options.push({
+      title: PostFailedImageCheckOptions.OPEN_VERSION_THRESHOLD_OPTION,
+      isCloseAffordance: false,
+    });
+  }
+  // Add ignore error/failure option to the end.
+  options.push({
+    title: PostFailedImageCheckOptions.DEFAULT_IGNORE_WARNING_OPTION,
+    isCloseAffordance: true,
+  });
+
+  return (
+    await vscode.window.showWarningMessage(
+      resultSummary.title,
+      {
+        detail: `${resultSummary.details}\nFlash device with a different image?`,
+        modal: true,
+      },
+      ...options
+    )
+  )?.title as PostFailedImageCheckOptions;
 }
