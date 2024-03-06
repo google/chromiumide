@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as shutil from '../../../common/shutil';
+import * as shutil from '../../../../shared/app/common/shutil';
 
 describe('Shell Utility', () => {
   it('escapes strings when needed', () => {

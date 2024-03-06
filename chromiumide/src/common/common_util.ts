@@ -13,7 +13,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import treeKill from 'tree-kill';
-import * as shutil from './shutil';
+import * as shutil from '../../shared/app/common/shutil';
 
 // Type Chroot represents the path to chroot.
 // We use nominal typing technique here. https://basarat.gitbook.io/typescript/main-1/nominaltyping

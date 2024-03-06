@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as childProcess from 'child_process';
-import * as shutil from '../src/common/shutil';
+import * as shutil from '../shared/app/common/shutil';
 
 export async function execute(
   name: string,

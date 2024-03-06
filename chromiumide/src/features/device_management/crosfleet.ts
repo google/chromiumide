@@ -4,9 +4,9 @@
 
 import * as vscode from 'vscode';
 import * as dateFns from 'date-fns';
+import * as shutil from '../../../shared/app/common/shutil';
 import * as cipd from '../../common/cipd';
 import * as commonUtil from '../../common/common_util';
-import * as shutil from '../../common/shutil';
 
 /**
  * Represents a leased device.
