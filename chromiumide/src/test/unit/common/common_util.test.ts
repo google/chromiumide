@@ -297,7 +297,7 @@ describe('getGitDir', () => {
   });
 });
 
-async function increnemtCount(filepath: string) {
+async function incrementCount(filepath: string): Promise<void> {
   const i = Number(await fs.promises.readFile(filepath, 'utf8'));
   await fs.promises.writeFile(filepath, `${i + 1}`, 'utf8');
 }
@@ -354,9 +354,9 @@ describe('Mutex', () => {
     await fs.promises.writeFile(file, '0', 'utf8');
 
     // Demonstrates updating a file concurrently fails.
-    const unguardedPromises = [];
+    const unguardedPromises: Promise<void>[] = [];
     for (let i = 0; i < n; i++) {
-      unguardedPromises.push(increnemtCount(file));
+      unguardedPromises.push(incrementCount(file));
     }
     await Promise.all(unguardedPromises);
     await expectAsync(fs.promises.readFile(file, 'utf8')).not.toBeResolvedTo(
@@ -365,10 +365,10 @@ describe('Mutex', () => {
 
     // Updating a file works as expected if guarded by a mutex.
     await fs.promises.writeFile(file, '0', 'utf8');
-    const m = new commonUtil.Mutex();
-    const guardedPromises = [];
+    const m = new commonUtil.Mutex<void>();
+    const guardedPromises: Promise<void>[] = [];
     for (let i = 0; i < n; i++) {
-      guardedPromises.push(m.runExclusive(() => increnemtCount(file)));
+      guardedPromises.push(m.runExclusive(() => incrementCount(file)));
     }
     await Promise.all(guardedPromises);
     await expectAsync(fs.promises.readFile(file, 'utf8')).toBeResolvedTo(

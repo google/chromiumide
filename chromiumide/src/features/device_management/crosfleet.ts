@@ -243,7 +243,7 @@ function parseLeases(output: string): LeaseInfo[] {
     return [];
   }
 
-  const leases = [];
+  const leases: LeaseInfo[] = [];
   for (const l of parsed.Leases) {
     // Hostname can be missing if a swarming task is still pending.
     const hostname = l.DUT?.Hostname;
