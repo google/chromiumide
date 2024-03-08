@@ -7,5 +7,8 @@ set -e
 
 cd "$(dirname "$0")"
 
+[ -f "${OVSX_PAT_FILE:=}" ] && read -r OVSX_PAT < "${OVSX_PAT_FILE}"
+[ -f "${VSCE_PAT_FILE:=}" ] && read -r VSCE_PAT < "${VSCE_PAT_FILE}"
+
 OVSX_PAT="${OVSX_PAT:=}" VSCE_PAT="${VSCE_PAT:=}" npx ts-node \
   ./tools/release.ts "$@"
