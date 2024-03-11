@@ -10,8 +10,8 @@ import {
   vscodeRegisterTextEditorCommand,
 } from '../../shared/app/common/vscode/commands';
 import * as config from '../../shared/app/services/config';
+import {getUiLogger} from '../../shared/app/ui/log';
 import {chromiumRoot} from '../common/chromium/fs';
-import * as ideUtil from '../ide_util';
 
 const driver = getDriver();
 
@@ -160,7 +160,7 @@ async function getCodeSearchUrl(
   opts.push(fullpath);
 
   const res = await commonUtil.exec(executable, opts, {
-    logger: ideUtil.getUiLogger(),
+    logger: getUiLogger(),
     logStdout: true,
     ignoreNonZeroExit: true,
     cwd: cwd,

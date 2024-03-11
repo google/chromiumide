@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import * as commonUtil from '../../../shared/app/common/common_util';
 import {getDriver} from '../../../shared/app/common/driver_repository';
 import {StatusManager, TaskStatus} from '../../../shared/app/ui/bg_task_status';
-import * as ideUtil from '../../ide_util';
+import {getUiLogger} from '../../../shared/app/ui/log';
 
 const driver = getDriver();
 
@@ -87,7 +87,7 @@ class CrosFormat implements vscode.DocumentFormattingEditProvider {
       'cros',
       ['format', '--stdout', fsPath],
       {
-        logger: ideUtil.getUiLogger(),
+        logger: getUiLogger(),
         ignoreNonZeroExit: true,
         cwd: this.chromiumosRoot,
       }

@@ -14,27 +14,6 @@ import * as config from '../shared/app/services/config';
 import {BoardOrHost, parseBoardOrHost} from './common/chromiumos/board_or_host';
 import * as cros from './common/cros';
 
-const loggerInstance = vscode.window.createOutputChannel(
-  'ChromiumIDE: UI Actions'
-);
-
-/**
- * Return the logger that should be used by actions done in UI. For example,
- * navigating to CodeSearch, opening listing packages worked on (view), and so on.
- *
- * Tasks that run in background or produce lots of logs should create their own loggers.
- * See cros lint and C++ code completion for examples.
- */
-// TODO(ttylenda): Move this function to a separate file in ui/.
-export function getUiLogger(): vscode.OutputChannel {
-  return loggerInstance;
-}
-
-export const SHOW_UI_LOG: vscode.Command = {
-  command: 'chromiumide.showUiLog',
-  title: '',
-};
-
 /**
  * Get the target board, or ask the user to select one.
  *

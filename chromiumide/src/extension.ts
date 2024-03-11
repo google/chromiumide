@@ -20,6 +20,7 @@ import {activate as activateSharedFeatures} from '../shared/app/extension';
 import * as config from '../shared/app/services/config';
 import * as bgTaskStatus from '../shared/app/ui/bg_task_status';
 import {TaskStatus} from '../shared/app/ui/bg_task_status';
+import {SHOW_UI_LOG, getUiLogger} from '../shared/app/ui/log';
 import {Driver} from '../shared/driver';
 import * as cipd from './common/cipd';
 import {DriverImpl} from './driver';
@@ -39,7 +40,6 @@ import * as shortLinkProvider from './features/short_link_provider';
 import * as showHelp from './features/show_help';
 import * as suggestExtension from './features/suggest_extension';
 import * as upstart from './features/upstart';
-import * as ideUtil from './ide_util';
 import * as migrate from './migrate';
 import * as services from './services';
 import * as gitDocument from './services/git_document';
@@ -123,8 +123,8 @@ async function postMetricsActivate(
   );
 
   context.subscriptions.push(
-    vscodeRegisterCommand(ideUtil.SHOW_UI_LOG.command, () => {
-      ideUtil.getUiLogger().show();
+    vscodeRegisterCommand(SHOW_UI_LOG.command, () => {
+      getUiLogger().show();
       driver.sendMetrics({
         category: 'interactive',
         group: 'idestatus',
@@ -138,7 +138,7 @@ async function postMetricsActivate(
   // which result in an error should show a popup, we will not be changing the status
   statusManager.setTask('UI Actions', {
     status: TaskStatus.OK,
-    command: ideUtil.SHOW_UI_LOG,
+    command: SHOW_UI_LOG,
   });
 
   gn.activate(context, statusManager, linterLogger);
