@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {vscodeRegisterCommand} from '../../../common/vscode/commands';
+import {vscodeRegisterCommand} from '../../../../shared/app/common/vscode/commands';
 import {Metrics} from '../../../features/metrics/metrics';
 import * as services from '../../../services';
 import * as bgTaskStatus from '../../../ui/bg_task_status';

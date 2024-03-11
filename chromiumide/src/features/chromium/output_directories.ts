@@ -7,7 +7,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {Mutex} from '../../../shared/app/common/common_util';
-import {vscodeRegisterCommand} from '../../common/vscode/commands';
+import {vscodeRegisterCommand} from '../../../shared/app/common/vscode/commands';
 import {Metrics} from '../../features/metrics/metrics';
 import * as bgTaskStatus from '../../ui/bg_task_status';
 import * as gnArgs from './gn_args';

@@ -4,11 +4,11 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../shared/app/common/common_util';
-import {chromiumRoot} from '../common/chromium/fs';
 import {
   vscodeRegisterCommand,
   vscodeRegisterTextEditorCommand,
-} from '../common/vscode/commands';
+} from '../../shared/app/common/vscode/commands';
+import {chromiumRoot} from '../common/chromium/fs';
 import * as ideUtil from '../ide_util';
 import * as config from '../services/config';
 import {Metrics} from './metrics/metrics';

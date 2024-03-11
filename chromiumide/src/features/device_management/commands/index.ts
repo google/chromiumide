@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {vscodeRegisterCommand} from '../../../common/vscode/commands';
+import {vscodeRegisterCommand} from '../../../../shared/app/common/vscode/commands';
 import * as services from '../../../services';
 import {underDevelopment} from '../../../services/config';
 import {Breadcrumbs} from '../../chromiumos/boards_and_packages/item';

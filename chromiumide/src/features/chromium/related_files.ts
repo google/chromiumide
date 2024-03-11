@@ -4,7 +4,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {vscodeRegisterCommand} from '../../common/vscode/commands';
+import {vscodeRegisterCommand} from '../../../shared/app/common/vscode/commands';
 
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(

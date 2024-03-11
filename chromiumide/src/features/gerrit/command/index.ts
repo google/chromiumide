@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {vscodeRegisterCommand} from '../../../common/vscode/commands';
+import {vscodeRegisterCommand} from '../../../../shared/app/common/vscode/commands';
 import {VscodeComment, VscodeCommentThread} from '../data';
 import {CommandContext} from './context';
 import {discardDraft, reply, updateDraft} from './draft';

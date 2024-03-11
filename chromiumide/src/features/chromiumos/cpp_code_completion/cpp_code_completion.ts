@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../shared/app/common/common_util';
-import {vscodeRegisterCommand} from '../../../common/vscode/commands';
+import {vscodeRegisterCommand} from '../../../../shared/app/common/vscode/commands';
 import * as services from '../../../services';
 import * as bgTaskStatus from '../../../ui/bg_task_status';
 import {TaskStatus} from '../../../ui/bg_task_status';

@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import {JobManager} from '../../../../shared/app/common/common_util';
-import {vscodeRegisterCommand} from '../../../common/vscode/commands';
+import {vscodeRegisterCommand} from '../../../../shared/app/common/vscode/commands';
 import {GitDirsWatcher} from '../../../services';
 import * as api from '../api';
 import * as auth from '../auth';

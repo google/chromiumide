@@ -5,8 +5,8 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as common_util from '../../../shared/app/common/common_util';
+import {vscodeRegisterCommand} from '../../../shared/app/common/vscode/commands';
 import * as depotTools from '../../common/depot_tools';
-import {vscodeRegisterCommand} from '../../common/vscode/commands';
 
 export function activate(
   context: vscode.ExtensionContext,

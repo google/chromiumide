@@ -7,8 +7,8 @@
  */
 
 import * as vscode from 'vscode';
+import {vscodeRegisterCommand} from '../../../shared/app/common/vscode/commands';
 import {BoardOrHost} from '../../common/chromiumos/board_or_host';
-import {vscodeRegisterCommand} from '../../common/vscode/commands';
 import * as ideUtil from '../../ide_util';
 import * as services from '../../services';
 import * as config from '../../services/config';
