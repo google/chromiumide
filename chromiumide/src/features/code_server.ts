@@ -3,7 +3,9 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {Metrics} from './metrics/metrics';
+import {getDriver} from '../../shared/app/common/driver_repository';
+
+const driver = getDriver();
 
 type Instruction = {
   suggestMigration: boolean;
@@ -51,7 +53,7 @@ export class CodeServer implements vscode.Disposable {
       'Notify later'
     );
     if (choice === OPEN_GUIDE) {
-      Metrics.send({
+      driver.sendMetrics({
         group: 'code_server',
         category: 'interactive',
         name: 'code_server_migration_open_guide',

@@ -3,12 +3,12 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {getDriver} from '../../../shared/app/common/driver_repository';
 import * as cipd from '../../common/cipd';
 import * as services from '../../services';
 import * as config from '../../services/config';
 import * as bgTaskStatus from '../../ui/bg_task_status';
 import * as boilerplate from '../boilerplate';
-import {Metrics} from '../metrics/metrics';
 import {BoardsAndPackages} from './boards_and_packages';
 import {Coverage} from './coverage';
 import * as cppCodeCompletion from './cpp_code_completion';
@@ -20,6 +20,8 @@ import * as suggestAutosetgov from './suggest_autosetgov';
 import * as targetBoard from './target_board';
 import {Tast} from './tast';
 import * as tricium from './tricium';
+
+const driver = getDriver();
 
 /**
  * Extension context value provided to this class. We omit subscriptions here
@@ -62,7 +64,7 @@ export class Chromiumos implements vscode.Disposable {
         await this.activate(context);
       } catch (e) {
         console.error('Failed to activate chromiumos features', e);
-        Metrics.send({
+        driver.sendMetrics({
           category: 'error',
           group: 'misc',
           name: 'activate_chromiumos_error',

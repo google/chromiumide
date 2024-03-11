@@ -5,11 +5,11 @@
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../../shared/app/common/common_util';
+import {getDriver} from '../../../../../shared/app/common/driver_repository';
 import {getQualifiedPackageName} from '../../../../common/chromiumos/portage/ebuild';
 import {getOrSelectTargetBoard, NoBoardError} from '../../../../ide_util';
 import * as services from '../../../../services';
 import {Packages} from '../../../../services/chromiumos';
-import {Metrics} from '../../../metrics/metrics';
 import {
   CompdbError,
   CompdbErrorKind,
@@ -18,6 +18,8 @@ import {
   destination,
 } from '../compdb_service';
 import {CompdbGenerator, ErrorDetails, ShouldGenerateResult} from './types';
+
+const driver = getDriver();
 
 type GenerationState = 'generating' | 'generated' | 'failed';
 
@@ -60,7 +62,7 @@ export class Platform2 implements CompdbGenerator {
     // Send metrcis if the user interacts with platform2 files for which we support
     // xrefs.
     if (['cpp', 'c'].includes(document.languageId)) {
-      Metrics.send({
+      driver.sendMetrics({
         category: 'background',
         group: 'cppxrefs',
         name: 'cppxrefs_interact_with_platform2_cpp',

@@ -6,7 +6,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../shared/app/common/common_util';
-import {Metrics} from '../../../features/metrics/metrics';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
+
+const driver = getDriver();
 
 export type Event = {
   /**
@@ -35,7 +37,7 @@ export class Watcher implements vscode.Disposable {
     // If the git repository does not have any commit (the state just after
     // git init), the directory doesn't exist and we cannot watch it.
     if (!fs.existsSync(gitLogs)) {
-      Metrics.send({
+      driver.sendMetrics({
         group: 'git_watcher',
         category: 'error',
         name: 'git_watcher_no_commit',

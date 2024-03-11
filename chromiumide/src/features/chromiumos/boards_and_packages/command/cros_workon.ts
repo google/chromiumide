@@ -3,13 +3,15 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {getDriver} from '../../../../../shared/app/common/driver_repository';
 import {BoardOrHost} from '../../../../common/chromiumos/board_or_host';
 import {
   ParsedPackageName,
   getQualifiedPackageName,
 } from '../../../../common/chromiumos/portage/ebuild';
-import {Metrics} from '../../../metrics/metrics';
 import {Context} from '../context';
+
+const driver = getDriver();
 
 export async function crosWorkon(
   ctx: Context,
@@ -21,7 +23,7 @@ export async function crosWorkon(
     typeof pkg === 'string' ? pkg : getQualifiedPackageName(pkg);
 
   if (action === 'start') {
-    Metrics.send({
+    driver.sendMetrics({
       category: 'interactive',
       group: 'boards_and_packages',
       description: 'cros_workon start',
@@ -30,7 +32,7 @@ export async function crosWorkon(
       board: board.toString(),
     });
   } else {
-    Metrics.send({
+    driver.sendMetrics({
       category: 'interactive',
       group: 'boards_and_packages',
       description: 'cros_workon stop',

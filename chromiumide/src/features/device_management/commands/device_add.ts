@@ -2,17 +2,19 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {chromiumos} from '../../../services';
-import {Metrics} from '../../metrics/metrics';
 import {checkDeviceImageCompatibilityOrSuggest} from './check_image';
 import {ResultDisplayMode} from './check_image/check_image';
 import {CommandContext, promptNewHostname} from './common';
+
+const driver = getDriver();
 
 export async function addDevice(
   context: CommandContext,
   chrootService?: chromiumos.ChrootService
 ): Promise<void> {
-  Metrics.send({
+  driver.sendMetrics({
     category: 'interactive',
     group: 'device',
     name: 'device_management_add_device',
@@ -36,7 +38,7 @@ export async function addDevice(
       ResultDisplayMode.MESSAGE
     );
     // Report on outcome to understand usefulness of the feature.
-    Metrics.send({
+    driver.sendMetrics({
       category: 'interactive',
       group: 'device',
       name: 'device_management_add_device_image_check',

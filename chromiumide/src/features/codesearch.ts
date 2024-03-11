@@ -4,6 +4,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../shared/app/common/common_util';
+import {getDriver} from '../../shared/app/common/driver_repository';
 import {
   vscodeRegisterCommand,
   vscodeRegisterTextEditorCommand,
@@ -11,7 +12,8 @@ import {
 import {chromiumRoot} from '../common/chromium/fs';
 import * as ideUtil from '../ide_util';
 import * as config from '../services/config';
-import {Metrics} from './metrics/metrics';
+
+const driver = getDriver();
 
 export function activate(context: vscode.ExtensionContext): void {
   const openFileCmd = vscodeRegisterTextEditorCommand(
@@ -64,7 +66,7 @@ async function openCurrentFile(textEditor: vscode.TextEditor): Promise<void> {
   const result = await getCurrentFile(textEditor);
   if (result) {
     void vscode.env.openExternal(vscode.Uri.parse(result));
-    Metrics.send({
+    driver.sendMetrics({
       category: 'interactive',
       group: 'codesearch',
       name: 'codesearch_open_current_file',
@@ -87,7 +89,7 @@ async function openFiles(allSelectedFiles: vscode.Uri[]): Promise<void> {
     }
   }
   if (opened) {
-    Metrics.send({
+    driver.sendMetrics({
       category: 'interactive',
       group: 'codesearch',
       name: 'codesearch_open_files',
@@ -100,7 +102,7 @@ async function copyCurrentFile(textEditor: vscode.TextEditor): Promise<void> {
   const result = await getCurrentFile(textEditor);
   if (result) {
     void vscode.env.clipboard.writeText(result);
-    Metrics.send({
+    driver.sendMetrics({
       category: 'interactive',
       group: 'codesearch',
       name: 'codesearch_copy_current_file',
@@ -176,7 +178,7 @@ async function getCodeSearchUrl(
     void vscode.window.showErrorMessage(
       `generate_cs_path returned an error: ${stderr}`
     );
-    Metrics.send({
+    driver.sendMetrics({
       category: 'error',
       group: 'codesearch',
       name: 'codesearch_generate_cs_path_failed',
@@ -207,7 +209,7 @@ function searchSelection(textEditor: vscode.TextEditor): void {
     query: `q=${selectedText}`,
   });
   void vscode.env.openExternal(uri);
-  Metrics.send({
+  driver.sendMetrics({
     category: 'interactive',
     group: 'codesearch',
     description: 'search selection',

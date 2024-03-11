@@ -3,14 +3,16 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {Metrics} from '../../metrics/metrics';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
+
+const driver = getDriver();
 
 export async function abandonLease(
   context: CommandContext,
   selectedHostname?: string
 ): Promise<void> {
-  Metrics.send({
+  driver.sendMetrics({
     category: 'interactive',
     group: 'device',
     name: 'device_management_abandon_lease',

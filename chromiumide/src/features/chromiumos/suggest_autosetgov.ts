@@ -6,8 +6,10 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {Metrics} from '../../features/metrics/metrics';
+import {getDriver} from '../../../shared/app/common/driver_repository';
 import * as config from '../../services/config';
+
+const driver = getDriver();
 
 // Checks if the CPU governor autocontrol feature of `cros build-packages` is
 // enabled, and otherwise prompts to set it.
@@ -55,7 +57,7 @@ export class Recommender implements vscode.Disposable {
       NEVER,
       LATER
     );
-    Metrics.send({
+    driver.sendMetrics({
       category: 'background',
       group: 'misc',
       description: 'show autosetgov suggestion',
@@ -68,7 +70,7 @@ export class Recommender implements vscode.Disposable {
         void vscode.window.showErrorMessage((err as Error).message);
         return;
       }
-      Metrics.send({
+      driver.sendMetrics({
         category: 'interactive',
         group: 'misc',
         description: 'create autosetgov file',

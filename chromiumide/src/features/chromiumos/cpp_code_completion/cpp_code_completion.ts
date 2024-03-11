@@ -4,13 +4,15 @@
 
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../shared/app/common/common_util';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {vscodeRegisterCommand} from '../../../../shared/app/common/vscode/commands';
 import * as services from '../../../services';
 import * as bgTaskStatus from '../../../ui/bg_task_status';
 import {TaskStatus} from '../../../ui/bg_task_status';
-import {Metrics} from '../../metrics/metrics';
 import * as compdbGenerator from './compdb_generator';
 import {CLANGD_EXTENSION, SHOW_LOG_COMMAND} from './constants';
+
+const driver = getDriver();
 
 export function activate(
   subscriptions: vscode.Disposable[],
@@ -46,7 +48,7 @@ export class CppCodeCompletion implements vscode.Disposable {
     this.output,
     vscodeRegisterCommand(SHOW_LOG_COMMAND.command, () => {
       this.output.show();
-      Metrics.send({
+      driver.sendMetrics({
         category: 'interactive',
         group: 'idestatus',
         name: 'cppxrefs_show_cpp_log',
@@ -182,7 +184,7 @@ export class CppCodeCompletion implements vscode.Disposable {
       const canceller = new vscode.CancellationTokenSource();
       try {
         const action = `${generator.name}: generate compdb`;
-        Metrics.send({
+        driver.sendMetrics({
           category: 'background',
           group: 'cppxrefs',
           name: 'cppxrefs_generate_compdb',
@@ -207,7 +209,7 @@ export class CppCodeCompletion implements vscode.Disposable {
             rawError.message,
             ...rawError.buttons
           );
-        Metrics.send({
+        driver.sendMetrics({
           category: 'error',
           group: 'cppxrefs',
           name: 'cppxrefs_generate_compdb_error',

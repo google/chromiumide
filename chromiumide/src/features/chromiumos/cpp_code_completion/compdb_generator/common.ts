@@ -4,13 +4,15 @@
 
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../../shared/app/common/common_util';
-import {Metrics} from '../../../metrics/metrics';
+import {getDriver} from '../../../../../shared/app/common/driver_repository';
 import {ErrorDetails} from '.';
+
+const driver = getDriver();
 
 export async function throwForNoChroot(fileName: string): Promise<never> {
   // Send metrics before showing the message, because they don't seem
   // to be sent if the user does not act on the message.
-  Metrics.send({
+  driver.sendMetrics({
     category: 'background',
     group: 'cppxrefs',
     name: 'cppxrefs_no_chroot',

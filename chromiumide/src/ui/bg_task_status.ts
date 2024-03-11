@@ -3,8 +3,10 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {getDriver} from '../../shared/app/common/driver_repository';
 import {vscodeRegisterCommand} from '../../shared/app/common/vscode/commands';
-import {Metrics} from '../features/metrics/metrics';
+
+const driver = getDriver();
 
 /**
  * Shows `OutputChannel` attached to a tree item. Arguments:
@@ -25,7 +27,7 @@ export function activate(context: vscode.ExtensionContext): StatusManager {
   context.subscriptions.push(
     vscodeRegisterCommand(showIdeStatusCommand, () => {
       void vscode.commands.executeCommand('chromiumide-status.focus');
-      Metrics.send({
+      driver.sendMetrics({
         category: 'interactive',
         group: 'idestatus',
         description: 'show ide status',
@@ -42,7 +44,7 @@ export function activate(context: vscode.ExtensionContext): StatusManager {
         if (outputChannel) {
           outputChannel.show();
         }
-        Metrics.send({
+        driver.sendMetrics({
           category: 'interactive',
           group: 'idestatus',
           description: 'show log for ' + taskName,

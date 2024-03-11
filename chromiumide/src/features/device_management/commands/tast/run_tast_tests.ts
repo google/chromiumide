@@ -6,15 +6,17 @@
 // features/chromiumos/tast component.
 
 import * as vscode from 'vscode';
+import {getDriver} from '../../../../../shared/app/common/driver_repository';
 import {ChrootService} from '../../../../services/chromiumos';
 import * as config from '../../../../services/config';
-import {Metrics} from '../../../metrics/metrics';
 import {CommandContext} from '../common';
 import {
   chooseTest,
   preTestSetUp,
   showPromptWithOpenLogChoice,
 } from './tast_common';
+
+const driver = getDriver();
 
 /**
  * Represents the result of the call to runTastTests.
@@ -71,7 +73,7 @@ export async function runTastTests(
   context: CommandContext,
   chrootService: ChrootService
 ): Promise<RunTastTestsResult | undefined | Error> {
-  Metrics.send({
+  driver.sendMetrics({
     category: 'interactive',
     group: 'device',
     name: 'device_management_run_tast_tests',

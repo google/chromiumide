@@ -5,9 +5,11 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../shared/app/common/common_util';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {chromiumRoot} from '../../../common/chromium/fs';
 import {chromiumosRoot} from '../../../common/chromiumos/fs';
-import {Metrics} from '../../../features/metrics/metrics';
+
+const driver = getDriver();
 
 /**
  * Watches workspace and fires event when the status of whether the workspace
@@ -123,7 +125,7 @@ export class ProductWatcher implements vscode.Disposable {
         )}]. Selecting ${this.root}. ` +
           `Open at most one ${this.product} sources per workspace to fix this problem.`
       );
-      Metrics.send({
+      driver.sendMetrics({
         category: 'background',
         group: 'misc',
         description: `multiple ${this.product} candidates (product watcher)`,

@@ -3,9 +3,11 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {getDriver} from '../../../shared/app/common/driver_repository';
 import * as bgTaskStatus from '../../ui/bg_task_status';
 import {TaskStatus} from '../../ui/bg_task_status';
-import {Metrics} from '../metrics/metrics';
+
+const driver = getDriver();
 
 // Task name in the status manager.
 const GERRIT = 'Gerrit';
@@ -63,7 +65,7 @@ export class Sink implements vscode.Disposable {
       this.statusManager.setStatus(GERRIT, TaskStatus.ERROR);
     }
     if (m.metrics) {
-      Metrics.send({
+      driver.sendMetrics({
         category: 'error',
         group: 'gerrit',
         description: m.metrics,

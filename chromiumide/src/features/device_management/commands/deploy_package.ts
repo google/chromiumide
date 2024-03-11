@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {Board} from '../../../common/chromiumos/board_or_host/board';
 import {parseQualifiedPackageName} from '../../../common/chromiumos/portage/ebuild';
 import {LruCache} from '../../../common/lru_cache';
@@ -12,7 +13,6 @@ import {
   Package,
   packageCmp,
 } from '../../chromiumos/boards_and_packages/package';
-import {Metrics} from '../../metrics/metrics';
 import {
   checkDeviceImageCompatibilityOrSuggest,
   CheckOutcome,
@@ -24,6 +24,8 @@ import {
   promptKnownHostnameIfNeeded,
   showMissingInternalRepoErrorMessage,
 } from './common';
+
+const driver = getDriver();
 
 class QuickPickItemWithDescription implements vscode.QuickPickItem {
   constructor(
@@ -111,7 +113,7 @@ export async function deployToDevice(
     parseQualifiedPackageName(targetPackage)
   );
   // Report on outcome to understand usefulness of the feature.
-  Metrics.send({
+  driver.sendMetrics({
     category: 'interactive',
     group: 'device',
     name: 'device_management_deploy_package',

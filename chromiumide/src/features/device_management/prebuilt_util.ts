@@ -3,13 +3,15 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {getDriver} from '../../../shared/app/common/driver_repository';
 import {AbnormalExitError} from '../../../shared/app/common/exec/types';
 import {
   compareCrosVersions,
   parseFullCrosVersion,
 } from '../../common/image_version';
 import * as services from '../../services';
-import {Metrics} from '../metrics/metrics';
+
+const driver = getDriver();
 
 export const PREBUILT_IMAGE_TYPES = [
   'release',
@@ -54,7 +56,7 @@ export async function listPrebuiltVersions(
     ) {
       return [];
     }
-    Metrics.send({
+    driver.sendMetrics({
       category: 'error',
       group: 'prebuilt_utils',
       name: 'prebuilt_utils_fetch_gs_images_error',

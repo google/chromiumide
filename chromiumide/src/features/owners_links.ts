@@ -5,7 +5,9 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../shared/app/common/common_util';
-import {Metrics} from './metrics/metrics';
+import {getDriver} from '../../shared/app/common/driver_repository';
+
+const driver = getDriver();
 
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
@@ -26,7 +28,7 @@ export class OwnersLink extends vscode.DocumentLink {
   }
 
   async resolve(): Promise<void> {
-    Metrics.send({
+    driver.sendMetrics({
       category: 'interactive',
       group: 'owners',
       description: 'clicked file: or include link',

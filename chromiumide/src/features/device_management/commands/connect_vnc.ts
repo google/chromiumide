@@ -2,16 +2,18 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import {Metrics} from '../../metrics/metrics';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import * as vnc from '../vnc_session';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
+
+const driver = getDriver();
 
 export async function connectToDeviceForScreen(
   context: CommandContext,
   rotate: boolean,
   selectedHostname?: string
 ): Promise<void> {
-  Metrics.send({
+  driver.sendMetrics({
     category: 'interactive',
     group: 'device',
     name: 'device_management_connect_to_device_vnc',

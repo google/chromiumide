@@ -3,10 +3,12 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {Metrics} from '../../metrics/metrics';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {OwnedDeviceRepository} from '../device_repository';
 import * as sshConfig from '../ssh_config';
 import {CommandContext} from './common';
+
+const driver = getDriver();
 
 export const ADD_EXISTING_HOSTS_COMMAND_ID = 'addExistingHosts';
 
@@ -20,7 +22,7 @@ async function addExistingHosts(
   deviceRepository: OwnedDeviceRepository,
   sshConfigPath: string = sshConfig.defaultConfigPath
 ): Promise<void> {
-  Metrics.send({
+  driver.sendMetrics({
     category: 'interactive',
     group: 'device',
     name: 'device_management_add_existing_hosts',

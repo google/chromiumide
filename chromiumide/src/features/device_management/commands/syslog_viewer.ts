@@ -3,9 +3,11 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {Metrics} from '../../metrics/metrics';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {SyslogPanel} from '../syslog/panel';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
+
+const driver = getDriver();
 
 /** Ask the remote system log to open. */
 async function askRemoteSyslogPath(): Promise<string | undefined> {
@@ -77,7 +79,7 @@ export async function openSystemLogViewer(
   context: CommandContext,
   selectedHostname?: string
 ): Promise<void> {
-  Metrics.send({
+  driver.sendMetrics({
     category: 'interactive',
     group: 'device',
     name: 'device_management_syslog_viewer_open',

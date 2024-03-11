@@ -2,7 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as vscode from 'vscode';
-import {Metrics} from '../../metrics/metrics';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
+
+const driver = getDriver();
 
 export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
@@ -97,7 +99,7 @@ export class PortageReferenceHoverProvider implements vscode.HoverProvider {
     const range = document.getWordRangeAtPosition(position);
     const word = document.getText(range);
     if (PORTAGE_PREDEFINED_READ_ONLY_VARAIBLES.includes(word)) {
-      Metrics.send({
+      driver.sendMetrics({
         category: 'background',
         group: 'ebuild',
         name: 'show_portage_predefined_read_only_variable_hover',
@@ -111,7 +113,7 @@ export class PortageReferenceHoverProvider implements vscode.HoverProvider {
       );
     }
     if (EBUILD_DEFINED_VARIABLES.includes(word)) {
-      Metrics.send({
+      driver.sendMetrics({
         category: 'background',
         group: 'ebuild',
         name: 'show_ebuild_defined_variable_hover',
@@ -124,7 +126,7 @@ export class PortageReferenceHoverProvider implements vscode.HoverProvider {
       );
     }
     if (EBUILD_PHASE_FUNCTIONS.includes(word)) {
-      Metrics.send({
+      driver.sendMetrics({
         category: 'background',
         group: 'ebuild',
         name: 'show_ebuild_phase_function_hover',

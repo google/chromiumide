@@ -4,11 +4,13 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {Metrics} from '../../../features/metrics/metrics';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import * as services from '../../../services';
 import * as config from '../../../services/config';
 import {LazyTestController} from './lazy_test_controller';
 import {TestCase} from './test_case';
+
+const driver = getDriver();
 
 /**
  * Provides tast-tests support.
@@ -150,7 +152,7 @@ export class TastTests implements vscode.Disposable {
       ADD
     );
     if (choice === ADD) {
-      Metrics.send({
+      driver.sendMetrics({
         category: 'interactive',
         group: 'tast',
         name: 'tast_setup_dev_environment',

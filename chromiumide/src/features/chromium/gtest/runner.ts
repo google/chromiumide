@@ -7,6 +7,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../shared/app/common/common_util';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {CancelledError} from '../../../../shared/app/common/exec/types';
 import * as depotTools from '../../../common/depot_tools';
 import * as config from '../../../services/config';
@@ -14,10 +15,11 @@ import {AbstractRunner} from '../../gtest/abstract_runner';
 import {GtestCase} from '../../gtest/gtest_case';
 import * as gtestTestListParser from '../../gtest/gtest_test_list_parser';
 import {GtestWorkspace} from '../../gtest/gtest_workspace';
-import {Metrics} from '../../metrics/metrics';
 import * as autoninja from '../autoninja';
 import * as outputDirectories from '../output_directories';
 import * as testLauncherSummaryParser from './test_launcher_summary_parser';
+
+const driver = getDriver();
 
 /**
  * Runs gtest cases according to the given request.
@@ -202,7 +204,7 @@ export class Runner extends AbstractRunner {
     const testCases = this.getTestCasesToRun();
     if (testCases.length === 0) {
       this.output.appendLine('No tests found to run.');
-      Metrics.send({
+      driver.sendMetrics({
         category: 'error',
         group: 'chromium.gtest',
         name: 'chromium_gtest_no_test_cases_found',
@@ -227,7 +229,7 @@ export class Runner extends AbstractRunner {
         `Error calculating test targets from test files: ${testTargetNames}`
       );
       if (!(testTargetNames instanceof CancelledError)) {
-        Metrics.send({
+        driver.sendMetrics({
           category: 'error',
           group: 'chromium.gtest',
           name: 'chromium_gtest_calculate_test_targets_failed',
@@ -237,7 +239,7 @@ export class Runner extends AbstractRunner {
       return;
     }
 
-    Metrics.send({
+    driver.sendMetrics({
       category: 'interactive',
       group: 'debugging',
       name: 'debugging_run_gtest',
@@ -252,7 +254,7 @@ export class Runner extends AbstractRunner {
         `Error while building test targets (${testTargetNames}): ${result}`
       );
       if (!(result instanceof CancelledError)) {
-        Metrics.send({
+        driver.sendMetrics({
           category: 'error',
           group: 'chromium.gtest',
           name: 'chromium_gtest_build_test_targets_failed',
@@ -271,7 +273,7 @@ export class Runner extends AbstractRunner {
           `Error while extracting tests of test target ${testTargetName}: ${allTestNamesInTarget}`
         );
         if (!(allTestNamesInTarget instanceof CancelledError)) {
-          Metrics.send({
+          driver.sendMetrics({
             category: 'error',
             group: 'chromium.gtest',
             name: 'chromium_gtest_extract_tests_from_target',
@@ -288,7 +290,7 @@ export class Runner extends AbstractRunner {
         this.output.appendLine(
           `Expected to find at least one test case in target ${testTargetName}.`
         );
-        Metrics.send({
+        driver.sendMetrics({
           category: 'error',
           group: 'chromium.gtest',
           name: 'chromium_gtest_test_target_has_no_matching_test_cases',
@@ -329,7 +331,7 @@ export class Runner extends AbstractRunner {
     );
     if (result instanceof Error) {
       if (!(result instanceof CancelledError)) {
-        Metrics.send({
+        driver.sendMetrics({
           category: 'error',
           group: 'chromium.gtest',
           name: 'chromium_gtest_test_run_failed',
@@ -346,7 +348,7 @@ export class Runner extends AbstractRunner {
       await fs.promises.readFile(resultOutputPath, 'utf-8')
     );
     if (testResults instanceof Error) {
-      Metrics.send({
+      driver.sendMetrics({
         category: 'error',
         group: 'chromium.gtest',
         name: 'chromium_gtest_parse_test_results_failed',
@@ -445,7 +447,7 @@ export class Runner extends AbstractRunner {
       testCase => testCase.suiteAndCaseName === testName
     )?.item;
     if (!item) {
-      Metrics.send({
+      driver.sendMetrics({
         category: 'error',
         group: 'chromium.gtest',
         name: 'chromium_gtest_test_item_for_test_result_failed',

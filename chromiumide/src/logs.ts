@@ -2,8 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 import * as vscode from 'vscode';
+import {getDriver} from '../shared/app/common/driver_repository';
 import {vscodeRegisterCommand} from '../shared/app/common/vscode/commands';
-import {Metrics} from './features/metrics/metrics';
+
+const driver = getDriver();
 
 // outputChannel for log output, and command to show it.
 export interface LoggingBundle {
@@ -40,7 +42,7 @@ function createLoggingBundle(
   context.subscriptions.push(
     vscodeRegisterCommand(showLogCommand.command, () => {
       channel.show();
-      Metrics.send({
+      driver.sendMetrics({
         category: 'interactive',
         group: 'idestatus',
         description: 'show linter log',

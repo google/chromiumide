@@ -4,14 +4,16 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
+import {getDriver} from '../../../../../shared/app/common/driver_repository';
 import * as cipd from '../../../../common/cipd';
 import * as services from '../../../../services';
 import * as gitDocument from '../../../../services/git_document';
 import * as bgTaskStatus from '../../../../ui/bg_task_status';
 import {TaskStatus} from '../../../../ui/bg_task_status';
-import {Metrics} from '../../../metrics/metrics';
 import * as tricium from '../tricium';
 import * as executor from './executor';
+
+const driver = getDriver();
 
 // Spellchecker demonstrates integration between Tricium's functions
 // and ChromiumIDE.
@@ -184,7 +186,7 @@ class Spellchecker {
   ): Promise<void> {
     if (results instanceof Error) {
       this.setStatus(TaskStatus.ERROR);
-      Metrics.send({
+      driver.sendMetrics({
         category: 'error',
         group: 'spellchecker',
         name: 'spellchecker_error',
@@ -217,7 +219,7 @@ class Spellchecker {
     }
 
     if (diagnostics.length) {
-      Metrics.send({
+      driver.sendMetrics({
         category: 'background',
         group: 'spellchecker',
         name: 'spellchecker_diagnostics',

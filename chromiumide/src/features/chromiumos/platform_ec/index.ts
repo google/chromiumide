@@ -3,13 +3,15 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {vscodeRegisterCommand} from '../../../../shared/app/common/vscode/commands';
-import {Metrics} from '../../../features/metrics/metrics';
 import * as services from '../../../services';
 import * as bgTaskStatus from '../../../ui/bg_task_status';
 import {SHOW_LOG_COMMAND} from './constants';
 import * as statusBar from './status_bar';
 import * as tasks from './tasks';
+
+const driver = getDriver();
 
 export function activate(
   context: vscode.ExtensionContext,
@@ -24,7 +26,7 @@ export function activate(
   context.subscriptions.push(
     vscodeRegisterCommand(SHOW_LOG_COMMAND.command, () => {
       outputChannel.show();
-      Metrics.send({
+      driver.sendMetrics({
         category: 'interactive',
         group: 'idestatus',
         name: 'platform_ec_show_log',

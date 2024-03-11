@@ -7,10 +7,10 @@ import * as path from 'path';
 import * as process from 'process';
 import * as vscode from 'vscode';
 import {Source, exec} from '../../../../shared/app/common/common_util';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {getCrosPath} from '../../../common/chromiumos/cros_client';
 import {ImageVersion, getChromeMilestones} from '../../../common/image_version';
 import * as services from '../../../services';
-import {Metrics} from '../../metrics/metrics';
 import {DeviceClient} from '../device_client';
 import * as prebuiltUtil from '../prebuilt_util';
 import {
@@ -20,6 +20,8 @@ import {
   showMissingInternalRepoErrorMessage,
   missingInternalRepoErrorMessage,
 } from './common';
+
+const driver = getDriver();
 
 // Path to the private credentials needed to access prebuilts, relative to
 // the CrOS source checkout.
@@ -369,7 +371,7 @@ export async function flashPrebuiltImage(
   // Version is undefined because user hide the picker (by pressing esc).
   if (!imagePath) return false;
 
-  Metrics.send({
+  driver.sendMetrics({
     category: 'interactive',
     group: 'device',
     name: 'device_management_flash_prebuilt_image',

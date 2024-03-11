@@ -4,10 +4,10 @@
 
 import * as vscode from 'vscode';
 import {JobManager} from '../../../shared/app/common/common_util';
+import {getDriver} from '../../../shared/app/common/driver_repository';
 import {vscodeRegisterCommand} from '../../../shared/app/common/vscode/commands';
 import * as services from '../../services';
 import * as bgTaskStatus from '../../ui/bg_task_status';
-import {Metrics} from '../metrics/metrics';
 import * as api from './api';
 import {CommandName, GerritCommands} from './command';
 import {
@@ -23,6 +23,8 @@ import {DiffHunksClient, GerritComments} from './model';
 import {EditingStatus} from './model/editing_status';
 import {Sink} from './sink';
 import * as virtualDocument from './virtual_document';
+
+const driver = getDriver();
 
 const onDidHandleEventForTestingEmitter = new vscode.EventEmitter<void>();
 // Notifies completion of async event handling for testing.
@@ -49,7 +51,7 @@ export function activate(
       void vscode.commands.executeCommand(
         'workbench.action.focusCommentsPanel'
       );
-      Metrics.send({
+      driver.sendMetrics({
         category: 'interactive',
         group: 'gerrit',
         description: 'focus comments panel',
@@ -86,7 +88,7 @@ export function activate(
           'workbench.action.collapseAllComments'
         );
         gerrit.collapseAllCommentThreadsInVscode();
-        Metrics.send({
+        driver.sendMetrics({
           category: 'interactive',
           group: 'gerrit',
           description: 'collapse all comment threads',
@@ -402,7 +404,7 @@ class Gerrit implements vscode.Disposable {
 
       this.updateStatusBar();
       if (changes && threadsToDisplay.length > 0) {
-        Metrics.send({
+        driver.sendMetrics({
           category: 'background',
           group: 'gerrit',
           description: 'update comments',

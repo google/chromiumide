@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {chromiumos} from '../../../services';
-import {Metrics} from '../../metrics/metrics';
 import * as crosfleet from '../crosfleet';
 import * as sshConfig from '../ssh_config';
 import {
@@ -12,6 +12,8 @@ import {
   ResultDisplayMode,
 } from './check_image';
 import {CommandContext} from './common';
+
+const driver = getDriver();
 
 interface Filter extends vscode.QuickPickItem {
   key: keyof crosfleet.LeaseOptions;
@@ -41,7 +43,7 @@ export async function addLease(
   context: CommandContext,
   chrootService?: chromiumos.ChrootService
 ): Promise<void> {
-  Metrics.send({
+  driver.sendMetrics({
     category: 'interactive',
     group: 'device',
     name: 'device_management_add_lease',
@@ -108,7 +110,7 @@ export async function addLease(
               ResultDisplayMode.MESSAGE
             );
             // Report on outcome to understand usefulness of the feature.
-            Metrics.send({
+            driver.sendMetrics({
               category: 'interactive',
               group: 'device',
               name: 'device_management_lease_device_image_check',

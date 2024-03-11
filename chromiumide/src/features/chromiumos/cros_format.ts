@@ -4,9 +4,11 @@
 
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../shared/app/common/common_util';
-import {Metrics} from '../../features/metrics/metrics';
+import {getDriver} from '../../../shared/app/common/driver_repository';
 import * as ideUtil from '../../ide_util';
 import {StatusManager, TaskStatus} from '../../ui/bg_task_status';
+
+const driver = getDriver();
 
 // Task name in the status manager.
 const FORMATTER = 'Formatter';
@@ -94,7 +96,7 @@ class CrosFormat implements vscode.DocumentFormattingEditProvider {
     if (formatterOutput instanceof Error) {
       this.outputChannel.appendLine(formatterOutput.message);
       this.statusManager.setStatus(FORMATTER, TaskStatus.ERROR);
-      Metrics.send({
+      driver.sendMetrics({
         category: 'error',
         group: 'format',
         name: 'cros_format_call_error',
@@ -114,7 +116,7 @@ class CrosFormat implements vscode.DocumentFormattingEditProvider {
       this.statusManager.setStatus(FORMATTER, TaskStatus.OK);
       // Depending on how formatting is called it can be interactive
       // (selected from the command palette) or background (format on save).
-      Metrics.send({
+      driver.sendMetrics({
         category: 'background',
         group: 'format',
         name: 'cros_format',
@@ -131,7 +133,7 @@ class CrosFormat implements vscode.DocumentFormattingEditProvider {
       // no exit status.
       this.outputChannel.appendLine(formatterOutput.stderr);
       this.statusManager.setStatus(FORMATTER, TaskStatus.ERROR);
-      Metrics.send({
+      driver.sendMetrics({
         category: 'error',
         group: 'format',
         name: 'cros_format_return_error',

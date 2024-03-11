@@ -4,10 +4,10 @@
 
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../shared/app/common/common_util';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import * as shutil from '../../../../shared/app/common/shutil';
 import {MemoryOutputChannel} from '../../../common/memory_output_channel';
 import {TeeOutputChannel} from '../../../common/tee_output_channel';
-import {Metrics} from '../../metrics/metrics';
 import {
   createShowLogsButton,
   diagnoseSshError,
@@ -16,11 +16,13 @@ import {
 import * as sshUtil from '../ssh_util';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
 
+const driver = getDriver();
+
 export async function connectToDeviceForShell(
   context: CommandContext,
   selectedHostname?: string
 ): Promise<void> {
-  Metrics.send({
+  driver.sendMetrics({
     category: 'interactive',
     group: 'device',
     name: 'device_management_connect_to_device_ssh',

@@ -6,15 +6,17 @@ import * as fs from 'fs';
 import * as util from 'util';
 import * as vscode from 'vscode';
 import glob from 'glob';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {vscodeRegisterCommand} from '../../../../shared/app/common/vscode/commands';
 import {getQualifiedPackageName} from '../../../common/chromiumos/portage/ebuild';
 import * as services from '../../../services';
 import * as config from '../../../services/config';
 import {StatusManager, TaskStatus} from '../../../ui/bg_task_status';
-import {Metrics} from '../../metrics/metrics';
 import {Breadcrumbs} from '../boards_and_packages/item';
 import {llvmToLineFormat} from './llvm_json_parser';
 import {CoverageJson, LlvmFileCoverage} from './types';
+
+const driver = getDriver();
 
 // Highlight colors were copied from Code Search.
 const coveredDecoration = vscode.window.createTextEditorDecorationType({
@@ -51,7 +53,7 @@ export class Coverage {
 
           const qpn = getQualifiedPackageName({category, name});
 
-          Metrics.send({
+          driver.sendMetrics({
             category: 'interactive',
             group: 'coverage',
             name: 'coverage_generate',
@@ -125,7 +127,7 @@ export class Coverage {
     }
 
     if (sendMetrics) {
-      Metrics.send({
+      driver.sendMetrics({
         category: 'background',
         group: 'coverage',
         name: 'coverage_show_background',

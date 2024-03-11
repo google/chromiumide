@@ -3,15 +3,17 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {Metrics} from '../../metrics/metrics';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import * as sshConfig from '../ssh_config';
 import {CommandContext, promptKnownHostnameIfNeeded} from './common';
+
+const driver = getDriver();
 
 export async function deleteDevice(
   context: CommandContext,
   selectedHostname?: string
 ): Promise<void> {
-  Metrics.send({
+  driver.sendMetrics({
     category: 'interactive',
     group: 'device',
     name: 'device_management_delete_device',

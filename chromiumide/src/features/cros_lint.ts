@@ -6,12 +6,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../shared/app/common/common_util';
-import {Metrics} from '../features/metrics/metrics';
+import {getDriver} from '../../shared/app/common/driver_repository';
 import * as logs from '../logs';
 import * as services from '../services';
 import * as config from '../services/config';
 import * as bgTaskStatus from '../ui/bg_task_status';
 import {TaskStatus} from '../ui/bg_task_status';
+
+const driver = getDriver();
 
 export function activate(
   context: vscode.ExtensionContext,
@@ -283,7 +285,7 @@ async function updateDiagnosticsWrapper(
       status: TaskStatus.ERROR,
       command: log.showLogCommand,
     });
-    Metrics.send({
+    driver.sendMetrics({
       category: 'error',
       group: 'lint',
       description: 'error was thrown',
@@ -303,7 +305,7 @@ async function updateDiagnostics(
     const lintConfigs = languageToLintConfigs.get(document.languageId);
     if (!lintConfigs) {
       // Sent metrics just to track languages.
-      Metrics.send({
+      driver.sendMetrics({
         category: 'background',
         group: 'lint',
         description: 'skip',
@@ -360,7 +362,7 @@ async function updateDiagnostics(
             status: TaskStatus.ERROR,
             command: log.showLogCommand,
           });
-          Metrics.send({
+          driver.sendMetrics({
             category: 'error',
             group: 'lint',
             description: `non-zero linter exit, but no diagnostics (${document.languageId})`,
@@ -377,7 +379,7 @@ async function updateDiagnostics(
       status: TaskStatus.OK,
       command: log.showLogCommand,
     });
-    Metrics.send({
+    driver.sendMetrics({
       category: 'background',
       group: 'lint',
       description: 'update',

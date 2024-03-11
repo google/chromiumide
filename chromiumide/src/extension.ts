@@ -10,9 +10,13 @@
 import * as vscode from 'vscode';
 import * as sourceMapSupport from 'source-map-support';
 import * as commonUtil from '../shared/app/common/common_util';
-import {registerDriver} from '../shared/app/common/driver_repository';
+import {
+  getDriver,
+  registerDriver,
+} from '../shared/app/common/driver_repository';
 import {vscodeRegisterCommand} from '../shared/app/common/vscode/commands';
 import {activate as activateSharedFeatures} from '../shared/app/extension';
+import {Driver} from '../shared/driver';
 import * as cipd from './common/cipd';
 import {DriverImpl} from './driver';
 import * as features from './features';
@@ -26,7 +30,6 @@ import * as gerrit from './features/gerrit';
 import * as gn from './features/gn';
 import * as hints from './features/hints';
 import * as metrics from './features/metrics/metrics';
-import {Metrics} from './features/metrics/metrics';
 import * as metricsConfig from './features/metrics/metrics_config';
 import * as ownersLinks from './features/owners_links';
 import * as shortLinkProvider from './features/short_link_provider';
@@ -60,14 +63,15 @@ export async function activate(
 
   registerDriver(new DriverImpl());
   activateSharedFeatures(context, new DriverImpl());
+  const driver = getDriver();
 
   // Activate metrics so that other components can emit metrics on activation.
   await metrics.activate(context);
 
   try {
-    return await postMetricsActivate(context);
+    return await postMetricsActivate(context, driver);
   } catch (err) {
-    Metrics.send({
+    driver.sendMetrics({
       category: 'error',
       group: 'misc',
       description: `activate failed: ${err}`,
@@ -78,7 +82,8 @@ export async function activate(
 }
 
 async function postMetricsActivate(
-  context: vscode.ExtensionContext
+  context: vscode.ExtensionContext,
+  driver: Driver
 ): Promise<ExtensionApi> {
   await assertOutsideChroot();
 
@@ -112,7 +117,7 @@ async function postMetricsActivate(
   context.subscriptions.push(
     vscodeRegisterCommand(ideUtil.SHOW_UI_LOG.command, () => {
       ideUtil.getUiLogger().show();
-      Metrics.send({
+      driver.sendMetrics({
         category: 'interactive',
         group: 'idestatus',
         description: 'show ui actions log',
@@ -160,7 +165,7 @@ async function postMetricsActivate(
   // We want to know if some users flip enablement bit.
   // If the feature is disabled it could mean that it's annoying.
   if (!config.gerrit.enabled.hasDefaultValue()) {
-    Metrics.send({
+    driver.sendMetrics({
       category: 'background',
       group: 'gerrit',
       description: 'gerrit enablement',
@@ -169,7 +174,7 @@ async function postMetricsActivate(
     });
   }
 
-  Metrics.send({
+  driver.sendMetrics({
     category: 'background',
     group: 'misc',
     description: 'activate',
@@ -177,7 +182,7 @@ async function postMetricsActivate(
   });
 
   const age = await metricsConfig.getUserIdAgeInDays();
-  Metrics.send({
+  driver.sendMetrics({
     category: 'background',
     group: 'misc',
     description: 'user ID age',

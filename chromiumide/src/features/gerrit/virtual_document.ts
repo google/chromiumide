@@ -4,7 +4,9 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {Metrics} from '../metrics/metrics';
+import {getDriver} from '../../../shared/app/common/driver_repository';
+
+const driver = getDriver();
 
 const SCHEME = 'gerrit';
 
@@ -34,7 +36,7 @@ export class GerritDocumentProvider
   }
 
   async provideTextDocumentContent(uri: vscode.Uri): Promise<string> {
-    Metrics.send({
+    driver.sendMetrics({
       category: 'interactive',
       group: 'virtualdocument',
       description: 'open gerrit document',

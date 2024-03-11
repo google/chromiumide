@@ -7,10 +7,10 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../shared/app/common/common_util';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {ExecResult} from '../../../../shared/app/common/exec/types';
 import * as shutil from '../../../../shared/app/common/shutil';
 import {ReactPanel} from '../../../services/react_panel';
-import {Metrics} from '../../metrics/metrics';
 import {SshIdentity} from '../ssh_identity';
 import * as sshUtil from '../ssh_util';
 import {
@@ -19,6 +19,8 @@ import {
   SyslogViewContext,
   SyslogViewFrontendMessage,
 } from './model';
+
+const driver = getDriver();
 
 const SYSLOG_FILE = 'syslog.txt';
 
@@ -122,7 +124,7 @@ export class SyslogPanel extends ReactPanel<SyslogViewContext> {
           );
         }
       } else if (msg.command === 'copy') {
-        Metrics.send({
+        driver.sendMetrics({
           category: 'interactive',
           group: 'device',
           name: 'device_management_syslog_viewer_copy',

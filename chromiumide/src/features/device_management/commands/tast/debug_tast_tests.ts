@@ -9,13 +9,13 @@ import * as process from 'process';
 import * as vscode from 'vscode';
 import * as glob from 'glob';
 import * as commonUtil from '../../../../../shared/app/common/common_util';
+import {getDriver} from '../../../../../shared/app/common/driver_repository';
 import {AbnormalExitError} from '../../../../../shared/app/common/exec/types';
 import {ParsedEbuildFilepath} from '../../../../common/chromiumos/portage/ebuild';
 import {MemoryOutputChannel} from '../../../../common/memory_output_channel';
 import {TeeOutputChannel} from '../../../../common/tee_output_channel';
 import * as services from '../../../../services';
 import * as config from '../../../../services/config';
-import {Metrics} from '../../../metrics/metrics';
 import {DeviceClient} from '../../device_client';
 import {diagnoseSshError} from '../../diagnostic';
 import * as sshUtil from '../../ssh_util';
@@ -25,6 +25,8 @@ import {
   preTestSetUp,
   showPromptWithOpenLogChoice,
 } from './tast_common';
+
+const driver = getDriver();
 
 /**
  * Represents the result of the call to debugTastTests.
@@ -44,7 +46,7 @@ export async function debugTastTests(
   chrootService: services.chromiumos.ChrootService,
   homedir = os.homedir()
 ): Promise<DebugTastTestsResult | undefined | Error> {
-  Metrics.send({
+  driver.sendMetrics({
     category: 'interactive',
     group: 'device',
     name: 'device_management_debug_tast_tests',
@@ -218,7 +220,7 @@ function getDlvEbuildVersion(
       const res = ParsedEbuildFilepath.parseOrThrow(ebuildFileName);
       return res.pkg.version;
     } catch {
-      Metrics.send({
+      driver.sendMetrics({
         category: 'error',
         group: 'tast',
         name: 'tast_debug_fail_to_get_delve_version_from_ebuild',

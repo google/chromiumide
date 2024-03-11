@@ -7,12 +7,14 @@
  */
 
 import * as vscode from 'vscode';
+import {getDriver} from '../../../shared/app/common/driver_repository';
 import {vscodeRegisterCommand} from '../../../shared/app/common/vscode/commands';
 import {BoardOrHost} from '../../common/chromiumos/board_or_host';
 import * as ideUtil from '../../ide_util';
 import * as services from '../../services';
 import * as config from '../../services/config';
-import {Metrics} from '../metrics/metrics';
+
+const driver = getDriver();
 
 export function activate(
   context: vscode.ExtensionContext,
@@ -47,7 +49,7 @@ export function activate(
       // Type-check that errors are handled.
       ((_: BoardOrHost | null) => {})(board);
       if (board) {
-        Metrics.send({
+        driver.sendMetrics({
           category: 'interactive',
           group: 'misc',
           name: 'select_target_board',

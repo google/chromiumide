@@ -3,8 +3,10 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {Metrics} from '../features/metrics/metrics';
+import {getDriver} from '../../shared/app/common/driver_repository';
 import * as ideUtil from '../ide_util';
+
+const driver = getDriver();
 
 export function activate(context: vscode.ExtensionContext): void {
   const recommendations: Recommendation[] = [
@@ -136,7 +138,7 @@ class Recommender implements vscode.Disposable {
         YES,
         LATER
       );
-      Metrics.send({
+      driver.sendMetrics({
         category: 'background',
         group: 'misc',
         description: 'show suggestion',
@@ -152,7 +154,7 @@ class Recommender implements vscode.Disposable {
           'workbench.extensions.installExtension',
           this.recommendation.extensionId
         );
-        Metrics.send({
+        driver.sendMetrics({
           category: 'interactive',
           group: 'misc',
           description: 'install suggested',

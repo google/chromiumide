@@ -4,15 +4,17 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
+import {getDriver} from '../../../shared/app/common/driver_repository';
 import * as config from '../../services/config';
 import * as bgTaskStatus from '../../ui/bg_task_status';
 import * as boilerplate from '../boilerplate';
-import {Metrics} from '../metrics/metrics';
 import * as chromiumBuild from './chromium_build';
 import * as format from './format';
 import * as gtest from './gtest';
 import * as outputDirectories from './output_directories';
 import * as relatedFiles from './related_files';
+
+const driver = getDriver();
 
 /**
  * Extension context value provided to this class. We omit subscriptions here
@@ -53,7 +55,7 @@ export class Chromium implements vscode.Disposable {
         await this.activate(context);
       } catch (e) {
         console.error('Failed to activate chromium features', e);
-        Metrics.send({
+        driver.sendMetrics({
           category: 'error',
           group: 'misc',
           description: `failed to activte chromium feature ${this.featureName}`,

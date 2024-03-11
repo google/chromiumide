@@ -3,8 +3,10 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {getDriver} from '../../shared/app/common/driver_repository';
 import {vscodeRegisterCommand} from '../../shared/app/common/vscode/commands';
-import {Metrics} from '../features/metrics/metrics';
+
+const driver = getDriver();
 
 export function activate(context: vscode.ExtensionContext): void {
   const commandLink: [string, vscode.Uri][] = [
@@ -34,7 +36,7 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
       vscodeRegisterCommand(command, () => {
         void vscode.env.openExternal(link);
-        Metrics.send({
+        driver.sendMetrics({
           category: 'interactive',
           group: 'misc',
           description: command,

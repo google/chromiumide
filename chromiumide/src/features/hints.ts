@@ -3,10 +3,12 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {getDriver} from '../../shared/app/common/driver_repository';
 import {isChromiumosRoot} from '../common/chromiumos/fs';
 import {hints} from '../services/config';
 import * as sudo from '../services/sudo';
-import {Metrics} from './metrics/metrics';
+
+const driver = getDriver();
 
 /**
  * Activates the hint handlers.
@@ -75,7 +77,7 @@ async function onDidChangeWorkspaceFolders({
       hints.tooLargeWorkspace.get() &&
       (await isChromiumosRoot(dir.uri.fsPath))
     ) {
-      Metrics.send({
+      driver.sendMetrics({
         category: 'background',
         group: 'hints',
         description: 'show chromiumos workspace warning',
@@ -106,7 +108,7 @@ async function onDidChangeWorkspaceFolders({
       } else if (choice === dontAskAgain) {
         await hints.tooLargeWorkspace.update(false);
 
-        Metrics.send({
+        driver.sendMetrics({
           category: 'interactive',
           group: 'hints',
           description: 'show chromiumos workspace warning',

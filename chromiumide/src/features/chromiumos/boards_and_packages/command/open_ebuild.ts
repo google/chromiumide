@@ -3,13 +3,15 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {getDriver} from '../../../../../shared/app/common/driver_repository';
 import {BoardOrHost} from '../../../../common/chromiumos/board_or_host';
 import {
   ParsedPackageName,
   getQualifiedPackageName,
 } from '../../../../common/chromiumos/portage/ebuild';
-import {Metrics} from '../../../metrics/metrics';
 import {Context} from '../context';
+
+const driver = getDriver();
 
 /**
  * Opens the ebuild file used for building the package for the board.
@@ -38,7 +40,7 @@ export async function openEbuild(
   const document = await vscode.workspace.openTextDocument(fileName);
   await vscode.window.showTextDocument(document);
 
-  Metrics.send({
+  driver.sendMetrics({
     category: 'interactive',
     group: 'boards_and_packages',
     name: 'boards_and_packages_open_ebuild',

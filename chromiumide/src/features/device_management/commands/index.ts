@@ -3,11 +3,11 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {vscodeRegisterCommand} from '../../../../shared/app/common/vscode/commands';
 import * as services from '../../../services';
 import {underDevelopment} from '../../../services/config';
 import {Breadcrumbs} from '../../chromiumos/boards_and_packages/item';
-import {Metrics} from '../../metrics/metrics';
 import * as abandonedDevices from '../abandoned_devices';
 import * as crosfleet from '../crosfleet';
 import * as client from '../device_client';
@@ -36,6 +36,8 @@ import {refreshLeases} from './lease_refresh';
 import {setDefaultDevice} from './set_default_device';
 import {openSystemLogViewer} from './syslog_viewer';
 import {debugTastTests, runTastTests} from './tast';
+
+const driver = getDriver();
 
 /**
  * Registers VSCode commands for device management features.
@@ -195,7 +197,7 @@ function registerChromiumosCommands(
               item?.hostname
             );
             if (outcome instanceof Error) {
-              Metrics.send({
+              driver.sendMetrics({
                 category: 'error',
                 group: 'device',
                 name: 'device_management_check_or_suggest_image_error',
@@ -203,7 +205,7 @@ function registerChromiumosCommands(
                 outcome: 'error flashing image',
               });
             } else {
-              Metrics.send({
+              driver.sendMetrics({
                 category: 'interactive',
                 group: 'device',
                 name: 'device_management_check_or_suggest_image',
@@ -257,7 +259,7 @@ async function checkImageOfDefaultDevice(
     ResultDisplayMode.MESSAGE
   );
   // Report on outcome to understand usefulness of the feature.
-  Metrics.send({
+  driver.sendMetrics({
     category: 'background',
     group: 'device',
     name: 'device_management_default_device_image_check',

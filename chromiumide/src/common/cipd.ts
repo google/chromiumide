@@ -7,9 +7,11 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../shared/app/common/common_util';
+import {getDriver} from '../../shared/app/common/driver_repository';
 import {AbnormalExitError} from '../../shared/app/common/exec/types';
-import {Metrics} from '../features/metrics/metrics';
 import * as depotTools from './depot_tools';
+
+const driver = getDriver();
 
 const defaultInstallDir = path.join(os.homedir(), '.cache/cros-ide/cipd');
 
@@ -54,7 +56,7 @@ export class CipdRepository {
         );
         if (result instanceof Error) {
           const details = errorDetails(result);
-          Metrics.send({
+          driver.sendMetrics({
             category: 'error',
             group: 'cipd',
             description: `call to 'cipd init' failed, details: ${details}`,
@@ -75,7 +77,7 @@ export class CipdRepository {
       );
       if (result instanceof Error) {
         const details = errorDetails(result);
-        Metrics.send({
+        driver.sendMetrics({
           category: 'error',
           group: 'cipd',
           description: `call to 'cipd install' failed, details: ${details}`,

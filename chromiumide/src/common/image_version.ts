@@ -2,8 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import {Metrics} from '../features/metrics/metrics';
+import {getDriver} from '../../shared/app/common/driver_repository';
 import {Https} from './https';
+
+const driver = getDriver();
 
 /*
  * Regex to parse a CrOS image string in form Rxxx-yyyyy.zzz.www (release image) or
@@ -71,7 +73,7 @@ export async function getChromeMilestones(
     // empty list, so that user can continue with the image path selection process by manually
     // inputing the milestone they want.
     // Report error to metrics for investigation.
-    Metrics.send({
+    driver.sendMetrics({
       category: 'error',
       group: 'device',
       name: 'device_management_fetch_manifest_refs_error',
