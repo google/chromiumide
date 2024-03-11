@@ -14,7 +14,7 @@ import {
   getDriver,
   registerDriver,
 } from '../shared/app/common/driver_repository';
-import * as logs from '../shared/app/common/logs';
+import {LoggingBundle} from '../shared/app/common/logs';
 import {vscodeRegisterCommand} from '../shared/app/common/vscode/commands';
 import {activate as activateSharedFeatures} from '../shared/app/extension';
 import * as config from '../shared/app/services/config';
@@ -27,7 +27,6 @@ import * as features from './features';
 import * as boilerplate from './features/boilerplate';
 import {CodeServer} from './features/code_server';
 import * as codesearch from './features/codesearch';
-import * as crosLint from './features/cros_lint';
 import * as deviceManagement from './features/device_management';
 import * as dirMetadata from './features/dir_metadata';
 import * as gerrit from './features/gerrit';
@@ -62,14 +61,22 @@ export async function activate(
   await migrate.migrate();
 
   registerDriver(new DriverImpl());
-  activateSharedFeatures(context, new DriverImpl());
+  const {statusManager, linterLogger} = activateSharedFeatures(
+    context,
+    new DriverImpl()
+  );
   const driver = getDriver();
 
   // Activate metrics so that other components can emit metrics on activation.
   await metrics.activate(context);
 
   try {
-    return await postMetricsActivate(context, driver);
+    return await postMetricsActivate(
+      context,
+      driver,
+      statusManager,
+      linterLogger
+    );
   } catch (err) {
     driver.sendMetrics({
       category: 'error',
@@ -83,11 +90,12 @@ export async function activate(
 
 async function postMetricsActivate(
   context: vscode.ExtensionContext,
-  driver: Driver
+  driver: Driver,
+  statusManager: bgTaskStatus.StatusManager,
+  linterLogger: LoggingBundle
 ): Promise<ExtensionApi> {
   await assertOutsideChroot();
 
-  const statusManager = bgTaskStatus.activate(context);
   const cipdRepository = new cipd.CipdRepository();
 
   const chromiumosServices = new services.chromiumos.ChromiumosServiceModule();
@@ -126,9 +134,6 @@ async function postMetricsActivate(
     })
   );
 
-  // The logger that should be used by linters/code-formatters.
-  const linterLogger = logs.createLinterLoggingBundle(context);
-
   // We need an item in the IDE status, which lets users discover the UI log. Since UI actions
   // which result in an error should show a popup, we will not be changing the status
   statusManager.setTask('UI Actions', {
@@ -136,7 +141,6 @@ async function postMetricsActivate(
     command: ideUtil.SHOW_UI_LOG,
   });
 
-  crosLint.activate(context, statusManager, linterLogger);
   gn.activate(context, statusManager, linterLogger);
   shortLinkProvider.activate(context);
   if (config.ownersFiles.links.get()) {

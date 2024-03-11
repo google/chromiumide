@@ -3,13 +3,13 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as commonUtil from '../../shared/app/common/common_util';
-import {getDriver} from '../../shared/app/common/driver_repository';
-import * as logs from '../../shared/app/common/logs';
-import * as config from '../../shared/app/services/config';
-import {TextEditorsWatcher} from '../../shared/app/services/watchers/text_editors_watcher';
-import * as bgTaskStatus from '../../shared/app/ui/bg_task_status';
-import {TaskStatus} from '../../shared/app/ui/bg_task_status';
+import * as commonUtil from '../common/common_util';
+import {getDriver} from '../common/driver_repository';
+import * as logs from '../common/logs';
+import * as config from '../services/config';
+import {TextEditorsWatcher} from '../services/watchers/text_editors_watcher';
+import * as bgTaskStatus from '../ui/bg_task_status';
+import {TaskStatus} from '../ui/bg_task_status';
 
 const driver = getDriver();
 

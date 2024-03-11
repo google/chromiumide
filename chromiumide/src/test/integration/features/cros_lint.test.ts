@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as crosLint from '../../../features/cros_lint';
+import * as crosLint from '../../../../shared/app/features/cros_lint';
 import * as extensionTesting from '../extension_testing';
 
 const cppFileName = 'cros-disks/aaa.h';
