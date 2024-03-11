@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import * as path from 'path';
+import * as commonUtil from '../../../../shared/app/common/common_util';
 import {ExecOptions} from '../../../../shared/app/common/exec/types';
-import * as commonUtil from '../../../common/common_util';
 import {arrayWithPrefixAnd} from '../../unit/testing/jasmine/asymmetric_matcher';
 import {FakeExec} from '../fake_exec';
 

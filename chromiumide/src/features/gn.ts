@@ -5,7 +5,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as commonUtil from '../common/common_util';
+import * as commonUtil from '../../shared/app/common/common_util';
 import * as logs from '../logs';
 import * as bgTaskStatus from '../ui/bg_task_status';
 import {TaskStatus} from '../ui/bg_task_status';

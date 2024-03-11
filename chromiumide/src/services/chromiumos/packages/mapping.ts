@@ -6,8 +6,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
 import glob = require('glob');
+import {Source} from '../../../../shared/app/common/common_util';
 import {ParsedPackageName} from '../../../common/chromiumos/portage/ebuild';
-import {Source} from '../../../common/common_util';
 import {PackageInfo} from './types';
 
 /**

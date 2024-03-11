@@ -4,8 +4,8 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import * as commonUtil from '../../../../../shared/app/common/common_util';
 import {BoardOrHost} from '../../../../common/chromiumos/board_or_host';
-import * as commonUtil from '../../../../common/common_util';
 import * as compdbService from '../../../../features/chromiumos/cpp_code_completion/compdb_service';
 import {PackageInfo} from '../../../../services/chromiumos';
 

@@ -5,7 +5,7 @@
 import * as fs from 'fs/promises';
 import * as os from 'os';
 import * as path from 'path';
-import * as commonUtil from '../../common/common_util';
+import * as commonUtil from '../../../shared/app/common/common_util';
 import {envForDepotTools} from '../../common/depot_tools';
 import {Sink} from './sink';
 

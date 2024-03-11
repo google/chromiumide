@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import * as commonUtil from '../../../../../../../../shared/app/common/common_util';
 import {CancelledError} from '../../../../../../../../shared/app/common/exec/types';
-import * as commonUtil from '../../../../../../../common/common_util';
 import {
   TestResult,
   runTastTests,

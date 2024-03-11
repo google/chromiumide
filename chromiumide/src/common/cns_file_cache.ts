@@ -6,7 +6,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as dateFns from 'date-fns';
-import * as common_util from './common_util';
+import * as common_util from '../../shared/app/common/common_util';
 
 /**
  * Gets the default/recommended directory for storing cached files. This location is within the

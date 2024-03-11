@@ -8,9 +8,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as commonUtil from '../shared/app/common/common_util';
+import {Chroot} from '../shared/app/common/common_util';
 import {BoardOrHost, parseBoardOrHost} from './common/chromiumos/board_or_host';
-import * as commonUtil from './common/common_util';
-import {Chroot} from './common/common_util';
 import * as cros from './common/cros';
 import * as config from './services/config';
 

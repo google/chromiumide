@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as commonUtil from '../../../../../common/common_util';
+import * as commonUtil from '../../../../../../shared/app/common/common_util';
 import {Breadcrumbs} from '../../../../../features/chromiumos/boards_and_packages/item';
 import {Coverage} from '../../../../../features/chromiumos/coverage';
 import * as services from '../../../../../services';

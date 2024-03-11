@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import * as commonUtil from '../../../../shared/app/common/common_util';
 import * as shutil from '../../../../shared/app/common/shutil';
-import * as commonUtil from '../../../common/common_util';
 import {MemoryOutputChannel} from '../../../common/memory_output_channel';
 import {TeeOutputChannel} from '../../../common/tee_output_channel';
 import {Metrics} from '../../metrics/metrics';

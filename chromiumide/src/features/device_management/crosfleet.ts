@@ -4,10 +4,10 @@
 
 import * as vscode from 'vscode';
 import * as dateFns from 'date-fns';
+import * as commonUtil from '../../../shared/app/common/common_util';
 import {AbnormalExitError} from '../../../shared/app/common/exec/types';
 import * as shutil from '../../../shared/app/common/shutil';
 import * as cipd from '../../common/cipd';
-import * as commonUtil from '../../common/common_util';
 
 /**
  * Represents a leased device.

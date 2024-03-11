@@ -4,7 +4,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as commonUtil from '../../../common/common_util';
+import * as commonUtil from '../../../../shared/app/common/common_util';
 import * as cros from '../../../common/cros';
 import * as testing from '../../testing';
 

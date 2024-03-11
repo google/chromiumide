@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as path from 'path';
-import {Source} from '../../../../common/common_util';
+import {Source} from '../../../../../shared/app/common/common_util';
 import * as services from '../../../../services';
 import {Packages} from '../../../../services/chromiumos';
 import {Mapping} from '../../../../services/chromiumos/packages/mapping';

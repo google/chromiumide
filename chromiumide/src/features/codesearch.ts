@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as commonUtil from '../../shared/app/common/common_util';
 import {chromiumRoot} from '../common/chromium/fs';
-import * as commonUtil from '../common/common_util';
 import {
   vscodeRegisterCommand,
   vscodeRegisterTextEditorCommand,

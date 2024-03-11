@@ -4,7 +4,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import {Chroot, CrosOut} from './common_util';
+import {Chroot, CrosOut} from '../../shared/app/common/common_util';
 
 // Wraps functions in fs or fs.promises, adding prefix to given paths.
 export class WrapFs<T extends string> {

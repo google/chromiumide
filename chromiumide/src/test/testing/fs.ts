@@ -7,8 +7,8 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as commonUtil from '../../common/common_util';
-import {Chroot} from '../../common/common_util';
+import * as commonUtil from '../../../shared/app/common/common_util';
+import {Chroot} from '../../../shared/app/common/common_util';
 import {cleanState} from './clean_state';
 
 export async function putFiles(

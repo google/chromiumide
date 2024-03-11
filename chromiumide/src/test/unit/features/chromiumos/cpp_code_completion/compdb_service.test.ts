@@ -5,8 +5,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as commonUtil from '../../../../../../shared/app/common/common_util';
 import {Board} from '../../../../../common/chromiumos/board_or_host/board';
-import * as commonUtil from '../../../../../common/common_util';
 import * as cros from '../../../../../common/cros';
 import {CompdbServiceImpl} from '../../../../../features/chromiumos/cpp_code_completion/compdb_service';
 import * as testing from '../../../../testing';

@@ -4,7 +4,7 @@
 
 import * as childProcess from 'child_process';
 import * as util from 'util';
-import * as commonUtil from '../../../common/common_util';
+import * as commonUtil from '../../../../shared/app/common/common_util';
 import * as sudo from '../../../services/sudo';
 import * as testing from '../../testing';
 import * as doubles from '../../testing/doubles';

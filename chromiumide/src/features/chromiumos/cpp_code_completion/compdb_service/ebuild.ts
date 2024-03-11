@@ -4,9 +4,9 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as commonUtil from '../../../../../shared/app/common/common_util';
 import {BoardOrHost} from '../../../../common/chromiumos/board_or_host';
 import {buildGet9999EbuildCommand} from '../../../../common/chromiumos/portage/equery';
-import * as commonUtil from '../../../../common/common_util';
 import * as services from '../../../../services';
 import {CompdbError, CompdbErrorKind} from './error';
 

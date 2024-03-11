@@ -7,8 +7,8 @@
  * script. This file should not depend on 'vscode'.
  */
 
-import {getDriver} from '../../shared/app/common/driver_repository';
-import {ExecOptions, ExecResult} from '../../shared/app/common/exec/types';
+import {getDriver} from './driver_repository';
+import {ExecOptions, ExecResult} from './exec/types';
 
 const driver = getDriver();
 

@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {sourceDir} from '../../../../../../../shared/app/common/common_util';
 import {getCrosPath} from '../../../../../../common/chromiumos/cros_client';
-import {sourceDir} from '../../../../../../common/common_util';
 import {TEST_ONLY} from '../../../../../../features/device_management/commands/flash_prebuilt_image';
 import {
   DeviceClient,

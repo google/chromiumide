@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {Source} from '../../../../../../../../shared/app/common/common_util';
 import {AbnormalExitError} from '../../../../../../../../shared/app/common/exec/types';
-import {Source} from '../../../../../../../common/common_util';
 import {
   showSuggestedImagesInputBox,
   TEST_ONLY,

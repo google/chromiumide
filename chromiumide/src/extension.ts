@@ -9,10 +9,10 @@
  */
 import * as vscode from 'vscode';
 import * as sourceMapSupport from 'source-map-support';
+import * as commonUtil from '../shared/app/common/common_util';
 import {registerDriver} from '../shared/app/common/driver_repository';
 import {activate as activateSharedFeatures} from '../shared/app/extension';
 import * as cipd from './common/cipd';
-import * as commonUtil from './common/common_util';
 import {vscodeRegisterCommand} from './common/vscode/commands';
 import {DriverImpl} from './driver';
 import * as features from './features';

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as commonUtil from '../../../common/common_util';
+import * as commonUtil from '../../../../shared/app/common/common_util';
 import {WrapFs} from '../../../common/cros';
 import {ChrootExecOptions, CrosFs} from '../../../services/chromiumos/chroot';
 

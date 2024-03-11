@@ -7,8 +7,8 @@ import * as net from 'net';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as commonUtil from '../../shared/app/common/common_util';
 import {ExecOptions} from '../../shared/app/common/exec/types';
-import * as commonUtil from '../common/common_util';
 
 const onDidRunSudoWithPasswordEmitter = new vscode.EventEmitter<void>();
 

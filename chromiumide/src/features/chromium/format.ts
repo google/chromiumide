@@ -4,7 +4,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as common_util from '../../common/common_util';
+import * as common_util from '../../../shared/app/common/common_util';
 import * as depotTools from '../../common/depot_tools';
 import {vscodeRegisterCommand} from '../../common/vscode/commands';
 

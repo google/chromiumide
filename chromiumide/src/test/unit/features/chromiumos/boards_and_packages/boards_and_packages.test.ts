@@ -5,7 +5,7 @@
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as commonUtil from '../../../../../common/common_util';
+import * as commonUtil from '../../../../../../shared/app/common/common_util';
 import {BoardsAndPackages} from '../../../../../features/chromiumos/boards_and_packages';
 import {CommandName} from '../../../../../features/chromiumos/boards_and_packages/command';
 import {ViewItemContext} from '../../../../../features/chromiumos/boards_and_packages/constant';

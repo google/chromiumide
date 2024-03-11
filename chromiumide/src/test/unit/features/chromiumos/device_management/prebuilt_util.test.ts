@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as commonUtil from '../../../../../../shared/app/common/common_util';
 import {AbnormalExitError} from '../../../../../../shared/app/common/exec/types';
-import * as commonUtil from '../../../../../common/common_util';
 import * as prebuiltUtil from '../../../../../features/device_management/prebuilt_util';
 import * as services from '../../../../../services';
 import * as testing from '../../../../testing';

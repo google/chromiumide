@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as fs from 'fs';
-import * as commonUtil from '../../common/common_util';
+import * as commonUtil from '../../../shared/app/common/common_util';
 import * as git from '../../features/gerrit/git';
 
 /**

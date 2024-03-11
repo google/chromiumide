@@ -4,7 +4,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as commonUtil from '../common/common_util';
+import * as commonUtil from '../../shared/app/common/common_util';
 import {Metrics} from './metrics/metrics';
 
 export function activate(context: vscode.ExtensionContext): void {

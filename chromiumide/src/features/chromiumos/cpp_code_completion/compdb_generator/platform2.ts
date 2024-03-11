@@ -4,8 +4,8 @@
 
 import * as fs from 'fs';
 import * as vscode from 'vscode';
+import * as commonUtil from '../../../../../shared/app/common/common_util';
 import {getQualifiedPackageName} from '../../../../common/chromiumos/portage/ebuild';
-import * as commonUtil from '../../../../common/common_util';
 import {getOrSelectTargetBoard, NoBoardError} from '../../../../ide_util';
 import * as services from '../../../../services';
 import {Packages} from '../../../../services/chromiumos';

@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as commonUtil from '../../common/common_util';
+import * as commonUtil from '../../../shared/app/common/common_util';
 import * as config from '../../services/config';
 import * as repository from './device_repository';
 import {SshIdentity} from './ssh_identity';

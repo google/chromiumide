@@ -6,12 +6,12 @@ import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as commonUtil from '../../../../shared/app/common/common_util';
 import {
   ExecResult,
   AbnormalExitError,
   CancelledError,
 } from '../../../../shared/app/common/exec/types';
-import * as commonUtil from '../../../common/common_util';
 import * as testing from '../../testing';
 
 class SimpleLogger {

@@ -5,7 +5,7 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import * as commonUtil from '../../common/common_util';
+import * as commonUtil from '../../../shared/app/common/common_util';
 import * as git from './git';
 import {Sink} from './sink';
 

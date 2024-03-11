@@ -4,13 +4,13 @@
 
 import * as vscode from 'vscode';
 import {
+  setExecForTesting,
+  exec as commonUtilExec,
+} from '../../../shared/app/common/common_util';
+import {
   ExecOptions,
   CancelledError,
 } from '../../../shared/app/common/exec/types';
-import {
-  setExecForTesting,
-  exec as commonUtilExec,
-} from '../../common/common_util';
 import {cleanState} from './clean_state';
 
 type ExecType = typeof commonUtilExec;

@@ -6,9 +6,9 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as commonUtil from '../../shared/app/common/common_util';
 import {AbnormalExitError} from '../../shared/app/common/exec/types';
 import {Metrics} from '../features/metrics/metrics';
-import * as commonUtil from './common_util';
 import * as depotTools from './depot_tools';
 
 const defaultInstallDir = path.join(os.homedir(), '.cache/cros-ide/cipd');

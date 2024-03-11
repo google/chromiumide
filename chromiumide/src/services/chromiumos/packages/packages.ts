@@ -5,7 +5,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as services from '../..';
-import {findChroot, sourceDir} from '../../../common/common_util';
+import {findChroot, sourceDir} from '../../../../shared/app/common/common_util';
 import {Mapping} from './mapping';
 import {SourceDir, PackageInfo} from './types';
 
