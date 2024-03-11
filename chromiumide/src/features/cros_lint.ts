@@ -7,7 +7,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../shared/app/common/common_util';
 import {getDriver} from '../../shared/app/common/driver_repository';
-import * as logs from '../logs';
+import * as logs from '../../shared/app/common/logs';
 import * as services from '../services';
 import * as config from '../services/config';
 import * as bgTaskStatus from '../ui/bg_task_status';

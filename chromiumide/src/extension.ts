@@ -14,6 +14,7 @@ import {
   getDriver,
   registerDriver,
 } from '../shared/app/common/driver_repository';
+import * as logs from '../shared/app/common/logs';
 import {vscodeRegisterCommand} from '../shared/app/common/vscode/commands';
 import {activate as activateSharedFeatures} from '../shared/app/extension';
 import {Driver} from '../shared/driver';
@@ -37,7 +38,6 @@ import * as showHelp from './features/show_help';
 import * as suggestExtension from './features/suggest_extension';
 import * as upstart from './features/upstart';
 import * as ideUtil from './ide_util';
-import * as logs from './logs';
 import * as migrate from './migrate';
 import * as services from './services';
 import * as config from './services/config';
