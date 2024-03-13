@@ -254,12 +254,15 @@ async function buildAndUpload(preRelease: boolean, remoteBranch?: string) {
       vsceArgs.push('--pre-release');
     }
 
+    let publishFailures = false;
+
     console.log(`Publishing ${fileName} to OpenVSX`);
 
     try {
       await execute('npx', ovsxArgs);
     } catch (e) {
       console.error(e);
+      publishFailures = true;
     }
 
     console.log(`Publishing ${fileName} to MS Marketplace`);
@@ -268,6 +271,11 @@ async function buildAndUpload(preRelease: boolean, remoteBranch?: string) {
       await execute('npx', vsceArgs);
     } catch (e) {
       console.error(e);
+      publishFailures = true;
+    }
+
+    if (publishFailures) {
+      throw new Error(`Some publish failed. Please check log.`);
     }
   });
 }
