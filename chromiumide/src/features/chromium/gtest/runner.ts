@@ -89,7 +89,7 @@ export class Runner extends AbstractRunner {
       {
         cancellationToken: this.cancellation,
         cwd: this.srcPath,
-        env: depotTools.envForDepotTools(),
+        env: await depotTools.envForDepotTools(),
         logger: this.output,
         logStdout: true,
       }
@@ -133,7 +133,7 @@ export class Runner extends AbstractRunner {
       {
         cancellationToken: this.cancellation,
         cwd: this.srcPath,
-        env: depotTools.envForDepotTools(),
+        env: await depotTools.envForDepotTools(),
         logger: this.output,
       }
     );
@@ -189,7 +189,7 @@ export class Runner extends AbstractRunner {
       {
         cancellationToken: this.cancellation,
         cwd: this.srcPath,
-        env: depotTools.envForDepotTools(),
+        env: await depotTools.envForDepotTools(),
         logger: this.output,
         logStdout: true,
         ignoreNonZeroExit: true,

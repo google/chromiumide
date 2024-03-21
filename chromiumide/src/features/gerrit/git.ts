@@ -377,7 +377,7 @@ export async function readChangeIdsUsingGitCl(
       cwd: gitDir,
       logger: sink,
       logStdout: true,
-      env: envForDepotTools(),
+      env: await envForDepotTools(),
     }
   );
   if (result instanceof Error) {

@@ -14,14 +14,14 @@ describe('depot_tools', () => {
   it('adjusts PATH based on settings', async () => {
     await config.paths.depotTools.update('/opt/custom_depot_tools');
 
-    expect(depotTools.envForDepotTools().PATH).toEqual(
+    expect((await depotTools.envForDepotTools()).PATH).toEqual(
       jasmine.stringMatching('^/opt/custom_depot_tools:.*:.*/depot_tools')
     );
   });
   it('adjusts PATH if settings empty', async () => {
     await config.paths.depotTools.update('');
 
-    expect(depotTools.envForDepotTools().PATH).toEqual(
+    expect((await depotTools.envForDepotTools()).PATH).toEqual(
       jasmine.stringMatching('^.*:.*/depot_tools')
     );
   });

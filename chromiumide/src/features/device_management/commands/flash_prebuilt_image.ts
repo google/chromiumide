@@ -4,7 +4,6 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as process from 'process';
 import * as vscode from 'vscode';
 import {Source, exec} from '../../../../shared/app/common/common_util';
 import {getDriver} from '../../../../shared/app/common/driver_repository';
@@ -257,6 +256,7 @@ export async function flashImageToDevice(
       title: `Flashing ${imagePath} to ${hostname}`,
     },
     async (_progress, token) => {
+      const pathVar = await driver.getUserEnvPath();
       output.show(); // Open output channel to show logs of running `cros flash`.
       return await exec(
         getCrosPath(root),
@@ -271,7 +271,7 @@ export async function flashImageToDevice(
             // cros flash cannot find python path with sys.executable in gs.py without this provided
             // explicitly in environment variable.
             PYTHONEXECUTABLE: '/usr/bin/python3',
-            PATH: process.env['PATH'],
+            PATH: pathVar instanceof Error ? undefined : pathVar,
           },
         }
       );

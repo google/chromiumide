@@ -236,7 +236,6 @@ async function checkForGo(): Promise<boolean> {
  * not need to be modified.
  */
 export async function goLintEnv(exe: string): Promise<ProcessEnv | undefined> {
-  const env = Object.assign({}, await driver.getUserEnv());
   const goCrosLint = exe.endsWith('cros');
   if (!goCrosLint) {
     return undefined;
@@ -250,7 +249,10 @@ export async function goLintEnv(exe: string): Promise<ProcessEnv | undefined> {
   const goBin = driver.path.join(chroot, '/usr/bin');
   // Add goBin to the PATH so that cros lint can lint go files
   // outside the chroot.
-  let newPathVar = `${env['PATH']}:${goBin}`;
+  const pathVar = await driver.getUserEnvPath();
+  let newPathVar = `${
+    pathVar instanceof Error || pathVar === undefined ? '' : pathVar
+  }:${goBin}`;
   // Prepend go.toolsGopath if available
   if (vscode.extensions.getExtension('golang.Go')) {
     const toolsGopathConfig = config.goExtension.toolsGopath.get();

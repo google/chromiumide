@@ -69,7 +69,7 @@ export function activate(
               repoRoots.map(async repoRoot => {
                 const result = await common_util.exec('git', ['cl', 'format'], {
                   cwd: repoRoot.fsPath,
-                  env: depotTools.envForDepotTools(),
+                  env: await depotTools.envForDepotTools(),
                   cancellationToken: token,
                 });
                 if (result instanceof Error) {

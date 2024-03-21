@@ -67,7 +67,7 @@ export async function readGnArgs(
     ],
     {
       cwd: srcPath,
-      env: envForDepotTools(),
+      env: await envForDepotTools(),
       cancellationToken: token,
     }
   );

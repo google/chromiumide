@@ -33,7 +33,7 @@ export class CipdRepository {
     version: string,
     output: vscode.OutputChannel
   ): Promise<void> {
-    const env = depotTools.envForDepotTools();
+    const env = await depotTools.envForDepotTools();
 
     const errorDetails = (error: Error) => {
       // We send only selected data to avoid capturing too much

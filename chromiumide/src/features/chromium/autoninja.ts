@@ -82,7 +82,7 @@ export async function runAutoninja(
     logStdout: true,
     treeKillWhenCancelling: config.underDevelopment.autoninjaImprovements.get(),
     env: {
-      ...depotTools.envForDepotTools(),
+      ...(await depotTools.envForDepotTools()),
 
       // Force ninja status line format in case the user has overwritten it (used in
       // `AutoninjaOutputAdapter` to track compile progress).
