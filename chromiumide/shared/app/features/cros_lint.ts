@@ -515,9 +515,9 @@ export function parseCrosLintShell(
     }
   }
 
-  const stderrLineRE =
+  const warningLineRE =
     /[0-9]+:[0-9]+:[0-9]+: WARNING:([^\n:]+):(([0-9]+):)? (.*)/gm;
-  while ((match = stderrLineRE.exec(stderr)) !== null) {
+  while ((match = warningLineRE.exec(stdout)) !== null) {
     const file = match[1];
     const message = match[4];
     let line: number;

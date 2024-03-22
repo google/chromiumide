@@ -71,8 +71,7 @@ echo $1
 `;
 
 const shellLintOutput = `cros-disks/aaa.sh:3:6: note: Double quote to prevent globbing and word splitting. [SC2086]
-`;
-const shellLintStderr = `12:34:56: WARNING: cros-disks/aaa.sh: delete trailing blank lines
+12:34:56: WARNING: cros-disks/aaa.sh: delete trailing blank lines
 12:34:56: WARNING: cros-disks/aaa.sh:14: trim trailing whitespace: echo $1
 12:34:56: ERROR: Found lint errors in 1 files in 0.029s.
 `;
@@ -255,7 +254,7 @@ describe('Lint Integration', () => {
     const textDocument = await vscode.workspace.openTextDocument(uri);
     const actual = crosLint.parseCrosLintShell(
       shellLintOutput,
-      shellLintStderr,
+      '',
       textDocument
     );
     await extensionTesting.closeDocument(textDocument);
