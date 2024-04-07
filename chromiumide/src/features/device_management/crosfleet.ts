@@ -223,6 +223,8 @@ async function runInTerminal(
   args: string[],
   options: vscode.TerminalOptions = {}
 ): Promise<vscode.TerminalExitStatus> {
+  const fakeCipdDirectory = await ensureFakeCipd();
+  const envPath = `${fakeCipdDirectory}:${await driver.getUserEnvPath()}`;
   const terminal = vscode.window.createTerminal(options);
 
   const waitClose = new Promise<void>(resolve => {
@@ -236,7 +238,8 @@ async function runInTerminal(
 
   terminal.show();
 
-  const command = shutil.escapeArray([name, ...args]);
+  // Setting env as an option of `vscode.window.createTerminal` doesn't work (b:333294399).
+  const command = shutil.escapeArray(['env', `PATH=${envPath}`, name, ...args]);
   terminal.sendText('exec ' + command);
 
   await waitClose;
