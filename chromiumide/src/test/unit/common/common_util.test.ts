@@ -243,6 +243,18 @@ subprocess.run(['python3', '-c', 'import time; time.sleep(10) # ${MARKER}'])
     const res = await commonUtil.exec('pwd', [], {cwd: temp.path});
     expect((res as ExecResult).stdout).toContain(temp.path);
   });
+
+  it('logs cwd and env on the first line if given', async () => {
+    let logs = '';
+    await commonUtil.exec('true', [], {
+      logger: new SimpleLogger(log => {
+        logs += log;
+      }),
+      env: {a: 'b', c: 'd'},
+      cwd: '/tmp',
+    });
+    expect(logs).toEqual('cd /tmp; env a=b c=d true\n');
+  });
 });
 
 describe('withTimeout utility', () => {

@@ -20,7 +20,7 @@ export function realExec(
 ): Promise<ExecResult | Error> {
   return new Promise((resolve, _reject) => {
     if (options.logger) {
-      options.logger.append(shutil.escapeArray([name, ...args]) + '\n');
+      options.logger.append(stringifyExecRequest(name, args, options));
     }
 
     const spawnOpts: childProcess.SpawnOptionsWithoutStdio = {
@@ -101,4 +101,24 @@ export function realExec(
       }
     }
   });
+}
+
+/**
+ * Stringify given exec request so that running it on shell would reproduce the same result.
+ */
+function stringifyExecRequest(
+  name: string,
+  args: string[],
+  {cwd, env}: ExecOptions
+): string {
+  const tokens = [];
+  if (cwd) {
+    tokens.push(`cd ${cwd};`);
+  }
+  if (env) {
+    tokens.push('env', ...Object.keys(env).map(k => `${k}=${env[k]}`));
+  }
+  tokens.push(shutil.escapeArray([name, ...args]));
+
+  return tokens.join(' ') + '\n';
 }
