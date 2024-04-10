@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.28.0 (April 2024)
+
+- DUT management
+  - Seamless deployment: automatic image compatibility check on extension activation, adding new device, deploying package and prompt to flash device with images from a suggested list
+
 ## 0.26.0 (January 2024)
 
 - Chromium
