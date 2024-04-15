@@ -26,6 +26,7 @@ import {connectToDeviceForShell} from './connect_ssh';
 import {connectToDeviceForScreen} from './connect_vnc';
 import {copyAttribute, copyHostname} from './copy_device_attribute';
 import {crosfleetLogin} from './crosfleet_login';
+import {setDefaultDevice, unsetDefaultDevice} from './default_device';
 import {deployToDevice} from './deploy_package';
 import {addDevice} from './device_add';
 import {deleteDevice} from './device_delete';
@@ -33,7 +34,6 @@ import {flashPrebuiltImage} from './flash_prebuilt_image';
 import {abandonLease} from './lease_abandon';
 import {addLease} from './lease_add';
 import {refreshLeases} from './lease_refresh';
-import {setDefaultDevice} from './set_default_device';
 import {openSystemLogViewer} from './syslog_viewer';
 import {debugTastTests, runTastTests} from './tast';
 
@@ -78,6 +78,10 @@ export function registerCommands(
     vscodeRegisterCommand(
       'chromiumide.deviceManagement.setDefaultDevice',
       (item: provider.DeviceItem) => setDefaultDevice(item.hostname)
+    ),
+    vscodeRegisterCommand(
+      'chromiumide.deviceManagement.unsetDefaultDevice',
+      () => unsetDefaultDevice()
     ),
     vscodeRegisterCommand(
       'chromiumide.deviceManagement.deleteDevice',

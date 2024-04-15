@@ -89,6 +89,11 @@
         "title": "Set as Default Device"
       },
       {
+        "command": "chromiumide.deviceManagement.unsetDefaultDevice",
+        "category": "CrOS",
+        "title": "Unset Default Device"
+      },
+      {
         "command": "chromiumide.deviceManagement.connectToDeviceForScreen",
         "category": "CrOS",
         "title": "Connect to Device (VNC)",
@@ -635,6 +640,11 @@
           "group": "0_set"
         },
         {
+          "command": "chromiumide.deviceManagement.unsetDefaultDevice",
+          "when": "view == devices && viewItem =~ /^device-/ && viewItem =~ /-default$/",
+          "group": "0_set"
+        },
+        {
           "command": "chromiumide.cppxrefs.forceGenerate",
           "when": "view == chromiumide-status && viewItem == cppxrefs",
           "group": "1_generate"
@@ -839,6 +849,10 @@
         },
         {
           "command": "chromiumide.deviceManagement.setDefaultDevice",
+          "when": "false"
+        },
+        {
+          "command": "chromiumide.deviceManagement.unsetDefaultDevice",
           "when": "false"
         },
         {

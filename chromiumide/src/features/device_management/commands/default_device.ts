@@ -8,3 +8,8 @@ import * as config from '../../../../shared/app/services/config';
 export async function setDefaultDevice(hostname: string): Promise<void> {
   await config.deviceManagement.default.update(hostname);
 }
+
+/** Unsets the default device. */
+export async function unsetDefaultDevice(): Promise<void> {
+  await config.deviceManagement.default.update('');
+}

@@ -5,7 +5,10 @@
 import * as vscode from 'vscode';
 import * as config from '../../../../../../../shared/app/services/config';
 import * as abandonedDevices from '../../../../../../features/device_management/abandoned_devices';
-import {setDefaultDevice} from '../../../../../../features/device_management/commands/set_default_device';
+import {
+  setDefaultDevice,
+  unsetDefaultDevice,
+} from '../../../../../../features/device_management/commands/default_device';
 import * as crosfleet from '../../../../../../features/device_management/crosfleet';
 import {
   DeviceAttributes,
@@ -178,7 +181,7 @@ describe('device tree view shows correct default device', () => {
     );
   });
 
-  it('when set to an owned device', async () => {
+  it('when set to an owned device and unset', async () => {
     await setDefaultDevice('hostname-owned');
     // Wait until tree completed changing.
     await state.reader.read();
@@ -190,9 +193,21 @@ describe('device tree view shows correct default device', () => {
         ['hostname-leased', 'device-leased'],
       ])
     );
+
+    await unsetDefaultDevice();
+    // Wait until tree completed changing.
+    await state.reader.read();
+    expect(
+      await getHostnameToContextValuesFromTree(state.treeDataProvider)
+    ).toEqual(
+      new Map([
+        ['hostname-owned', 'device-owned'],
+        ['hostname-leased', 'device-leased'],
+      ])
+    );
   });
 
-  it('when set to a leased device', async () => {
+  it('when set to a leased device and unset', async () => {
     await setDefaultDevice('hostname-leased');
     // Wait until tree completed changing.
     await state.reader.read();
@@ -202,6 +217,18 @@ describe('device tree view shows correct default device', () => {
       new Map([
         ['hostname-owned', 'device-owned'],
         ['hostname-leased', 'device-leased-default'],
+      ])
+    );
+
+    await unsetDefaultDevice();
+    // Wait until tree completed changing.
+    await state.reader.read();
+    expect(
+      await getHostnameToContextValuesFromTree(state.treeDataProvider)
+    ).toEqual(
+      new Map([
+        ['hostname-owned', 'device-owned'],
+        ['hostname-leased', 'device-leased'],
       ])
     );
   });
