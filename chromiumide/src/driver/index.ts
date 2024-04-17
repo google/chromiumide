@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import * as os from 'os';
+import minimatch from 'minimatch';
 import {ExecOptions, ExecResult} from '../../shared/app/common/exec/types';
 import {Event} from '../../shared/app/common/metrics/metrics_event';
 import {Driver} from '../../shared/driver';
@@ -30,5 +31,8 @@ export class DriverImpl implements Driver {
   }
   sendMetrics(event: Event): void {
     Metrics.send(event);
+  }
+  matchGlob(path: string, pattern: string): boolean {
+    return minimatch(path, pattern);
   }
 }

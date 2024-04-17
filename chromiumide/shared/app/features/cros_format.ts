@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import minimatch from 'minimatch';
 import * as commonUtil from '../common/common_util';
 import {crosExeFromCrosRoot} from '../common/cros';
 import {getDriver} from '../common/driver_repository';
@@ -109,7 +108,7 @@ async function pathIsIgnored(
       path,
       outputChannel
     )) {
-      if (minimatch(path, wildcard)) {
+      if (driver.matchGlob(path, wildcard)) {
         outputChannel?.appendLine(
           `Match pattern in ${prefix}/${_IGNORE_FILE}, not formatting ${path}.`
         );

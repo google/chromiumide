@@ -23,4 +23,5 @@ export type Driver = Readonly<{
   ) => Promise<ExecResult | Error>;
   getUserEnvPath(): Promise<string | undefined | Error>;
   sendMetrics(event: Event): void;
+  matchGlob: (path: string, pattern: string) => boolean;
 }>;
