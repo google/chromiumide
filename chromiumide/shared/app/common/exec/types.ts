@@ -89,6 +89,17 @@ export class AbnormalExitError extends Error {
   }
 }
 
+export class SudoError extends AbnormalExitError {
+  constructor(
+    cmd: string,
+    args: string[],
+    override readonly stdout: string,
+    override readonly stderr: string
+  ) {
+    super(cmd, args, 1, stdout, stderr);
+  }
+}
+
 /**
  * Command did not run, for example, it was not found.
  */

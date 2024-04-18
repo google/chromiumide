@@ -36,7 +36,8 @@ export function buildGet9999EbuildCommand(
 export async function getUseFlagsInstalled(
   board: BoardOrHost,
   targetPackage: string,
-  chrootService: chromiumos.ChrootService
+  chrootService: chromiumos.ChrootService,
+  reason?: `to ${string}`
 ): Promise<Map<string, boolean> | Error> {
   // `equery uses` is normally the command to get use flags. It provides two states, 'U - final flag
   // setting for installation' and (the second one) 'I - package is installed with flag'.
@@ -52,7 +53,8 @@ export async function getUseFlagsInstalled(
     targetPackage,
   ];
   const result = await chrootService.exec(args[0], args.slice(1), {
-    sudoReason: `to get ${targetPackage} use flags on ${board.toBoardName()}`,
+    sudoReason:
+      reason ?? `to get ${targetPackage} use flags on ${board.toBoardName()}`,
   });
   if (result instanceof Error) {
     if (result instanceof AbnormalExitError && result.exitStatus === 127) {

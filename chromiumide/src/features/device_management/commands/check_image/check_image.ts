@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {SudoError} from '../../../../../shared/app/common/exec/types';
 import {deviceManagement} from '../../../../../shared/app/services/config';
 import {Board} from '../../../../common/chromiumos/board_or_host';
 import {
@@ -95,7 +96,8 @@ export async function checkDeviceImageCompatibilityOrSuggest(
   if (!hostname) {
     return CheckOutcome.CANCELLED;
   }
-  const {config, input, output} = await vscode.window.withProgress(
+
+  const checkResult = await vscode.window.withProgress(
     {
       location: vscode.ProgressLocation.Notification,
       title: `Checking ${hostname} compatibility with local environment...`,
@@ -109,6 +111,11 @@ export async function checkDeviceImageCompatibilityOrSuggest(
       );
     }
   );
+  if (!checkResult) {
+    return CheckOutcome.CANCELLED;
+  }
+
+  const {config, input, output} = checkResult;
 
   const option = await reportResultAndPromptActionOnFailedCheck(
     input,
@@ -160,17 +167,22 @@ export async function checkDeviceImageCompatibilityOrSuggest(
 /*
  * Runs cros-debug flag and CrOS image version check on device image and returns result of analysis.
  * The result could be converted into human readable message using checkImageResultToString().
+ *
+ * Returns undefined if user cancels the check.
  */
 async function checkDeviceImageCompatibility(
   context: CommandContext,
   chrootService: chromiumos.ChrootService,
   hostname: string,
   targetPackage: ParsedPackageName
-): Promise<{
-  config: CheckerConfig;
-  input: CheckerInput;
-  output: CheckerOutput;
-}> {
+): Promise<
+  | {
+      config: CheckerConfig;
+      input: CheckerInput;
+      output: CheckerOutput;
+    }
+  | undefined
+> {
   const deviceAttributes = await context.deviceClient.getDeviceAttributes(
     hostname
   );
@@ -193,8 +205,14 @@ async function checkDeviceImageCompatibility(
     const useFlags = await getUseFlagsInstalled(
       board,
       packageName,
-      chrootService
+      chrootService,
+      `to get cros-debug flag of ${board.toBoardName()} and check device ${hostname} image compatibility`
     );
+    // If user dismisses the sudo password prompt knowing it is for image compatibility check, they
+    // do not want to continue with it.
+    if (useFlags instanceof SudoError) {
+      return undefined;
+    }
 
     const postsubmitVersions = await getCrosPrebuiltVersionsFromBinHost(
       board,

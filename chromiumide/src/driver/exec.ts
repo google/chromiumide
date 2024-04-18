@@ -10,6 +10,7 @@ import {
   AbnormalExitError,
   CancelledError,
   ProcessError,
+  SudoError,
 } from '../../shared/app/common/exec/types';
 import * as shutil from '../../shared/app/common/shutil';
 
@@ -61,6 +62,12 @@ export function realExec(
         options.logger.append('\n');
       }
       if (!options.ignoreNonZeroExit && exitStatus !== 0) {
+        if (
+          exitStatus === 1 &&
+          stderr.includes('sudo: no password was provided')
+        ) {
+          resolve(new SudoError(name, args, stdout, stderr));
+        }
         resolve(new AbnormalExitError(name, args, exitStatus, stdout, stderr));
       }
 
