@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import {SudoError} from '../../../../../shared/app/common/exec/types';
-import {deviceManagement} from '../../../../../shared/app/services/config';
+import {seamlessDeployment} from '../../../../../shared/app/services/config';
 import {Board} from '../../../../common/chromiumos/board_or_host';
 import {
   getQualifiedPackageName,
@@ -157,7 +157,7 @@ export async function checkDeviceImageCompatibilityOrSuggest(
   } else if (
     option === PostFailedImageCheckOptions.OPEN_VERSION_THRESHOLD_OPTION
   ) {
-    void deviceManagement.imageVersionMaxSkew.openSettings();
+    void seamlessDeployment.imageVersionMaxSkew.openSettings();
     return CheckOutcome.OPEN_VERSION_MAX_SKEW_CONFIG;
   }
   // User chose 'cancel' or not to do anything.
@@ -234,7 +234,7 @@ async function checkDeviceImageCompatibility(
   }
 
   const config = {
-    versionMaxSkew: deviceManagement.imageVersionMaxSkew.get(),
+    versionMaxSkew: seamlessDeployment.imageVersionMaxSkew.get(),
   };
   const output = new CompatibilityChecker(config, input).check();
   return {config, input, output};

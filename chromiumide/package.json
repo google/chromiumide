@@ -1019,7 +1019,7 @@
           "type": "string",
           "description": "Hostname of the default device"
         },
-        "chromiumide.deviceManagement.imageVersionMaxSkew": {
+        "chromiumide.seamlessDeployment.imageVersionMaxSkew": {
           "type": "number",
           "description": "The maximum difference in CrOS major version for device and local image above which warning would be shown.",
           "default": 7

@@ -177,14 +177,17 @@ export const underDevelopment = {
   systemLogViewer: new ConfigValue<boolean>('underDevelopment.systemLogViewer'),
 };
 
-export const deviceManagement = {
-  devices: new ConfigValue<string[]>('deviceManagement.devices'),
-  default: new ConfigValue<string>('deviceManagement.default'),
+export const seamlessDeployment = {
   // For checking image compatibility with local environment (maximum difference between the
   // ChromeOS major version on device and local prebuilt).
   imageVersionMaxSkew: new ConfigValue<number>(
-    'deviceManagement.imageVersionMaxSkew'
+    'seamlessDeployment.imageVersionMaxSkew'
   ),
+};
+
+export const deviceManagement = {
+  devices: new ConfigValue<string[]>('deviceManagement.devices'),
+  default: new ConfigValue<string>('deviceManagement.default'),
 };
 
 export const dirMetadata = {
