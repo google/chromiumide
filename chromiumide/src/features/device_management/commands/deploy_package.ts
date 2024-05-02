@@ -245,6 +245,7 @@ export async function promptTargetPackageWithCache(
       ignoreFocusOut: true,
       sortByLabel: false,
       title: 'Package to deploy',
+      busy: true,
     });
     picker.items = [];
 
@@ -253,6 +254,10 @@ export async function promptTargetPackageWithCache(
       // Show cached packages to reduce user waiting time since `cros-workon list` could take a long
       // time.
       picker.items = cachedPackages.map(packageAsQuickPickItem);
+      if (picker.items.length) {
+        picker.busy = false;
+      }
+
       onDidChangePickerItemsForTesting?.fire(picker.items);
     }
 
@@ -298,7 +303,10 @@ export async function promptTargetPackageWithCache(
         picker.hide();
       } else {
         boardToPackages.set(board, packages);
+
         picker.items = packages.map(packageAsQuickPickItem);
+        picker.busy = false;
+
         onDidChangePickerItemsForTesting?.fire(picker.items);
       }
     });
