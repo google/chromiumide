@@ -97,6 +97,12 @@ TEST(another, test) {}`
       'no test here',
       false,
     ],
+    [
+      'handles _unittests.cc suffix',
+      'src/platform2/foo_bar_unittests.cc',
+      GTEST_CONTENT,
+      true,
+    ],
   ] as [string, string, string, boolean][]) {
     it(name, async () => {
       vscodeEmitters.workspace.onDidOpenTextDocument.fire(

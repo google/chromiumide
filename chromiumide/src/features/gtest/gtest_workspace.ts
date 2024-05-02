@@ -89,7 +89,7 @@ export class GtestWorkspace implements vscode.Disposable {
     return (
       e.uri.scheme === 'file' &&
       !path.relative(this.rootDir, e.fileName).startsWith('..') &&
-      e.fileName.match(/_(unit|browser|api)?test.(cc|cpp|mm)$/)
+      e.fileName.match(/_(unit|browser|api)?tests?.(cc|cpp|mm)$/)
     );
   }
 
