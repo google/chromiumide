@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as fs from 'fs';
-import * as path from 'path';
 import {Chroot, CrosOut} from '../../shared/app/common/common_util';
+import {getDriver} from '../../shared/app/common/driver_repository';
+
+const driver = getDriver();
 
 // Wraps functions in fs or fs.promises, adding prefix to given paths.
 export class WrapFs<T extends string> {
@@ -14,27 +15,27 @@ export class WrapFs<T extends string> {
     if (p.startsWith(this.root)) {
       return p;
     }
-    return path.join(this.root, p);
+    return driver.path.join(this.root, p);
   }
 
-  async aTime(p: string): Promise<number> {
-    return (await fs.promises.stat(this.realpath(p))).atimeMs;
+  aTime(p: string): Promise<number> {
+    return driver.fs.aTime(this.realpath(p));
   }
 
-  async mTime(p: string): Promise<number> {
-    return (await fs.promises.stat(this.realpath(p))).mtimeMs;
+  mTime(p: string): Promise<number> {
+    return driver.fs.mTime(this.realpath(p));
   }
 
-  existsSync(p: string): boolean {
-    return fs.existsSync(this.realpath(p));
+  exists(p: string): Promise<boolean> {
+    return driver.fs.exists(this.realpath(p));
   }
 
   async readdir(p: string): Promise<string[]> {
-    return fs.promises.readdir(this.realpath(p));
+    return driver.fs.readdir(this.realpath(p));
   }
 
   async rm(p: string, opts?: {force?: boolean}): Promise<void> {
-    return fs.promises.rm(this.realpath(p), opts);
+    return driver.fs.rm(this.realpath(p), opts);
   }
 }
 
@@ -90,7 +91,7 @@ async function getSetupBoardsOrderedInner<T, F extends Chroot | CrosOut>(
   const build = '/build';
 
   // /build does not exist outside chroot, which causes problems in tests.
-  if (!fs.existsSync(build)) {
+  if (!(await fs.exists(build))) {
     return [];
   }
 
@@ -102,7 +103,7 @@ async function getSetupBoardsOrderedInner<T, F extends Chroot | CrosOut>(
     if (dir === 'bin' || dir === 'README') {
       continue;
     }
-    dirStat.push([dir, await keyFn(fs, path.join(build, dir))]);
+    dirStat.push([dir, await keyFn(fs, driver.path.join(build, dir))]);
   }
   dirStat.sort(([, a], [, b]) => compareFn(a, b));
   return dirStat.map(([x]) => x);

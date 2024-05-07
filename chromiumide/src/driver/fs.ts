@@ -22,4 +22,26 @@ export class FsImpl implements Fs {
   async readFile(path: string): Promise<string> {
     return fs.promises.readFile(path, 'utf-8');
   }
+  async copyFile(path: string, dest: string): Promise<void> {
+    return fs.promises.copyFile(path, dest);
+  }
+
+  async mTime(path: string): Promise<number> {
+    return (await fs.promises.stat(path)).mtimeMs;
+  }
+  async aTime(path: string): Promise<number> {
+    return (await fs.promises.stat(path)).atimeMs;
+  }
+  readdir(path: string): Promise<string[]> {
+    return fs.promises.readdir(path);
+  }
+  rm(path: string, opts?: {force?: boolean}): Promise<void> {
+    return fs.promises.rm(path, opts);
+  }
+  watch(
+    path: string,
+    listener?: (eventType: string, fileName: string | null) => void
+  ): void {
+    fs.watch(path, listener);
+  }
 }
