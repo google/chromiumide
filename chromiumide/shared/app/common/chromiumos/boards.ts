@@ -1,11 +1,11 @@
-// Copyright 2022 The ChromiumOS Authors
+// Copyright 2024 The ChromiumOS Authors
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import {getDriver} from '../../shared/app/common/driver_repository';
-import {WrapFs} from '../../shared/app/common/wrap_fs';
+import {getDriver} from '../driver_repository';
+import {WrapFs} from '../wrap_fs';
 
-export const driver = getDriver();
+const driver = getDriver();
 
 /**
  * @returns Boards that have been set up, ordered by access time (newest to

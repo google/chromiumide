@@ -12,10 +12,10 @@ import {
   BoardOrHost,
   parseBoardOrHost,
 } from '../shared/app/common/chromiumos/board_or_host';
+import {getSetupBoardsRecentFirst} from '../shared/app/common/chromiumos/boards';
 import * as commonUtil from '../shared/app/common/common_util';
 import {WrapFs} from '../shared/app/common/wrap_fs';
 import * as config from '../shared/app/services/config';
-import * as cros from './common/cros';
 
 /**
  * Get the target board, or ask the user to select one.
@@ -55,7 +55,7 @@ export async function selectAndUpdateTargetBoard(
     suggestMostRecent: boolean;
   }
 ): Promise<BoardOrHost | null | NoBoardError> {
-  const boards = await cros.getSetupBoardsRecentFirst(
+  const boards = await getSetupBoardsRecentFirst(
     chroot,
     new WrapFs(commonUtil.crosOutDir(commonUtil.crosRoot(chroot.root)))
   );

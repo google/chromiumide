@@ -8,7 +8,7 @@ import {
   Board,
   HOST,
 } from '../../../../../shared/app/common/chromiumos/board_or_host';
-import {getSetupBoardsAlphabetic} from '../../../../common/cros';
+import {getSetupBoardsAlphabetic} from '../../../../../shared/app/common/chromiumos/boards';
 import {Context} from '../context';
 import {BoardItem} from './board_item';
 import {Breadcrumbs} from './breadcrumbs';

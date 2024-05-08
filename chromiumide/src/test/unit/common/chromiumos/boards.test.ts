@@ -4,10 +4,13 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as commonUtil from '../../../../shared/app/common/common_util';
-import {WrapFs} from '../../../../shared/app/common/wrap_fs';
-import * as cros from '../../../common/cros';
-import * as testing from '../../testing';
+import {
+  getSetupBoardsRecentFirst,
+  getSetupBoardsAlphabetic,
+} from '../../../../../shared/app/common/chromiumos/boards';
+import * as commonUtil from '../../../../../shared/app/common/common_util';
+import {WrapFs} from '../../../../../shared/app/common/wrap_fs';
+import * as testing from '../../../testing';
 
 async function prepareBoardsDir(td: string): Promise<{
   chroot: string;
@@ -38,7 +41,7 @@ describe('Boards that are set up', () => {
     const {chroot, out} = await prepareBoardsDir(tempDir.path);
 
     expect(
-      await cros.getSetupBoardsRecentFirst(new WrapFs(chroot), new WrapFs(out))
+      await getSetupBoardsRecentFirst(new WrapFs(chroot), new WrapFs(out))
     ).toEqual(['coral', 'amd64-generic', 'betty-pi-arc']);
   });
 
@@ -46,13 +49,13 @@ describe('Boards that are set up', () => {
     const {chroot, out} = await prepareBoardsDir(tempDir.path);
 
     expect(
-      await cros.getSetupBoardsAlphabetic(new WrapFs(chroot), new WrapFs(out))
+      await getSetupBoardsAlphabetic(new WrapFs(chroot), new WrapFs(out))
     ).toEqual(['amd64-generic', 'betty-pi-arc', 'coral']);
   });
 
   it('can be listed, even if /build does not exist', async () => {
     expect(
-      await cros.getSetupBoardsAlphabetic(
+      await getSetupBoardsAlphabetic(
         new WrapFs(tempDir.path),
         new WrapFs(tempDir.path)
       )
