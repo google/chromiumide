@@ -144,7 +144,7 @@ export async function checkDeviceImageCompatibilityOrSuggest(
         context.output
       );
       if (flashImageStatus instanceof Error) return flashImageStatus;
-      if (flashImageStatus) return CheckOutcome.FLASHED_FROM_MENU;
+      if (flashImageStatus) return CheckOutcome.FLASHED_FROM_SUGGESTION;
     }
   } else if (option === PostFailedImageCheckOptions.FLASH_ANY_IMAGE_OPTION) {
     const flashImageStatus = await flashPrebuiltImage(
