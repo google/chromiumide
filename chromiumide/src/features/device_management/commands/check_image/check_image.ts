@@ -137,6 +137,8 @@ export async function checkDeviceImageCompatibilityOrSuggest(
   // No follow-up action required if check passed.
   if (output.passed) return CheckOutcome.PASSED;
 
+  if (option === undefined) return CheckOutcome.CANCELLED; // user dismissed a UI component
+
   if (option === PostFailedImageCheckOptions.FLASH_SUGGESTED_IMAGE_OPTION) {
     const imagePath = await showSuggestedImagesInputBox(
       hostname,
