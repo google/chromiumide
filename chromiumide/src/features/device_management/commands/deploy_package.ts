@@ -202,7 +202,7 @@ export async function deployToDevice(
   ) {
     void (async () => {
       const choice = await vscode.window.showInformationMessage(
-        'Do you want to let our new [seamless deployment](go/chromiumide-doc-device-management#seamless-deployment) feature automatically runs image check on newly added devices, and the default device on extension activation? You can always enable/disable it in the user settings page later.',
+        'Do you want to let our new [seamless deployment](http://go/chromiumide-doc-seamless-deployment) feature automatically runs image check on newly added devices, and the default device on extension activation? You can always enable/disable it in the user settings page later.',
         'Yes',
         "Don't show again"
       );
