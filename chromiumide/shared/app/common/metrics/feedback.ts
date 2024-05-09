@@ -3,10 +3,23 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {Platform} from '../../../driver';
+import {getDriver} from '../driver_repository';
 import {extensionName} from '../extension_name';
 import {vscodeRegisterCommand} from '../vscode/commands';
 
+const driver = getDriver();
+
 export function activate(context: vscode.ExtensionContext): void {
+  if (driver.platform() === Platform.VSCODE) {
+    activateVscode(context);
+  } else {
+    // Activate feature with cider feedback API.
+    driver.activateFeedback(context);
+  }
+}
+
+function activateVscode(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     vscodeRegisterCommand('chromiumide.fileIdeBug', () => {
       void vscode.env.openExternal(

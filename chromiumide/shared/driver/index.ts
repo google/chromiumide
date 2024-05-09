@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as vscode from 'vscode';
 import {ExecOptions, ExecResult} from '../app/common/exec/types';
 import {Cros} from './cros';
 import {Fs} from './fs';
@@ -26,4 +27,6 @@ export type Driver = Readonly<{
   ) => Promise<ExecResult | Error>;
   getUserEnvPath(): Promise<string | undefined | Error>;
   matchGlob: (path: string, pattern: string) => boolean;
+  // Only implemented on cider where implementation has local dependency.
+  activateFeedback(context: vscode.ExtensionContext): void;
 }>;

@@ -31,4 +31,7 @@ export class DriverImpl implements Driver {
   matchGlob(path: string, pattern: string): boolean {
     return minimatch(path, pattern);
   }
+  // Not implemented since the implementation does not have local dependency (only implemented for
+  // cider).
+  activateFeedback(): void {}
 }
