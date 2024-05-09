@@ -30,13 +30,23 @@ enum PostFailedImageCheckOptions {
   DEFAULT_IGNORE_WARNING_OPTION = 'Ignore',
 }
 
+/**
+ * Represents the result of the checkDeviceImageCompatibilityOrSuggest function.
+ */
 export enum CheckOutcome {
+  /** chrootService was not available and we couldn't start running check. */
   NOT_AVAILABLE = 'not available',
+  /** The user explicitly cancelled an operation during its running. */
   CANCELLED = 'cancelled',
+  /** Every check passed. */
   PASSED = 'passed',
+  /** The image was incompatible, and the user flashed an image from the list IDE suggested. */
   FLASHED_FROM_SUGGESTION = 'flashed from suggested images',
+  /** The image was incompatible, and the user flashed an arbitrary image from the menu. */
   FLASHED_FROM_MENU = 'flashed arbitrary image from menu',
+  /** A suggestion to flash a new image was shown, but the user dismissed it. */
   SKIPPED_FLASH = 'skipped flash new image suggestion',
+  /** The user opened settings for version max skew. */
   OPEN_VERSION_MAX_SKEW_CONFIG = 'open settings for version max skew',
 }
 
@@ -325,7 +335,7 @@ async function reportResultAndPromptActionOnFailedCheck(
     isCloseAffordance: true,
   });
 
-  let option;
+  let option: string | undefined;
   if (mode === ResultDisplayMode.MODAL_MESSAGE) {
     // In modal message box, show title and details (with prompt) separately.
     option = (
@@ -380,5 +390,5 @@ async function reportResultAndPromptActionOnFailedCheck(
       return PostFailedImageCheckOptions.DEFAULT_IGNORE_WARNING_OPTION;
     }
   }
-  return option as PostFailedImageCheckOptions;
+  return option as PostFailedImageCheckOptions | undefined;
 }
