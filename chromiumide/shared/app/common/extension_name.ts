@@ -2,6 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// This is the only file in shared/ that can have hardcoded strings mentioning the extension name.
+/* eslint-disable no-restricted-syntax */
+
 import {Platform} from '../../driver';
 import {getDriver} from './driver_repository';
 
