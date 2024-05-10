@@ -6,13 +6,13 @@
 /* eslint-disable no-restricted-syntax */
 
 import * as vscode from 'vscode';
+import {extensionNameLower} from '../common/extension_name';
 
 // Old prefix before ChromiumIDE rebranding. We should keep it for migration.
 const OLD_CROS_IDE_PREFIX = 'cros-ide';
 
 // Prefixes to be added to all config sections.
 // The Go extension, which the user can have, requires a different prefix.
-const CHROMIUMIDE_PREFIX = 'chromiumide';
 const GO_PREFIX = 'go';
 
 // Wraps vscode API for safer configuration access.
@@ -21,13 +21,13 @@ const GO_PREFIX = 'go';
 class ConfigValue<T> {
   constructor(
     private readonly section: string,
-    private readonly prefix = CHROMIUMIDE_PREFIX,
+    private readonly prefix = extensionNameLower,
     private readonly configurationTarget = vscode.ConfigurationTarget.Global
   ) {}
 
   get(): T {
     const value = vscode.workspace
-      .getConfiguration(this.prefix)
+      .getConfiguration(this.prefix())
       .get<T>(this.section);
 
     if (value === undefined) {
@@ -55,7 +55,7 @@ class ConfigValue<T> {
     const value = this.get();
 
     const values = vscode.workspace
-      .getConfiguration(this.prefix)
+      .getConfiguration(this.prefix())
       .inspect<T>(this.section);
     if (values === undefined) {
       throw new Error(
@@ -71,7 +71,7 @@ class ConfigValue<T> {
     target = this.configurationTarget
   ): Promise<void> {
     await vscode.workspace
-      .getConfiguration(this.prefix)
+      .getConfiguration(this.prefix())
       .update(this.section, value, target);
   }
 
@@ -104,7 +104,7 @@ class ConfigValue<T> {
       listener = listener.bind(thisArgs);
     }
     const disposable = vscode.workspace.onDidChangeConfiguration(e => {
-      const section = this.prefix + '.' + this.section;
+      const section = this.prefix() + '.' + this.section;
       if (!e.affectsConfiguration(section)) return;
       listener(this.get());
     });
@@ -227,13 +227,13 @@ export const platformEc = {
 export const goExtension = {
   gopath: new ConfigValue<string>(
     'gopath',
-    GO_PREFIX,
+    () => GO_PREFIX,
     vscode.ConfigurationTarget.Workspace
   ),
-  toolsGopath: new ConfigValue<string>('toolsGopath', GO_PREFIX),
+  toolsGopath: new ConfigValue<string>('toolsGopath', () => GO_PREFIX),
   alternateTools: new ConfigValue<{[prop: string]: string}>(
     'alternateTools',
-    GO_PREFIX
+    () => GO_PREFIX
   ),
 };
 
@@ -275,8 +275,4 @@ export const chromiumideDevelopment = {
   // If set fake the platform on which the extension is running to ease manual testing (used in
   // getPlatform())
   osPlatform: new ConfigValue<string>('chromiumideDevelopment.osPlatform'),
-};
-
-export const TEST_ONLY = {
-  CHROMIUMIDE_PREFIX,
 };

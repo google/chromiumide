@@ -4,17 +4,17 @@
 
 import 'jasmine';
 import * as vscode from 'vscode';
-import * as config from '../../../../shared/app/services/config';
+import {extensionNameLower} from '../../../../shared/app/common/extension_name';
 import * as fakes from '../../testing/fakes';
 import {setConfigurationProviderForTesting} from '../injected_modules/vscode/workspace/configuration';
 
 function initFakeConfigs(): void {
   const fakeConfig = fakes.FakeWorkspaceConfiguration.fromSection(
-    config.TEST_ONLY.CHROMIUMIDE_PREFIX
+    extensionNameLower()
   );
 
   function getConfiguration(section?: string): vscode.WorkspaceConfiguration {
-    if (section !== config.TEST_ONLY.CHROMIUMIDE_PREFIX) {
+    if (section !== extensionNameLower()) {
       throw new Error(
         'vscode.workspace.getConfiguration called for foreign configs'
       );

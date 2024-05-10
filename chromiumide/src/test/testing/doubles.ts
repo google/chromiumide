@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as config from '../../../shared/app/services/config';
+import {extensionNameLower} from '../../../shared/app/common/extension_name';
 import * as injectedVscode from '../unit/injected_modules/vscode';
 import {cleanState} from './clean_state';
 import * as fakes from './fakes';
@@ -405,7 +405,7 @@ export function installFakeConfigs(
 
   beforeEach(() => {
     // Prepare fake config for the old prefix as well for testing migrator.
-    for (const prefix of [config.TEST_ONLY.CHROMIUMIDE_PREFIX, 'cros-ide']) {
+    for (const prefix of [extensionNameLower(), 'cros-ide']) {
       const fakeConfig = fakes.FakeWorkspaceConfiguration.fromSection(
         prefix,
         subscriptions
