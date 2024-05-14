@@ -56,7 +56,7 @@ export class RunProfile implements vscode.Disposable {
     cancellation: vscode.CancellationToken
   ) {
     const board = await getOrSelectDefaultBoard(this.cfg.chrootService.chroot);
-    if (board === null || board instanceof NoBoardError) {
+    if (board === undefined || board instanceof NoBoardError) {
       // TODO(oka): Handle error.
       return;
     }

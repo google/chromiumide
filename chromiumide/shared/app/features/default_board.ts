@@ -44,7 +44,7 @@ export function activate(
         return;
       }
       // Type-check that errors are handled.
-      ((_: BoardOrHost | null) => {})(board);
+      ((_: BoardOrHost | undefined) => {})(board);
       if (board) {
         driver.metrics.send({
           category: 'interactive',
@@ -80,12 +80,12 @@ export class NoBoardError extends Error {
 /**
  * Get the default board, or ask the user to select one.
  *
- * @returns The default board name. null if the user ignores popup. NoBoardError if there is no
+ * @returns The default board name. undefined if the user ignores popup. NoBoardError if there is no
  *   available board.
  */
 export async function getOrSelectDefaultBoard(
   chroot: WrapFs
-): Promise<BoardOrHost | null | NoBoardError> {
+): Promise<BoardOrHost | undefined | NoBoardError> {
   const board = config.board.get();
   if (board) {
     return parseBoardOrHost(board);
@@ -105,7 +105,7 @@ export async function selectAndUpdateDefaultBoard(
   options: {
     suggestMostRecent: boolean;
   }
-): Promise<BoardOrHost | null | NoBoardError> {
+): Promise<BoardOrHost | undefined | NoBoardError> {
   const boards = await getSetupBoardsRecentFirst(
     chroot,
     new WrapFs(commonUtil.crosOutDir(commonUtil.crosRoot(chroot.root)))
@@ -125,7 +125,7 @@ export async function selectAndUpdateDefaultBoard(
 export async function selectBoard(
   boards: string[],
   suggestMostRecent: boolean
-): Promise<BoardOrHost | null | NoBoardError> {
+): Promise<BoardOrHost | undefined | NoBoardError> {
   if (boards.length === 0) {
     return new NoBoardError();
   }
@@ -144,7 +144,7 @@ export async function selectBoard(
       30 * 1000
     );
     if (!selection) {
-      return null;
+      return undefined;
     }
     switch (selection.title) {
       case 'Yes':
@@ -152,7 +152,7 @@ export async function selectBoard(
       case 'Customize':
         break;
       default:
-        return null;
+        return undefined;
     }
   }
 
@@ -160,5 +160,5 @@ export async function selectBoard(
     title: 'Default board',
   });
 
-  return typeof choice === 'string' ? parseBoardOrHost(choice) : null;
+  return typeof choice === 'string' ? parseBoardOrHost(choice) : undefined;
 }

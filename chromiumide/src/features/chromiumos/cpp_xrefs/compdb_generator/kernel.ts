@@ -116,7 +116,7 @@ export class Kernel implements CompdbGenerator {
     if (board instanceof NoBoardError) {
       return new ErrorDetails('no board', board.message);
     }
-    if (board === null) {
+    if (board === undefined) {
       return new ErrorDetails('no board', 'Board not selected');
     }
 

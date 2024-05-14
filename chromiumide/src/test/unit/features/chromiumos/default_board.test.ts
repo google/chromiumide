@@ -87,7 +87,7 @@ describe('getOrSelectDefaultBoard', () => {
     expect(config.board.get()).toBe('coral');
   });
 
-  it('returns null if message is dismissed', async () => {
+  it('returns undefined if message is dismissed', async () => {
     const chroot = await testing.buildFakeChroot(tempDir.path);
     await testing.putFiles(chroot, {
       '/build/amd64-generic/x': 'x',
@@ -102,9 +102,9 @@ describe('getOrSelectDefaultBoard', () => {
       )
       .and.returnValue(undefined);
 
-    expect(await defaultBoard.getOrSelectDefaultBoard(new WrapFs(chroot))).toBe(
-      null
-    );
+    expect(
+      await defaultBoard.getOrSelectDefaultBoard(new WrapFs(chroot))
+    ).toBeUndefined();
     expect(config.board.get()).toBe('');
   });
 });

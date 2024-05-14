@@ -118,7 +118,7 @@ export class Platform2 implements CompdbGenerator {
     if (board instanceof NoBoardError) {
       throw new ErrorDetails('no board', board.message);
     }
-    if (board === null) {
+    if (board === undefined) {
       throw new ErrorDetails('no board', 'Board not selected');
     }
     const packageInfo = (await this.packages.fromFilepath(document.fileName))!;
