@@ -5,6 +5,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import {
+  getAllChromeosBoards,
   getSetupBoardsRecentFirst,
   getSetupBoardsAlphabetic,
 } from '../../../../../shared/app/common/chromiumos/boards';
@@ -60,5 +61,28 @@ describe('Boards that are set up', () => {
         new WrapFs(tempDir.path)
       )
     ).toEqual([]);
+  });
+});
+
+describe('getAllChromeosBoards', () => {
+  const fakeExec = testing.installFakeExec();
+  const tempDir = testing.tempDir();
+  testing.cleanState(async () => {
+    await testing.buildFakeChroot(tempDir.path);
+  });
+
+  it('returns all CrOS boards', async () => {
+    const BOARDS = [
+      'amd64-generic',
+      'amd64-generic-embedded',
+      'amd64-generic-koosh',
+    ];
+    fakeExec.installStdout(
+      jasmine.stringContaining('cros'),
+      ['query', 'boards'],
+      BOARDS.join('\n')
+    );
+    await getAllChromeosBoards(tempDir.path);
+    expect(await getAllChromeosBoards(tempDir.path)).toEqual(BOARDS);
   });
 });

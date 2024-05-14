@@ -4,12 +4,16 @@
 
 import * as vscode from 'vscode';
 import {vscodeRegisterCommand} from '../../../shared/app/common/vscode/commands';
+import {Platform} from '../../driver';
 import {
   BoardOrHost,
   parseBoardOrHost,
 } from '../common/chromiumos/board_or_host';
-import {getSetupBoardsRecentFirst} from '../common/chromiumos/boards';
-import * as commonUtil from '../common/common_util';
+import {
+  getSetupBoardsRecentFirst,
+  getAllChromeosBoards,
+} from '../common/chromiumos/boards';
+import {crosOutDir, crosRoot, withTimeout} from '../common/common_util';
 import {getDriver} from '../common/driver_repository';
 import {WrapFs} from '../common/wrap_fs';
 import * as config from '../services/config';
@@ -37,7 +41,7 @@ export function activate(
       const board = await selectAndUpdateDefaultBoard(chroot, {
         suggestMostRecent: false,
       });
-      if (board instanceof NoBoardError) {
+      if (board instanceof Error) {
         await vscode.window.showErrorMessage(
           `Selecting board: ${board.message}`
         );
@@ -90,7 +94,11 @@ export async function getOrSelectDefaultBoard(
   if (board) {
     return parseBoardOrHost(board);
   }
-  return await selectAndUpdateDefaultBoard(chroot, {suggestMostRecent: true});
+  return await selectAndUpdateDefaultBoard(chroot, {
+    // Most recent option only applicable to the vscode extension but not cider where all CrOS
+    // boards are listed as options.
+    suggestMostRecent: driver.platform() === Platform.VSCODE,
+  });
 }
 
 /**
@@ -100,21 +108,32 @@ export async function getOrSelectDefaultBoard(
  * @params options If options.suggestMostRecent is true, the board most recently
  * used is proposed to the user, before showing the board picker.
  */
-export async function selectAndUpdateDefaultBoard(
+async function selectAndUpdateDefaultBoard(
   chroot: WrapFs,
   options: {
     suggestMostRecent: boolean;
   }
-): Promise<BoardOrHost | undefined | NoBoardError> {
-  const boards = await getSetupBoardsRecentFirst(
-    chroot,
-    new WrapFs(commonUtil.crosOutDir(commonUtil.crosRoot(chroot.root)))
-  );
-  const board = await selectBoard(boards, options.suggestMostRecent);
+): Promise<BoardOrHost | undefined | Error> {
+  const chromiumosRoot = crosRoot(chroot.root);
+  const boards =
+    driver.platform() === Platform.VSCODE
+      ? await getSetupBoardsRecentFirst(
+          chroot,
+          new WrapFs(crosOutDir(chromiumosRoot))
+        )
+      : await getAllChromeosBoards(chromiumosRoot);
+  if (boards instanceof Error) {
+    return boards;
+  }
+  if (boards.length === 0) {
+    return new NoBoardError();
+  }
 
+  const board = await selectBoard(boards, options.suggestMostRecent);
   if (board instanceof Error) {
     return board;
   }
+
   if (board) {
     // TODO(oka): This should be per chroot (i.e. Remote) setting, instead of global (i.e. User).
     await config.board.update(board.toString());
@@ -122,16 +141,13 @@ export async function selectAndUpdateDefaultBoard(
   return board;
 }
 
-export async function selectBoard(
+async function selectBoard(
   boards: string[],
   suggestMostRecent: boolean
-): Promise<BoardOrHost | undefined | NoBoardError> {
-  if (boards.length === 0) {
-    return new NoBoardError();
-  }
+): Promise<BoardOrHost | undefined> {
   if (suggestMostRecent) {
     const mostRecent = boards[0];
-    const selection = await commonUtil.withTimeout(
+    const selection = await withTimeout(
       vscode.window.showWarningMessage(
         `Default board is not set. Do you want to use ${mostRecent}?`,
         {

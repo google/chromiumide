@@ -2,10 +2,33 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as commonUtil from '../../common/common_util';
 import {getDriver} from '../driver_repository';
 import {WrapFs} from '../wrap_fs';
+import {crosExeFor} from './cros';
 
 const driver = getDriver();
+
+/**
+ * @returns All ChromeOS boards that can be set up.
+ * @param chromiumosRoot path to the repo root, for finding 'cros' command.
+ */
+export async function getAllChromeosBoards(
+  chromiumosRoot: string
+): Promise<string[] | Error> {
+  const crosExe = await crosExeFor(chromiumosRoot);
+  if (!crosExe) {
+    return new Error(
+      'Cannot find `cros` to list all ChromeOS boards: not in ChromeOS directory?'
+    );
+  }
+
+  const boards = await commonUtil.exec(crosExe, ['query', 'boards']);
+  if (boards instanceof Error) {
+    return boards;
+  }
+  return boards.stdout.split('\n');
+}
 
 /**
  * @returns Boards that have been set up, ordered by access time (newest to
