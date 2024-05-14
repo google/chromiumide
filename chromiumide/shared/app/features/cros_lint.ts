@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {Platform} from '../../driver';
 import * as commonUtil from '../common/common_util';
 import {crosExeFor} from '../common/cros';
 import {getDriver} from '../common/driver_repository';
@@ -101,6 +102,11 @@ const languageToLintConfigs = new Map<string, LintConfig[]>([
       },
       {
         executable: async realpath => {
+          // For cider ChromeOS extension, libchrome check is not in scope.
+          if (driver.platform() === Platform.CIDER) {
+            return undefined;
+          }
+
           const source = await driver.cros.findSourceDir(realpath);
           if (source === undefined) {
             return undefined;
