@@ -27,7 +27,7 @@ export function installFakeCipd(fakeExec: FakeExec): cipd.CipdRepository {
         '-root',
         tempDir.path,
         'chromiumos/infra/crosfleet/${platform}',
-        cipd.PINNED_CROSFLEET_VERSION,
+        'prod',
       ],
       'ok'
     );

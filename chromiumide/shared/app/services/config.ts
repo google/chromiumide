@@ -196,6 +196,9 @@ export const seamlessDeployment = {
 };
 
 export const deviceManagement = {
+  usePinnedCrosfleet: new ConfigValue<string>(
+    'deviceManagement.usePinnedCrosfleet'
+  ),
   devices: new ConfigValue<string[]>('deviceManagement.devices'),
   default: new ConfigValue<string>('deviceManagement.default'),
 };

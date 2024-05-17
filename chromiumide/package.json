@@ -1001,6 +1001,11 @@
           "description": "Format files with 'cros format'",
           "default": true
         },
+        "chromiumide.deviceManagement.usePinnedCrosfleet": {
+          "type": "boolean",
+          "description": "Uses a pinned version of crosfleet as a temporary workaround for crosfleet API issues.",
+          "default": false
+        },
         "chromiumide.deviceManagement.devices": {
           "type": "array",
           "scope": "machine-overridable",

@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import * as commonUtil from '../../shared/app/common/common_util';
 import {getDriver} from '../../shared/app/common/driver_repository';
 import {AbnormalExitError} from '../../shared/app/common/exec/types';
+import * as config from '../../shared/app/services/config';
 import * as depotTools from './depot_tools';
 import {Mutex} from './mutex';
 
@@ -16,8 +17,7 @@ const driver = getDriver();
 
 const defaultInstallDir = path.join(os.homedir(), '.cache/cros-ide/cipd');
 
-export const PINNED_CROSFLEET_VERSION =
-  'oPqW0LBfLgtbrMgoELmwMiUGJcTzykwnPupTLDJBDD0C';
+const PINNED_CROSFLEET_VERSION = 'oPqW0LBfLgtbrMgoELmwMiUGJcTzykwnPupTLDJBDD0C';
 
 /**
  * Interacts with CIPD CLI client (http://go/luci-cipd).
@@ -95,7 +95,9 @@ export class CipdRepository {
   async ensureCrosfleet(output: vscode.OutputChannel): Promise<string> {
     await this.ensurePackage(
       'chromiumos/infra/crosfleet/${platform}',
-      PINNED_CROSFLEET_VERSION,
+      config.deviceManagement.usePinnedCrosfleet.get()
+        ? PINNED_CROSFLEET_VERSION
+        : 'prod',
       output
     );
     return path.join(this.installDir, 'crosfleet');
