@@ -13,6 +13,7 @@ import {
   CancelledError,
 } from '../../../../shared/app/common/exec/types';
 import {Mutex} from '../../../common/mutex';
+import {ALLOWED_ENV_NAMES} from '../../../driver/exec';
 import * as testing from '../../testing';
 
 class SimpleLogger {
@@ -97,7 +98,7 @@ describe('Logging exec', () => {
       }),
     });
     expect(res).toEqual(jasmine.objectContaining({stdout: 'foo\n'}));
-    expect(logs).toEqual("sh -c 'echo foo; echo bar 1>&2'\nbar\n");
+    expect(logs).toMatch(/.* sh -c 'echo foo; echo bar 1>&2'\nbar\n/);
   });
 
   it('mixes stdout and stderr if logStdout flag is true', async () => {
@@ -111,7 +112,7 @@ describe('Logging exec', () => {
     const lines = logs.split('\n');
     const command = lines[0];
     const outputs = [lines[1], lines[2]].sort();
-    expect(command).toEqual("sh -c 'echo foo; echo bar 1>&2'");
+    expect(command).toMatch(/.* sh -c 'echo foo; echo bar 1>&2'/);
     expect(outputs).toEqual(['bar', 'foo']);
   });
 
@@ -126,7 +127,7 @@ describe('Logging exec', () => {
     expect((res as AbnormalExitError).message).toContain(
       "sh -c 'echo foo 1>&2; exit 1'"
     );
-    expect(logs).toEqual("sh -c 'echo foo 1>&2; exit 1'\nfoo\n");
+    expect(logs).toMatch(/.* sh -c 'echo foo 1>&2; exit 1'\nfoo\n/);
   });
 
   it('returns error on non-zero exit status when no flags are specified', async () => {
@@ -139,7 +140,7 @@ describe('Logging exec', () => {
     expect((res as AbnormalExitError).message).toContain(
       "sh -c 'echo foo 1>&2; exit 1'"
     );
-    expect(logs).toEqual("sh -c 'echo foo 1>&2; exit 1'\nfoo\n");
+    expect(logs).toMatch(/.* sh -c 'echo foo 1>&2; exit 1'\nfoo\n/);
   });
 
   it('ignores non-zero exit status if ignoreNonZeroExit flag is true', async () => {
@@ -158,7 +159,7 @@ describe('Logging exec', () => {
     expect(exitStatus).toEqual(1);
     expect(stdout).toEqual('bar\n');
     expect(stderr).toEqual('foo\n');
-    expect(logs).toEqual("sh -c 'echo foo 1>&2; echo bar; exit 1'\nfoo\n");
+    expect(logs).toMatch(/.* sh -c 'echo foo 1>&2; echo bar; exit 1'\nfoo\n/);
   });
 
   it('appends new lines to log', async () => {
@@ -175,7 +176,7 @@ describe('Logging exec', () => {
     );
     expect((res as ExecResult).stdout).toEqual('foo');
     expect(logs.split('\n')).toEqual([
-      "sh -c 'echo -n foo; echo -n bar 1>&2;'",
+      jasmine.stringMatching(/.* sh -c 'echo -n foo; echo -n bar 1>&2;'/),
       'foobar',
       '',
     ]);
@@ -255,7 +256,35 @@ subprocess.run(['python3', '-c', 'import time; time.sleep(10) # ${MARKER}'])
       env: {a: 'b', c: 'd'},
       cwd: '/tmp',
     });
-    expect(logs).toEqual('cd /tmp; env a=b c=d true\n');
+    expect(logs).toMatch('cd /tmp; env.* a=b c=d true\n');
+  });
+
+  it('does not log unallowlisted default env', async () => {
+    const unprintedEnvKey = Object.keys(process.env).find(
+      key => !ALLOWED_ENV_NAMES.includes(key)
+    ) as string;
+
+    const home = process.env.HOME;
+    const fakeUser = process.env.USER + '-fake';
+    let logs = '';
+    await commonUtil.exec('true', [], {
+      logger: new SimpleLogger(log => {
+        logs += log;
+      }),
+      env: {
+        a: 'b',
+        c: 'd',
+        HOME: home,
+        USER: fakeUser,
+        [unprintedEnvKey]: process.env[unprintedEnvKey],
+      },
+    });
+    expect(logs).toMatch(
+      new RegExp(`env.* HOME=${home} .*USER=${fakeUser} .*a=b c=d true\n`)
+    );
+    expect(logs).not.toContain(` ${unprintedEnvKey}=`);
+    // PATH is not in `env` and not used.
+    expect(logs).not.toContain(' PATH=');
   });
 });
 

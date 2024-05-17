@@ -110,6 +110,15 @@ export function realExec(
   });
 }
 
+/** Always-printed environment variables. */
+export const ALLOWED_ENV_NAMES = Object.freeze([
+  'HOME',
+  'PATH',
+  'PWD',
+  'SHELL',
+  'USER',
+]);
+
 /**
  * Stringify given exec request so that running it on shell would reproduce the same result.
  */
@@ -118,13 +127,26 @@ function stringifyExecRequest(
   args: string[],
   {cwd, env}: ExecOptions
 ): string {
-  const tokens = [];
+  const tokens: string[] = [];
   if (cwd) {
     tokens.push(`cd ${cwd};`);
   }
-  if (env) {
-    tokens.push('env', ...Object.keys(env).map(k => `${k}=${env[k]}`));
+
+  // Record modified and/or allowlisted environment variables.
+  const loggedKeys = [];
+  const usedEnv = env ?? process.env;
+  for (const key of Object.keys(usedEnv)) {
+    const value = usedEnv[key];
+
+    const modified = value !== process.env[key];
+    const allowed = ALLOWED_ENV_NAMES.includes(key);
+
+    if (modified || allowed) {
+      loggedKeys.push(key);
+    }
   }
+  tokens.push('env', ...loggedKeys.sort().map(k => `${k}=${usedEnv[k]}`));
+
   tokens.push(shutil.escapeArray([name, ...args]));
 
   return tokens.join(' ') + '\n';
