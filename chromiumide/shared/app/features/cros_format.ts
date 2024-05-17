@@ -54,12 +54,12 @@ async function getIgnoreWildcards(
   outputChannel?: vscode.OutputChannel
 ): Promise<string[]> {
   if (!_IGNORED_WILDCARDS_CACHE.has(directory)) {
-    const dotfile_path = driver.path.join(directory, _IGNORE_FILE);
-    if (await driver.fs.exists(dotfile_path)) {
-      outputChannel?.appendLine(`Found ${dotfile_path} applicable to ${path}`);
+    const dotfilePath = driver.path.join(directory, _IGNORE_FILE);
+    if (await driver.fs.exists(dotfilePath)) {
+      outputChannel?.appendLine(`Found ${dotfilePath} applicable to ${path}`);
       _IGNORED_WILDCARDS_CACHE.set(
         directory,
-        (await driver.fs.readFile(dotfile_path))
+        (await driver.fs.readFile(dotfilePath))
           .split('\n')
           // Ignore empty lines.
           .filter(line => line.length > 0)
