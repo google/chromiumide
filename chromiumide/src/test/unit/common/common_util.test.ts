@@ -108,9 +108,11 @@ describe('Logging exec', () => {
       }),
       logStdout: true,
     });
-    expect(logs.length).toEqual(
-      "sh -c 'echo foo; echo bar 1>&2'\nfoo\nbar\n".length
-    );
+    const lines = logs.split('\n');
+    const command = lines[0];
+    const outputs = [lines[1], lines[2]].sort();
+    expect(command).toEqual("sh -c 'echo foo; echo bar 1>&2'");
+    expect(outputs).toEqual(['bar', 'foo']);
   });
 
   it('returns error on non-zero exit status when unrelated flags are set', async () => {
