@@ -137,7 +137,9 @@ export class CrosfleetRunner {
    * Checks if the user is logged into the crosfleet CLI.
    */
   async checkLogin(): Promise<boolean> {
-    if ((await this.checkGcloud()) !== GcloudCheckResult.OK) {
+    if (
+      (await this.checkGcloud(this.outputBackground)) !== GcloudCheckResult.OK
+    ) {
       return false;
     }
 
@@ -151,7 +153,9 @@ export class CrosfleetRunner {
     return true;
   }
 
-  private async checkGcloud(): Promise<GcloudCheckResult> {
+  private async checkGcloud(
+    logger: vscode.OutputChannel
+  ): Promise<GcloudCheckResult> {
     const result = await commonUtil.exec(
       'gcloud',
       [
@@ -163,7 +167,7 @@ export class CrosfleetRunner {
         'value(account)',
       ],
       {
-        logger: this.output,
+        logger,
       }
     );
     if (result instanceof Error) {
@@ -179,7 +183,7 @@ export class CrosfleetRunner {
    * Performs the login to the crosfleet CLI by starting a terminal.
    */
   async login(): Promise<undefined | Error> {
-    switch (await this.checkGcloud()) {
+    switch (await this.checkGcloud(this.output)) {
       case GcloudCheckResult.NEEDS_INSTALL: {
         // Show a popup to ask the user to install gcloud.
         const url = (await isGoogler())
