@@ -25,7 +25,7 @@ export type GeneratorFactory = (
  * It registers handlers for edtior events to provide xrefs only when at least one compdb generator
  * is registered via the `register` command. Just instantiating this class will be no-op.
  */
-export class CppCodeCompletion implements vscode.Disposable {
+export class CppXrefs implements vscode.Disposable {
   private readonly subscriptions: vscode.Disposable[] = [];
 
   private wrappedOutput?: vscode.OutputChannel;

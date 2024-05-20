@@ -21,7 +21,7 @@ import {GtestCase} from '../../gtest/gtest_case';
 import * as gtestTestListParser from '../../gtest/gtest_test_list_parser';
 import {GtestWorkspace} from '../../gtest/gtest_workspace';
 // TODO(oka): Move ebuild under src/services/chromiumos.
-import * as ebuild from '../cpp_code_completion/compdb_service/ebuild';
+import * as ebuild from '../cpp_xrefs/compdb_service/ebuild';
 
 const driver = getDriver();
 

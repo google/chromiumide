@@ -178,7 +178,7 @@ type CoverageEvent = EventBase &
       }
   );
 
-type CppCodeCompletionEvent = EventBase & {
+type CppXrefsEvent = EventBase & {
   group: 'cppxrefs';
 } & (
     | {
@@ -501,7 +501,7 @@ export type Event =
   | CodesearchEvent
   | CodeServerEvent
   | CoverageEvent
-  | CppCodeCompletionEvent
+  | CppXrefsEvent
   | CrosFormatEvent
   | DebuggingEvent
   | DeviceManagementEvent

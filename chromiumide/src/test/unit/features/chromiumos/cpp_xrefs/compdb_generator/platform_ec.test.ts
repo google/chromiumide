@@ -7,7 +7,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../../../../shared/app/common/common_util';
 import * as config from '../../../../../../../shared/app/services/config';
-import * as compdbGenerator from '../../../../../../features/chromiumos/cpp_code_completion/compdb_generator';
+import * as compdbGenerator from '../../../../../../features/chromiumos/cpp_xrefs/compdb_generator';
 import * as services from '../../../../../../services';
 import * as testing from '../../../../../testing';
 import * as fakes from '../../../../../testing/fakes';

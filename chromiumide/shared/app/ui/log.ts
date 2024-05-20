@@ -12,7 +12,7 @@ let loggerInstance: vscode.OutputChannel | undefined = undefined;
  * navigating to CodeSearch, opening listing packages worked on (view), and so on.
  *
  * Tasks that run in background or produce lots of logs should create their own loggers.
- * See cros lint and C++ code completion for examples.
+ * See cros lint and C++ xrefs for examples.
  */
 export function getUiLogger(): vscode.OutputChannel {
   // The vscode spy for Cider extension tests are available only in each it().

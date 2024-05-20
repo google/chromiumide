@@ -7,11 +7,11 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../../../../shared/app/common/common_util';
 import * as config from '../../../../../../../shared/app/services/config';
-import {ShouldGenerateResult} from '../../../../../../features/chromiumos/cpp_code_completion/compdb_generator';
-import {Platform2} from '../../../../../../features/chromiumos/cpp_code_completion/compdb_generator/platform2';
-import * as compdbService from '../../../../../../features/chromiumos/cpp_code_completion/compdb_service';
+import {ShouldGenerateResult} from '../../../../../../features/chromiumos/cpp_xrefs/compdb_generator';
+import {Platform2} from '../../../../../../features/chromiumos/cpp_xrefs/compdb_generator/platform2';
+import * as compdbService from '../../../../../../features/chromiumos/cpp_xrefs/compdb_service';
 import * as services from '../../../../../../services';
-import {SpiedFakeCompdbService} from '../../../../../integration/features/cpp_code_completion/spied_fake_compdb_service';
+import {SpiedFakeCompdbService} from '../../../../../integration/features/cpp_xrefs/spied_fake_compdb_service';
 import * as testing from '../../../../../testing';
 import * as fakes from '../../../../../testing/fakes';
 
