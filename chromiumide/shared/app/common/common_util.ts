@@ -3,8 +3,7 @@
 // found in the LICENSE file.
 
 /**
- * Common utilities between extension code and tools such as installation
- * script. This file should not depend on 'vscode'.
+ * Common utilities for the extension code.
  */
 
 import {getDriver} from './driver_repository';
@@ -125,6 +124,7 @@ export class JobManager<T> {
     await this.handle(); // handle possible new task
   }
 }
+
 /**
  * Executes command with optionally logging its output. The promise will be
  * resolved with outputs of the command or an Error. It's guaranteed that
