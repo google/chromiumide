@@ -53,6 +53,12 @@ const COMMON_RESTRICTED_SYNTAX = [
       'vscode.commands.registerTextEditorCommand should not be called ' +
       'directly; use vscodeRegisterTextEditorCommand instead',
   },
+  {
+    /* eslint-disable no-restricted-syntax */
+    selector:
+      'Literal[value=/CrOs/], TemplateElement[value.raw=/CrOs/], Identifier[name=/CrOs/]',
+    message: 'Use Cros (or CrOS for user facing texts) instead of CrOs',
+  },
 ];
 
 module.exports = {

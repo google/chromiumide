@@ -132,7 +132,7 @@ export function registerCommands(
       (item: provider.DeviceAttributeItem) => copyAttribute(context, item)
     ),
     vscodeRegisterCommand(
-      'chromiumide.deviceManagement.copyCrOsReleaseVersion',
+      'chromiumide.deviceManagement.copyCrosReleaseVersion',
       (item: provider.DeviceAttributeItem) => copyAttribute(context, item)
     ),
     vscodeRegisterCommand(
