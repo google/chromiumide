@@ -7,7 +7,7 @@ import {CancelledError} from '../../../../shared/app/common/exec/types';
 import * as testing from '../../testing';
 
 describe('fake exec', () => {
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
 
   it('installStdout returns successfully', async () => {
     // Fake command does not exist.

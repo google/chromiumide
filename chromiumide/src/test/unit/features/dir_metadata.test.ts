@@ -14,7 +14,7 @@ import {
 } from '../../testing/fakes';
 
 describe('DIR_METADATA', () => {
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   const cipdRepository = fakes.installFakeCipd(fakeExec);
 
   const {vscodeSpy, vscodeEmitters} = testing.installVscodeDouble();

@@ -14,7 +14,7 @@ describe('gn args', () => {
   const hostOS: gnArgs.TargetOs = gnArgs.TEST_ONLY.getTargetOsFromHost();
 
   const tempDir = testing.tempDir();
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   fakes.installFakeDepotTools(fakeExec);
 
   beforeEach(async () => {

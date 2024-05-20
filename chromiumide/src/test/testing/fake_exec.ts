@@ -104,7 +104,7 @@ export class FakeExec
  * handler to it. It internally uses cleanState to create fresh instances per
  * test.
  */
-export function installFakeExec(): {fakeExec: FakeExec} {
+export function installFakeExec(): FakeExec {
   const fakeExec = new FakeExec(jasmine.createSpy('exec'));
 
   const state = cleanState(() => {
@@ -123,5 +123,5 @@ export function installFakeExec(): {fakeExec: FakeExec} {
     state.undo();
   });
 
-  return {fakeExec};
+  return fakeExec;
 }

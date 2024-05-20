@@ -14,7 +14,7 @@ import {arrayWithPrefix} from '../testing/jasmine/asymmetric_matcher';
 const SUDO_PASSWORD = 'my_secret_password';
 
 describe('Sudo service', () => {
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
 
   beforeEach(() => {
     // Install a FakeExec handler that simulates sudo.

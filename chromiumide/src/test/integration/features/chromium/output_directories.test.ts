@@ -16,7 +16,7 @@ import type {ThemeIcon} from 'vscode';
 
 describe('OutputDirectoriesDataProvider', () => {
   const tempDir = testing.tempDir();
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   fakes.installFakeDepotTools(fakeExec);
 
   const DEFAULT_ERROR = {

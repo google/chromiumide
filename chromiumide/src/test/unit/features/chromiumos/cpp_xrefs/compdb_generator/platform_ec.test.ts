@@ -19,7 +19,7 @@ describe('platform2 compdb generator', () => {
     await config.platformEc.mode.update('RW');
   });
 
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   const temp = testing.tempDir();
   const state = testing.cleanState(async () => {
     const chroot = await testing.buildFakeChroot(temp.path);

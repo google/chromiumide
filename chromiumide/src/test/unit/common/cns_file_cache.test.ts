@@ -14,7 +14,7 @@ describe('CnsFileCache', () => {
   const FAKE_CACHED_FILE = path.join(FAKE_CACHE_DIR, FAKE_CNS_FILE);
 
   describe('getCachedFile', () => {
-    const {fakeExec} = testing.installFakeExec();
+    const fakeExec = testing.installFakeExec();
 
     beforeEach(() => {
       jasmine.clock().install();

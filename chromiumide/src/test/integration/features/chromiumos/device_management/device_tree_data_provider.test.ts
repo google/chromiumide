@@ -51,7 +51,7 @@ xdescribe('Device tree data provider', () => {
 
   const {vscodeSpy, vscodeEmitters} = doubles.installVscodeDouble();
   doubles.installFakeConfigs(vscodeSpy, vscodeEmitters);
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   const cipdRepository = fakes.installFakeCipd(fakeExec);
   const fakeCrosfleet = fakes.installFakeCrosfleet(fakeExec, cipdRepository);
 

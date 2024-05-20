@@ -84,7 +84,7 @@ describe('Leased device repository', () => {
     clock.uninstall();
   });
 
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   const cipdRepository = fakes.installFakeCipd(fakeExec);
   const fakeCrosfleet = fakes.installFakeCrosfleet(fakeExec, cipdRepository);
   fakes.installFakeDepotTools(fakeExec);
@@ -294,7 +294,7 @@ describe('Device repository', () => {
     clock.uninstall();
   });
 
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   const cipdRepository = fakes.installFakeCipd(fakeExec);
   const fakeCrosfleet = fakes.installFakeCrosfleet(fakeExec, cipdRepository);
   fakes.installFakeDepotTools(fakeExec);

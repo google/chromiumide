@@ -86,7 +86,7 @@ describe('Suggests images with correct type when cros-debug flag is', () => {
 
 describe('Create quick pick to choose image within correct version range', () => {
   const {vscodeSpy} = testing.installVscodeDouble();
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   installFakeSudo(fakeExec);
   const tempDir = testing.tempDir();
 

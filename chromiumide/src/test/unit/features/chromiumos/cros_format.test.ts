@@ -18,7 +18,7 @@ const driver = getDriver();
 
 describe('Cros format', () => {
   const tempDir = testing.tempDir();
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
 
   const state = testing.cleanState(async () => {
     const crosUri = vscode.Uri.file(

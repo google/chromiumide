@@ -14,7 +14,7 @@ import * as fakes from '../../../../testing/fakes';
 
 describe('Compdb service', () => {
   const tempdir = testing.tempDir();
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   fakes.installFakeSudo(fakeExec);
 
   const state = testing.cleanState(async () => {

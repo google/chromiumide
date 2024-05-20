@@ -22,7 +22,7 @@ const {flashImageToDevice} = TEST_ONLY;
 describe('Flash image to device', () => {
   const {vscodeSpy} = testing.installVscodeDouble();
   const hostname = 'dut1';
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   const tempDir = testing.tempDir();
 
   const state = testing.cleanState(async () => {

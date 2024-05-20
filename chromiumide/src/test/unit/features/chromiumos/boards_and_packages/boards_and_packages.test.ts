@@ -24,7 +24,7 @@ describe('Boards and packages', () => {
 
   const tempDir = testing.tempDir();
 
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   testing.fakes.installFakeSudo(fakeExec);
 
   const subscriptions: vscode.Disposable[] = [];

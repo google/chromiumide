@@ -17,7 +17,7 @@ describe('CrosfleetRunner', () => {
     clock.uninstall();
   });
 
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   const cipdRepository = fakes.installFakeCipd(fakeExec);
   const fakeCrosfleet = fakes.installFakeCrosfleet(fakeExec, cipdRepository);
   fakes.installFakeDepotTools(fakeExec);

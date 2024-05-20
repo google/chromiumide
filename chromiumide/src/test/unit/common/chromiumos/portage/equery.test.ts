@@ -38,7 +38,7 @@ function installEmergeForUseFlagsCommandHandler(
 }
 
 describe('equery use flag', () => {
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   fakes.installFakeSudo(fakeExec);
   const tempDir = testing.tempDir();
 

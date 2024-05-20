@@ -60,7 +60,7 @@ describe('device tree view shows correct default device', () => {
   const {vscodeEmitters, vscodeSpy} = testing.installVscodeDouble();
   testing.installFakeConfigs(vscodeSpy, vscodeEmitters);
 
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   const cipdRepository = fakes.installFakeCipd(fakeExec);
   const fakeCrosfleet = fakes.installFakeCrosfleet(fakeExec, cipdRepository);
   fakes.installFakeDepotTools(fakeExec);

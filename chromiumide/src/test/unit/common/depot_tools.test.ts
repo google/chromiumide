@@ -40,7 +40,7 @@ describe('depot_tools', () => {
 describe('and depot_tools not found', () => {
   const {vscodeEmitters, vscodeSpy} = testing.installVscodeDouble();
   testing.installFakeConfigs(vscodeSpy, vscodeEmitters);
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   fakes.installFakeDepotTools(fakeExec, false);
   const tempDir = testing.tempDir();
 

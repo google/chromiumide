@@ -117,7 +117,7 @@ ${CLEAR}Compile progress: 30.00% (300/1000)\r\
 describe('autoninja wrapper', () => {
   const {vscodeEmitters, vscodeSpy} = testing.installVscodeDouble();
   testing.installFakeConfigs(vscodeSpy, vscodeEmitters);
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   fakes.installFakeDepotTools(fakeExec);
 
   beforeEach(async () => {

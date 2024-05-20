@@ -120,7 +120,7 @@ describe('Device client', () => {
   testing.installVscodeDouble();
 
   const hostname = 'dut1';
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
 
   const subscriptions: vscode.Disposable[] = [];
 

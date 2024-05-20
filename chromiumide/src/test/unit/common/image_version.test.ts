@@ -50,7 +50,7 @@ describe('Match CrOS version with', () => {
 });
 
 describe('Get chrome milestones', () => {
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   fakes.installFakeSudo(fakeExec);
   const tempDir = testing.tempDir();
 

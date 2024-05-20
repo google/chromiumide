@@ -11,7 +11,7 @@ import * as fakes from '../../../testing/fakes';
 describe('chroot service exec', () => {
   const tempDir = testing.tempDir();
 
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
   fakes.installFakeSudo(fakeExec);
 
   it('calls cros_sdk if outside chroot', async () => {

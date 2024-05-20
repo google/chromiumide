@@ -63,7 +63,7 @@ describe('CodeSearch: searching for selection', () => {
 describe('CodeSearch: opening current file', () => {
   const {vscodeSpy, vscodeEmitters} = installVscodeDouble();
   installFakeConfigs(vscodeSpy, vscodeEmitters);
-  const {fakeExec} = installFakeExec();
+  const fakeExec = installFakeExec();
   const temp = tempDir();
 
   const state = cleanState(async () => {
@@ -195,7 +195,7 @@ describe('CodeSearch: opening current file', () => {
 describe('CodeSearch: open files', () => {
   const {vscodeSpy, vscodeEmitters} = installVscodeDouble();
   installFakeConfigs(vscodeSpy, vscodeEmitters);
-  const {fakeExec} = installFakeExec();
+  const fakeExec = installFakeExec();
   const temp = tempDir();
 
   const state = cleanState(async () => {

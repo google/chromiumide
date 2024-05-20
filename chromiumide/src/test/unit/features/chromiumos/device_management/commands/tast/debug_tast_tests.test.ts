@@ -18,7 +18,7 @@ describe('debugTastTests', () => {
     testing.installVscodeDouble();
   testing.installFakeConfigs(vscodeSpy, vscodeEmitters);
 
-  const {fakeExec} = testing.installFakeExec();
+  const fakeExec = testing.installFakeExec();
 
   const tempDir = testing.tempDir();
 
