@@ -7,7 +7,8 @@ module.exports = {
     'no-restricted-syntax': [
       'error',
       {
-        selector: 'Literal[value=/\\bChromiumIDE\\b/]',
+        selector:
+          'Literal[value=/\\bChromiumIDE\\b/], TemplateElement[value.raw=/\\bChromiumIDE\\b/]',
         message:
           'The extension name is ChromeOS on cider. Use extensionName() instead.',
       },
