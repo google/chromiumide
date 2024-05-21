@@ -12,7 +12,7 @@ export function crosExeFromCrosRoot(crosRoot: string): string {
 }
 
 export async function crosExeFor(path: string): Promise<string | undefined> {
-  const source = await driver.cros.findSourceDir(path);
-  if (source === undefined) return undefined;
-  return driver.path.join(source, CROS_PATH);
+  const chromiumosRoot = await driver.cros.findSourceDir(path);
+  if (chromiumosRoot === undefined) return undefined;
+  return driver.path.join(chromiumosRoot, CROS_PATH);
 }

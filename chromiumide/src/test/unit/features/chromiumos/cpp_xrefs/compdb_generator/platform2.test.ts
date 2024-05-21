@@ -24,9 +24,9 @@ describe('platform2 compdb generator', () => {
   const state = testing.cleanState(async () => {
     const osDir = temp.path;
     const chroot = await testing.buildFakeChroot(osDir);
-    const source = commonUtil.sourceDir(chroot);
+    const chromiumosRoot = commonUtil.crosRoot(chroot);
 
-    await testing.putFiles(source, {
+    await testing.putFiles(chromiumosRoot, {
       'src/platform2/.git/HEAD': '',
       'src/third_party/chromiumos-overlay/chromeos-base/cros-disks/cros-disks-9999.ebuild': `
 PLATFORM_SUBDIR="cros-disks"
@@ -34,16 +34,16 @@ inherit cros-workon platform user
 `,
     });
 
-    const spiedFakeCompdbService = new SpiedFakeCompdbService(source);
+    const spiedFakeCompdbService = new SpiedFakeCompdbService(chromiumosRoot);
     // CompilationDatabase registers event handlers in the constructor.
     const compdbGenerator = new Platform2(
-      services.chromiumos.ChrootService.maybeCreate(source, false)!,
+      services.chromiumos.ChrootService.maybeCreate(chromiumosRoot, false)!,
       new fakes.ConsoleOutputChannel(),
       spiedFakeCompdbService
     );
     const cancellation = new vscode.CancellationTokenSource();
     return {
-      source,
+      chromiumosRoot,
       spiedFakeCompdbService,
       compdbGenerator,
       cancellation,
@@ -56,7 +56,10 @@ inherit cros-workon platform user
 
   it('runs for platform2 C++ file', async () => {
     const document = {
-      fileName: path.join(state.source, 'src/platform2/cros-disks/disks.cc'),
+      fileName: path.join(
+        state.chromiumosRoot,
+        'src/platform2/cros-disks/disks.cc'
+      ),
       languageId: 'cpp',
     } as vscode.TextDocument;
 
@@ -81,7 +84,10 @@ inherit cros-workon platform user
 
   it('runs for platform2 GN file', async () => {
     const document = {
-      fileName: path.join(state.source, 'src/platform2/cros-disks/BUILD.gn'),
+      fileName: path.join(
+        state.chromiumosRoot,
+        'src/platform2/cros-disks/BUILD.gn'
+      ),
       languageId: 'gn',
     } as vscode.TextDocument;
 
@@ -92,7 +98,10 @@ inherit cros-workon platform user
 
   it('does not run on C++ file if already generated', async () => {
     const document = {
-      fileName: path.join(state.source, 'src/platform2/cros-disks/disks.cc'),
+      fileName: path.join(
+        state.chromiumosRoot,
+        'src/platform2/cros-disks/disks.cc'
+      ),
       languageId: 'cpp',
     } as vscode.TextDocument;
 
@@ -105,7 +114,10 @@ inherit cros-workon platform user
 
   it('does not rerun on C++ file if generation fails', async () => {
     const document = {
-      fileName: path.join(state.source, 'src/platform2/cros-disks/disks.cc'),
+      fileName: path.join(
+        state.chromiumosRoot,
+        'src/platform2/cros-disks/disks.cc'
+      ),
       languageId: 'cpp',
     } as vscode.TextDocument;
 
@@ -130,14 +142,20 @@ inherit cros-workon platform user
 
   it('runs for C++ file if compilation database has been removed', async () => {
     const document = {
-      fileName: path.join(state.source, 'src/platform2/cros-disks/disks.cc'),
+      fileName: path.join(
+        state.chromiumosRoot,
+        'src/platform2/cros-disks/disks.cc'
+      ),
       languageId: 'cpp',
     } as vscode.TextDocument;
 
     await state.compdbGenerator.generate(document, state.cancellation.token);
 
     await fs.promises.rm(
-      path.join(state.source, 'src/platform2/cros-disks/compile_commands.json')
+      path.join(
+        state.chromiumosRoot,
+        'src/platform2/cros-disks/compile_commands.json'
+      )
     );
 
     expect(await state.compdbGenerator.shouldGenerate(document)).toEqual(

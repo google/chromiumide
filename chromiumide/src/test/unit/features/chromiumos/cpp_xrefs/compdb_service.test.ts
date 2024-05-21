@@ -19,16 +19,16 @@ describe('Compdb service', () => {
 
   const state = testing.cleanState(async () => {
     const chroot = await testing.buildFakeChroot(tempdir.path);
-    const source = commonUtil.sourceDir(chroot);
-    const out = commonUtil.crosOutDir(source);
+    const chromiumosRoot = commonUtil.crosRoot(chroot);
+    const out = commonUtil.crosOutDir(chromiumosRoot);
     const output = vscode.window.createOutputChannel('fake');
-    return {chroot, source, out, output};
+    return {chroot, chromiumosRoot, out, output};
   });
 
   it('generates compilation database', async () => {
     fakes.installChrootCommandHandler(
       fakeExec,
-      state.source,
+      state.chromiumosRoot,
       'env',
       [
         'USE=compdb_only test',
@@ -48,7 +48,7 @@ describe('Compdb service', () => {
     );
     fakes.installChrootCommandHandler(
       fakeExec,
-      state.source,
+      state.chromiumosRoot,
       'env',
       [
         'ACCEPT_KEYWORDS=~*',
@@ -60,17 +60,20 @@ describe('Compdb service', () => {
         '/mnt/host/source/src/third_party/chromiumos-overlay/chromeos-base/codelab/codelab-9999.ebuild'
     );
 
-    await fs.promises.mkdir(path.join(state.source, 'src/platform2/codelab'), {
-      recursive: true,
-    });
-    await testing.putFiles(state.source, {
+    await fs.promises.mkdir(
+      path.join(state.chromiumosRoot, 'src/platform2/codelab'),
+      {
+        recursive: true,
+      }
+    );
+    await testing.putFiles(state.chromiumosRoot, {
       'src/third_party/chromiumos-overlay/chromeos-base/codelab/codelab-9999.ebuild':
         '',
     });
 
     const compdbService = new CompdbServiceImpl(state.output, {
       chroot: new WrapFs(state.chroot),
-      source: new WrapFs(state.source),
+      chromiumos: new WrapFs(state.chromiumosRoot),
       out: new WrapFs(state.out),
     });
     await compdbService.generate(Board.newBoard('amd64-generic'), {
@@ -80,7 +83,10 @@ describe('Compdb service', () => {
 
     expect(
       await fs.promises.readFile(
-        path.join(state.source, 'src/platform2/codelab/compile_commands.json'),
+        path.join(
+          state.chromiumosRoot,
+          'src/platform2/codelab/compile_commands.json'
+        ),
         'utf8'
       )
     ).toBe('[]');
@@ -89,7 +95,7 @@ describe('Compdb service', () => {
   it('can update symlink to readonly file', async () => {
     fakes.installChrootCommandHandler(
       fakeExec,
-      state.source,
+      state.chromiumosRoot,
       'env',
       [
         'USE=compdb_only test',
@@ -109,7 +115,7 @@ describe('Compdb service', () => {
     );
     fakes.installChrootCommandHandler(
       fakeExec,
-      state.source,
+      state.chromiumosRoot,
       'env',
       [
         'ACCEPT_KEYWORDS=~*',
@@ -121,22 +127,28 @@ describe('Compdb service', () => {
         '/mnt/host/source/src/third_party/chromiumos-overlay/chromeos-base/codelab/codelab-9999.ebuild'
     );
 
-    await fs.promises.mkdir(path.join(state.source, 'src/platform2/codelab'), {
-      recursive: true,
-    });
+    await fs.promises.mkdir(
+      path.join(state.chromiumosRoot, 'src/platform2/codelab'),
+      {
+        recursive: true,
+      }
+    );
     // Creates a symlink to an unremovable file.
     await fs.promises.symlink(
       '/dev/null',
-      path.join(state.source, 'src/platform2/codelab/compile_commands.json')
+      path.join(
+        state.chromiumosRoot,
+        'src/platform2/codelab/compile_commands.json'
+      )
     );
-    await testing.putFiles(state.source, {
+    await testing.putFiles(state.chromiumosRoot, {
       'src/third_party/chromiumos-overlay/chromeos-base/codelab/codelab-9999.ebuild':
         '',
     });
 
     const compdbService = new CompdbServiceImpl(state.output, {
       chroot: new WrapFs(state.chroot),
-      source: new WrapFs(state.source),
+      chromiumos: new WrapFs(state.chromiumosRoot),
       out: new WrapFs(state.out),
     });
     await compdbService.generate(Board.newBoard('amd64-generic'), {
@@ -146,7 +158,10 @@ describe('Compdb service', () => {
 
     expect(
       await fs.promises.readFile(
-        path.join(state.source, 'src/platform2/codelab/compile_commands.json'),
+        path.join(
+          state.chromiumosRoot,
+          'src/platform2/codelab/compile_commands.json'
+        ),
         'utf8'
       )
     ).toBe('[]');

@@ -24,9 +24,9 @@ describe('platform2 compdb generator', () => {
   const temp = testing.tempDir();
   const state = testing.cleanState(async () => {
     const chroot = await testing.buildFakeChroot(temp.path);
-    const source = commonUtil.sourceDir(chroot);
+    const chromiumosRoot = commonUtil.crosRoot(chroot);
 
-    await testing.putFiles(source, {
+    await testing.putFiles(chromiumosRoot, {
       'src/platform/ec/.git/HEAD': '',
     });
 
@@ -37,7 +37,7 @@ describe('platform2 compdb generator', () => {
     );
     const cancellation = new vscode.CancellationTokenSource();
     return {
-      source,
+      chromiumosRoot,
       generator,
       cancellation,
     };
@@ -49,7 +49,7 @@ describe('platform2 compdb generator', () => {
 
   it('runs for platform/ec C++ file', async () => {
     const document = {
-      fileName: path.join(state.source, 'src/platform/ec/foo.cc'),
+      fileName: path.join(state.chromiumosRoot, 'src/platform/ec/foo.cc'),
       languageId: 'cpp',
     } as vscode.TextDocument;
 
@@ -58,11 +58,11 @@ describe('platform2 compdb generator', () => {
     );
     fakes.installChrootCommandHandler(
       fakeExec,
-      state.source,
+      state.chromiumosRoot,
       'util/clangd_config.py',
       ['--os', 'ec', 'bloonchipper', 'rw'],
       async () => {
-        await testing.putFiles(state.source, {
+        await testing.putFiles(state.chromiumosRoot, {
           'src/platform/ec/compile_commands.json':
             'compile commands for bloonchipper:RW (Makefile)',
         });
@@ -77,7 +77,10 @@ describe('platform2 compdb generator', () => {
     ).toBeResolved();
     expect(
       await fs.promises.readFile(
-        path.join(state.source, 'src/platform/ec/compile_commands.json'),
+        path.join(
+          state.chromiumosRoot,
+          'src/platform/ec/compile_commands.json'
+        ),
         'utf8'
       )
     ).toEqual('compile commands for bloonchipper:RW (Makefile)');
@@ -92,11 +95,11 @@ describe('platform2 compdb generator', () => {
     );
     fakes.installChrootCommandHandler(
       fakeExec,
-      state.source,
+      state.chromiumosRoot,
       'util/clangd_config.py',
       ['--os', 'ec', 'bloonchipper', 'ro'],
       async () => {
-        await testing.putFiles(state.source, {
+        await testing.putFiles(state.chromiumosRoot, {
           'src/platform/ec/compile_commands.json':
             'compile commands for bloonchipper:RO (Makefile)',
         });
@@ -111,7 +114,10 @@ describe('platform2 compdb generator', () => {
     ).toBeResolved();
     expect(
       await fs.promises.readFile(
-        path.join(state.source, 'src/platform/ec/compile_commands.json'),
+        path.join(
+          state.chromiumosRoot,
+          'src/platform/ec/compile_commands.json'
+        ),
         'utf8'
       )
     ).toEqual('compile commands for bloonchipper:RO (Makefile)');
@@ -127,11 +133,11 @@ describe('platform2 compdb generator', () => {
     );
     fakes.installChrootCommandHandler(
       fakeExec,
-      state.source,
+      state.chromiumosRoot,
       'util/clangd_config.py',
       ['--os', 'ec', 'dartmonkey', 'ro'],
       async () => {
-        await testing.putFiles(state.source, {
+        await testing.putFiles(state.chromiumosRoot, {
           'src/platform/ec/compile_commands.json':
             'compile commands for dartmonkey:RO (Makefile)',
         });
@@ -146,7 +152,10 @@ describe('platform2 compdb generator', () => {
     ).toBeResolved();
     expect(
       await fs.promises.readFile(
-        path.join(state.source, 'src/platform/ec/compile_commands.json'),
+        path.join(
+          state.chromiumosRoot,
+          'src/platform/ec/compile_commands.json'
+        ),
         'utf8'
       )
     ).toEqual('compile commands for dartmonkey:RO (Makefile)');
@@ -161,11 +170,11 @@ describe('platform2 compdb generator', () => {
     );
     fakes.installChrootCommandHandler(
       fakeExec,
-      state.source,
+      state.chromiumosRoot,
       'util/clangd_config.py',
       ['--os', 'zephyr', 'dartmonkey', 'ro'],
       async () => {
-        await testing.putFiles(state.source, {
+        await testing.putFiles(state.chromiumosRoot, {
           'src/platform/ec/compile_commands.json':
             'compile commands for dartmonkey:RO (Zephyr)',
         });
@@ -180,7 +189,10 @@ describe('platform2 compdb generator', () => {
     ).toBeResolved();
     expect(
       await fs.promises.readFile(
-        path.join(state.source, 'src/platform/ec/compile_commands.json'),
+        path.join(
+          state.chromiumosRoot,
+          'src/platform/ec/compile_commands.json'
+        ),
         'utf8'
       )
     ).toEqual('compile commands for dartmonkey:RO (Zephyr)');
@@ -191,7 +203,7 @@ describe('platform2 compdb generator', () => {
 
   it('does not run outside platform/ec', async () => {
     const document = {
-      fileName: path.join(state.source, 'src/platform2/codelab/foo.cc'),
+      fileName: path.join(state.chromiumosRoot, 'src/platform2/codelab/foo.cc'),
       languageId: 'cpp',
     } as vscode.TextDocument;
 

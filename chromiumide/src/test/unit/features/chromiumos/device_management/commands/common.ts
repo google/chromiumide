@@ -8,7 +8,6 @@ import {
   BoardOrHost,
   parseBoardOrHost,
 } from '../../../../../../../shared/app/common/board_or_host';
-import * as commonUtil from '../../../../../../../shared/app/common/common_util';
 import {getDriver} from '../../../../../../../shared/app/common/driver_repository';
 import {AbnormalExitError} from '../../../../../../../shared/app/common/exec/types';
 import {
@@ -127,7 +126,7 @@ export async function prepareCommonFakes(
     // Prepare external command responses.
     testing.fakes.installChrootCommandHandler(
       fakeExec,
-      chromiumos as commonUtil.Source,
+      chromiumos,
       'tast',
       arrayWithPrefix('list'),
       async () => tastListResult
@@ -176,7 +175,7 @@ Total: 1 package (1 reinstall, 1 binary), Size of downloads: 0 KiB
 
 export function installEmergeForUseFlagsCommandHandler(
   fakeExec: testing.FakeExec,
-  sourcePath: string,
+  chromiumosRoot: string,
   board: BoardOrHost,
   packageName: string,
   stdout: string,
@@ -187,7 +186,7 @@ export function installEmergeForUseFlagsCommandHandler(
   const args = ['--pretend', '--verbose', '--nodeps', '--usepkg', packageName];
   testing.fakes.installChrootCommandHandler(
     fakeExec,
-    sourcePath as commonUtil.Source,
+    chromiumosRoot,
     cmd,
     args,
     async () =>

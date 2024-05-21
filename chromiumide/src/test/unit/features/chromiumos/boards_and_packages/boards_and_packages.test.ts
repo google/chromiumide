@@ -5,7 +5,6 @@
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as commonUtil from '../../../../../../shared/app/common/common_util';
 import * as config from '../../../../../../shared/app/services/config';
 import {BoardsAndPackages} from '../../../../../features/chromiumos/boards_and_packages';
 import {CommandName} from '../../../../../features/chromiumos/boards_and_packages/command';
@@ -39,7 +38,7 @@ describe('Boards and packages', () => {
       new VoidOutputChannel()
     );
 
-    const chromiumosRoot = tempDir.path as commonUtil.Source;
+    const chromiumosRoot = tempDir.path;
 
     const chroot = await testing.buildFakeChroot(chromiumosRoot);
 

@@ -57,11 +57,11 @@ export class TastTests implements vscode.Disposable {
   }
 
   private tastTestsDir = driver.path.join(
-    this.chrootService.source.root,
+    this.chrootService.chromiumos.root,
     'src/platform/tast-tests'
   );
   private tastDir = driver.path.join(
-    this.chrootService.source.root,
+    this.chrootService.chromiumos.root,
     'src/platform/tast'
   );
 

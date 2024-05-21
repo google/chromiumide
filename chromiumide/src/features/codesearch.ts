@@ -51,13 +51,13 @@ export function activate(context: vscode.ExtensionContext): void {
 async function getCodeSearchTool(
   fullpath: string
 ): Promise<{executable: string; cwd: string} | undefined> {
-  const source = await driver.cros.findSourceDir(fullpath);
-  if (source === undefined) {
+  const chromiumosRoot = await driver.cros.findSourceDir(fullpath);
+  if (chromiumosRoot === undefined) {
     return undefined;
   }
   return {
-    executable: path.join(source, 'chromite/contrib/generate_cs_path'),
-    cwd: source,
+    executable: path.join(chromiumosRoot, 'chromite/contrib/generate_cs_path'),
+    cwd: chromiumosRoot,
   };
 }
 

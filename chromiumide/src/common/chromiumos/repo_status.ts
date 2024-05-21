@@ -60,7 +60,7 @@ export async function getCrosPrebuiltVersionsFromBinHost(
     PUBLIC_BINHOST_DIR,
   ].map(dir =>
     path.join(
-      chrootService.source.root,
+      chrootService.chromiumos.root,
       dir,
       `${target}-POSTSUBMIT_BINHOST.conf`
     )

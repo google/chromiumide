@@ -182,7 +182,7 @@ export class Coverage {
     // TODO(ttylenda): find a cleaner way of normalizing the package name.
     const pkgPart = pkgName.indexOf('/') === -1 ? `*/${pkgName}` : pkgName;
 
-    const globPattern = this.chrootService.source.realpath(
+    const globPattern = this.chrootService.chromiumos.realpath(
       `{chroot,out}/build/${this.getBoard()}/build/coverage_data/${pkgPart}*/*/${fileName}`
     );
 

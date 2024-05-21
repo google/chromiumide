@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import * as path from 'path';
-import {Source} from '../../../../../shared/app/common/common_util';
 import * as services from '../../../../services';
 import {Packages} from '../../../../services/chromiumos';
 import {Mapping} from '../../../../services/chromiumos/packages/mapping';
@@ -102,6 +101,6 @@ PLATFORM_SUBDIR="camera/common"
 
     expect(await promises).toEqual([fooPackageInfo, fooPackageInfo]);
 
-    expect(Mapping.generate).toHaveBeenCalledOnceWith(tempDir.path as Source);
+    expect(Mapping.generate).toHaveBeenCalledOnceWith(tempDir.path);
   });
 });

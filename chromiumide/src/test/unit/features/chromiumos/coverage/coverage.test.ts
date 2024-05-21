@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as commonUtil from '../../../../../../shared/app/common/common_util';
 import * as config from '../../../../../../shared/app/services/config';
 import {TaskStatus} from '../../../../../../shared/app/ui/bg_task_status';
 import {Breadcrumbs} from '../../../../../features/chromiumos/boards_and_packages/item';
@@ -46,7 +45,7 @@ describe('Test coverage', () => {
       new VoidOutputChannel()
     );
 
-    const chromiumosRoot = tempDir.path as commonUtil.Source;
+    const chromiumosRoot = tempDir.path;
     const chroot = await testing.buildFakeChroot(chromiumosRoot);
     await testing.putFiles(chroot, {
       [coverageJsonPath]: coverageJsonContents,

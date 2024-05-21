@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {Source} from '../../../../../../../../shared/app/common/common_util';
 import {AbnormalExitError} from '../../../../../../../../shared/app/common/exec/types';
 import {
   showSuggestedImagesInputBox,
@@ -109,7 +108,7 @@ describe('Create quick pick to choose image within correct version range', () =>
   function handleFetchPrebuiltVersions(version: number, noMatch: boolean) {
     installChrootCommandHandler(
       fakeExec,
-      tempDir.path as Source,
+      tempDir.path,
       'gsutil',
       [
         'ls',

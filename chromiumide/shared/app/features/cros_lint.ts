@@ -107,14 +107,14 @@ const languageToLintConfigs = new Map<string, LintConfig[]>([
             return undefined;
           }
 
-          const source = await driver.cros.findSourceDir(realpath);
-          if (source === undefined) {
+          const chromiumosRoot = await driver.cros.findSourceDir(realpath);
+          if (chromiumosRoot === undefined) {
             return undefined;
           }
-          const filepath = realpath.slice(source.length + 1); // To trim / of source dir
+          const filepath = realpath.slice(chromiumosRoot.length + 1); // To trim / of source dir
           for (const dir of CHECK_LIBCHROME_SRC_DIRS) {
             if (filepath.startsWith(dir)) {
-              return driver.path.join(source, CHECK_LIBCHROME_PATH);
+              return driver.path.join(chromiumosRoot, CHECK_LIBCHROME_PATH);
             }
           }
           return undefined;
@@ -197,11 +197,11 @@ async function tastLintExe(realPath: string): Promise<string | undefined> {
     return undefined;
   }
   const linterPath = `src/platform/${match[1]}/tools/run_lint.sh`;
-  const source = await driver.cros.findSourceDir(realPath);
-  if (source === undefined) {
+  const chromiumosRoot = await driver.cros.findSourceDir(realPath);
+  if (chromiumosRoot === undefined) {
     return undefined;
   }
-  return driver.path.join(source, linterPath);
+  return driver.path.join(chromiumosRoot, linterPath);
 }
 
 let goWarningShown = false;

@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as commonUtil from '../../../../../../../shared/app/common/common_util';
 import {LruCache} from '../../../../../../common/lru_cache';
 import {Package} from '../../../../../../features/chromiumos/boards_and_packages/package';
 import * as deployPackages from '../../../../../../features/device_management/commands/deploy_package';
@@ -180,7 +179,7 @@ describe('deploy package command', () => {
 
   it('runs successfully', async () => {
     // Prepare a fake chroot.
-    const chromiumos = tempDir.path as commonUtil.Source;
+    const chromiumos = tempDir.path;
 
     const context = await prepareCommonFakes(
       fakeExec,

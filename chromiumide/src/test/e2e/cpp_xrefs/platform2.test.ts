@@ -91,7 +91,7 @@ describe('C++ xrefs in platform2', () => {
   const compdbService = new CompdbServiceImpl(output, {
     chroot: chrootService.chroot,
     out: chrootService.out,
-    source: chrootService.source,
+    chromiumos: chrootService.chromiumos,
   });
 
   const seenPackageInfo: PackageInfo[] = [];

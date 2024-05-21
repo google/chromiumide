@@ -210,7 +210,7 @@ function getDlvEbuildVersion(
 ): string | undefined {
   const ebuildFileName = glob.glob.sync(
     path.join(
-      chrootService.source.root,
+      chrootService.chromiumos.root,
       'src/third_party/chromiumos-overlay/dev-go/delve/delve-*.ebuild'
     )
   )[0];

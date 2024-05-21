@@ -28,7 +28,7 @@ async function prepareBoardsDir(td: string): Promise<{
   );
   await fs.promises.utimes(path.join(chroot, '/build/betty-pi-arc'), 1, 1);
   await fs.promises.utimes(path.join(chroot, '/build/coral'), 3, 3);
-  return {chroot, out: commonUtil.crosOutDir(commonUtil.sourceDir(chroot))};
+  return {chroot, out: commonUtil.crosOutDir(commonUtil.crosRoot(chroot))};
 }
 
 describe('Boards that are set up', () => {

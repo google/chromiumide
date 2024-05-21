@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as commonUtil from '../../../../../shared/app/common/common_util';
 import {ExecResult} from '../../../../../shared/app/common/exec/types';
 import * as services from '../../../../services';
 import * as testing from '../../../testing';
@@ -17,12 +16,15 @@ describe('chroot service exec', () => {
   it('calls cros_sdk if outside chroot', async () => {
     await testing.buildFakeChroot(tempDir.path);
 
-    const source = tempDir.path as commonUtil.Source;
-    const cros = services.chromiumos.ChrootService.maybeCreate(source, false)!;
+    const chromiumosRoot = tempDir.path;
+    const cros = services.chromiumos.ChrootService.maybeCreate(
+      chromiumosRoot,
+      false
+    )!;
 
     fakes.installChrootCommandHandler(
       fakeExec,
-      source,
+      chromiumosRoot,
       'echo',
       ['1'],
       async () => '1\n'
@@ -36,12 +38,15 @@ describe('chroot service exec', () => {
   it('passes through error from cros_sdk command', async () => {
     await testing.buildFakeChroot(tempDir.path);
 
-    const source = tempDir.path as commonUtil.Source;
-    const cros = services.chromiumos.ChrootService.maybeCreate(source, false)!;
+    const chromiumosRoot = tempDir.path;
+    const cros = services.chromiumos.ChrootService.maybeCreate(
+      chromiumosRoot,
+      false
+    )!;
 
     fakes.installChrootCommandHandler(
       fakeExec,
-      source,
+      chromiumosRoot,
       'false',
       jasmine.anything(),
       async () => new Error('failed')

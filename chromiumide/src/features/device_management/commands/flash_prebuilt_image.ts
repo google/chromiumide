@@ -382,7 +382,7 @@ export async function flashPrebuiltImage(
     hostname,
     imagePath,
     context.deviceClient,
-    chrootService.source.root,
+    chrootService.chromiumos.root,
     context.output
   );
 }

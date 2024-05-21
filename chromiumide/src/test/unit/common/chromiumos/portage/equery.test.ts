@@ -7,7 +7,6 @@ import {
   BoardOrHost,
   HOST,
 } from '../../../../../../shared/app/common/board_or_host';
-import * as commonUtil from '../../../../../../shared/app/common/common_util';
 import {AbnormalExitError} from '../../../../../../shared/app/common/exec/types';
 import {getUseFlagsInstalled} from '../../../../../common/chromiumos/portage/equery';
 import * as services from '../../../../../services';
@@ -16,7 +15,7 @@ import * as fakes from '../../../../testing/fakes';
 
 function installEmergeForUseFlagsCommandHandler(
   fakeExec: testing.FakeExec,
-  sourcePath: string,
+  chromiumosRoot: string,
   board: BoardOrHost,
   packageName: string,
   stdout: string,
@@ -27,7 +26,7 @@ function installEmergeForUseFlagsCommandHandler(
   const args = ['--pretend', '--verbose', '--nodeps', '--usepkg', packageName];
   fakes.installChrootCommandHandler(
     fakeExec,
-    sourcePath as commonUtil.Source,
+    chromiumosRoot,
     cmd,
     args,
     async () =>

@@ -35,8 +35,8 @@ export async function openEbuild(
     return;
   }
   const relFileName = res.stdout.trim().substring('/mnt/host/source/'.length);
-  const srcRoot = ctx.chrootService.source;
-  const fileName = srcRoot.realpath(relFileName);
+  const chromiumos = ctx.chrootService.chromiumos;
+  const fileName = chromiumos.realpath(relFileName);
   const document = await vscode.workspace.openTextDocument(fileName);
   await vscode.window.showTextDocument(document);
 

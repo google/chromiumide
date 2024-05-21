@@ -88,8 +88,8 @@ export class Platform2 implements CompdbGenerator {
       case undefined:
         return ShouldGenerateResult.Yes;
       case 'generated': {
-        const source = this.chrootService.source;
-        if (!fs.existsSync(destination(source.root, packageInfo))) {
+        const chromiumos = this.chrootService.chromiumos;
+        if (!fs.existsSync(destination(chromiumos.root, packageInfo))) {
           // Corner case: compdb was generated but then manually removed. In
           // this case we can safely rerun the same command and regenerate it.
           return ShouldGenerateResult.Yes;

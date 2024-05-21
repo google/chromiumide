@@ -69,7 +69,7 @@ export class CompdbServiceImpl implements CompdbService {
         kind: CompdbErrorKind.NotGenerated,
       });
     }
-    const dest = destination(this.crosFs.source.root, {
+    const dest = destination(this.crosFs.chromiumos.root, {
       sourceDir,
       pkg,
     });

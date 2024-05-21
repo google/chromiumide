@@ -35,7 +35,7 @@ export class Ebuild {
 
   private mutex() {
     const key = `${this.board.toString()}:${this.qualifiedPackageName}:${
-      this.crosFs.source.root
+      this.crosFs.chromiumos.root
     }`;
     const existing = Ebuild.globalMutexMap.get(key);
     if (existing) {
@@ -112,7 +112,7 @@ export class Ebuild {
     const args = buildGet9999EbuildCommand(this.board, pkg);
 
     const result = await services.chromiumos.execInChroot(
-      this.crosFs.source.root,
+      this.crosFs.chromiumos.root,
       args[0],
       args.slice(1),
       {
@@ -169,7 +169,7 @@ export class Ebuild {
 
   private async runCompgen() {
     const res = await services.chromiumos.execInChroot(
-      this.crosFs.source.root,
+      this.crosFs.chromiumos.root,
       'env',
       [
         'USE=' + this.useFlags.join(' '),

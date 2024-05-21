@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as commonUtil from '../../../../../../shared/app/common/common_util';
 import {AbnormalExitError} from '../../../../../../shared/app/common/exec/types';
 import * as prebuiltUtil from '../../../../../features/device_management/prebuilt_util';
 import * as services from '../../../../../services';
@@ -27,7 +26,7 @@ gs://chromeos-image-archive/xyz-release/R99-9901.0.0/image.zip
 
     fakes.installChrootCommandHandler(
       fakeExec,
-      tempDir.path as commonUtil.Source,
+      tempDir.path,
       'gsutil',
       ['ls', 'gs://chromeos-image-archive/xyz-release/*/image.zip'],
       () => FAKE_STDOUT
@@ -61,7 +60,7 @@ gs://chromeos-image-archive/xyz-postsubmit/R102-10010.0.0-10100-1000000000000100
 
     fakes.installChrootCommandHandler(
       fakeExec,
-      tempDir.path as commonUtil.Source,
+      tempDir.path,
       'gsutil',
       ['ls', 'gs://chromeos-image-archive/xyz-postsubmit/*/image.zip'],
       () => FAKE_STDOUT
@@ -87,7 +86,7 @@ gs://chromeos-image-archive/xyz-postsubmit/R102-10010.0.0-10100-1000000000000100
 
     fakes.installChrootCommandHandler(
       fakeExec,
-      tempDir.path as commonUtil.Source,
+      tempDir.path,
       'gsutil',
       ['ls', 'gs://chromeos-image-archive/xyz-postsubmit/*/image.zip'],
       async args =>

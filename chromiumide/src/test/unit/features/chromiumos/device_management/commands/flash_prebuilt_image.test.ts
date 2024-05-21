@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {sourceDir} from '../../../../../../../shared/app/common/common_util';
+import {crosRoot} from '../../../../../../../shared/app/common/common_util';
 import {getCrosPath} from '../../../../../../common/chromiumos/cros_client';
 import {TEST_ONLY} from '../../../../../../features/device_management/commands/flash_prebuilt_image';
 import {
@@ -27,8 +27,8 @@ describe('Flash image to device', () => {
 
   const state = testing.cleanState(async () => {
     const chroot = await testing.buildFakeChroot(tempDir.path);
-    const source = sourceDir(chroot);
-    return {source};
+    const chromiumosRoot = crosRoot(chroot);
+    return {chromiumosRoot};
   });
 
   const LSB_RELEASE = `DEVICETYPE=CHROMEBOOK
@@ -71,7 +71,7 @@ CHROMEOS_RELEASE_UNIBUILD=1
 
   it('fires device client refresh on command successful completion', async () => {
     fakeExec.installStdout(
-      getCrosPath(state.source),
+      getCrosPath(state.chromiumosRoot),
       jasmine.arrayContaining(['flash', `ssh://${hostname}`]),
       '',
       jasmine.anything()
@@ -110,7 +110,7 @@ CHROMEOS_RELEASE_UNIBUILD=1
       hostname,
       'hatch-release/R104-14901.0.0',
       client,
-      state.source,
+      state.chromiumosRoot,
       new VoidOutputChannel()
     );
 
@@ -131,7 +131,7 @@ CHROMEOS_RELEASE_UNIBUILD=1
 
   it('does not fire device client refresh on command failure', async () => {
     fakeExec.installCallback(
-      getCrosPath(state.source),
+      getCrosPath(state.chromiumosRoot),
       jasmine.arrayContaining(['flash', `ssh://${hostname}`]),
       async () => new Error('cros flash failed'),
       jasmine.anything()
@@ -171,7 +171,7 @@ CHROMEOS_RELEASE_UNIBUILD=1
       hostname,
       'hatch-release/R104-14901.0.0',
       client,
-      state.source,
+      state.chromiumosRoot,
       new VoidOutputChannel()
     );
 

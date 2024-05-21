@@ -52,7 +52,7 @@ export class Runner extends AbstractRunner {
   }
 
   private readonly platform2 = path.join(
-    this.chrootService.source.root,
+    this.chrootService.chromiumos.root,
     'src/platform2'
   );
 
@@ -165,7 +165,7 @@ export class Runner extends AbstractRunner {
   private async getWorkingDirectoryOrThrow(ebuildInstance: ebuild.Ebuild) {
     const ebuildFilepathInChroot = await ebuildInstance.ebuild9999();
     const ebuildFilepathOutsideChroot = path.join(
-      this.chrootService.source.root,
+      this.chrootService.chromiumos.root,
       ebuildFilepathInChroot.substring('/mnt/host/source/'.length)
     );
 

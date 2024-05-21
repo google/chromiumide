@@ -14,8 +14,6 @@ const driver = getDriver();
 // Type Chroot represents the path to chroot.
 // We use nominal typing technique here. https://basarat.gitbook.io/typescript/main-1/nominaltyping
 export type Chroot = string & {_brand: 'chroot'};
-// Type Source represents the path to ChromiumOS source.
-export type Source = string & {_brand: 'source'};
 
 export async function isInsideChroot(): Promise<boolean> {
   return await isChroot('/');
@@ -47,17 +45,17 @@ export async function findChroot(dir: string): Promise<Chroot | undefined> {
 }
 
 /**
- * Returns the ChromiumOS source directory, given the path to chroot.
+ * Returns the ChromiumOS root directory, given the path to chroot.
  */
-export function sourceDir(chroot: string): Source {
-  return driver.path.dirname(chroot) as Source;
+export function crosRoot(chroot: string): string {
+  return driver.path.dirname(chroot);
 }
 
 /**
- * Returns the ChromiumOS out directory, given the path to source (chromeos root).
+ * Returns the ChromiumOS out directory, given the path to chromeos root.
  */
-export function crosOutDir(source: Source): string {
-  return driver.path.join(source, 'out');
+export function crosOutDir(chromiumosRoot: string): string {
+  return driver.path.join(chromiumosRoot, 'out');
 }
 
 class Task<T> {

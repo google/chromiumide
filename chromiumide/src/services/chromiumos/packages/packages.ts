@@ -29,7 +29,7 @@ export class Packages {
   static getOrCreate(
     chrootService: services.chromiumos.ChrootService
   ): Packages {
-    const key = chrootService.source.root;
+    const key = chrootService.chromiumos.root;
     const cached = Packages.instances.get(key);
     if (cached) {
       return cached;
@@ -54,11 +54,11 @@ export class Packages {
     }
 
     this.ensureGeneratedWaiter = (async () => {
-      const source = this.chrootService.source;
-      if (!source) {
+      const chromiumos = this.chrootService.chromiumos;
+      if (!chromiumos) {
         return;
       }
-      for (const packageInfo of await Mapping.generate(source.root)) {
+      for (const packageInfo of await Mapping.generate(chromiumos.root)) {
         this.mapping.set(packageInfo.sourceDir, packageInfo);
       }
     })();

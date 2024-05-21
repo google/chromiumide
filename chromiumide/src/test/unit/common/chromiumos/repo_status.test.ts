@@ -26,7 +26,7 @@ describe('repo status', () => {
       'src/private-overlays/chromeos-partner-overlay/chromeos/binhost/target/foo-POSTSUBMIT_BINHOST.conf':
         'POSTSUBMIT_BINHOST="gs://chromeos-prebuilt/board/amd64-generic/postsubmit-R122-15752.0.0-61353-8758249972444919777/packages gs://chromeos-prebuilt/board/amd64-generic/postsubmit-R122-15752.0.0-61354-8758248213695494001/packages gs://chromeos-prebuilt/board/amd64-generic/postsubmit-R122-15752.0.0-61355-8758246175632064529/packages gs://chromeos-prebuilt/board/amd64-generic/postsubmit-R122-15752.0.0-61356-8758244334014206945/packages"',
     });
-    const root = chrootService.source.root;
+    const root = chrootService.chromiumos.root;
 
     return {
       chrootService,

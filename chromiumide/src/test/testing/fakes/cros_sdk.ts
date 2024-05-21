@@ -15,7 +15,7 @@ import {FakeExec} from '../fake_exec';
  */
 export function installChrootCommandHandler(
   fakeExec: FakeExec,
-  source: commonUtil.Source,
+  chromiumosRoot: string,
   name: string,
   argsMatcher: jasmine.AsymmetricMatcher<string[]> | string[],
   callback: (
@@ -24,7 +24,7 @@ export function installChrootCommandHandler(
   ) => Promise<Awaited<ReturnType<typeof commonUtil.exec>> | string> | string,
   chrootOption?: {crosSdkWorkingDir?: string}
 ): void {
-  const crosSdk = path.join(source, 'chromite/bin/cros_sdk');
+  const crosSdk = path.join(chromiumosRoot, 'chromite/bin/cros_sdk');
 
   const crosSdkPrefix = [crosSdk];
   if (chrootOption?.crosSdkWorkingDir) {

@@ -152,7 +152,7 @@ export async function checkDeviceImageCompatibilityOrSuggest(
         hostname,
         imagePath,
         context.deviceClient,
-        chrootService.source.root,
+        chrootService.chromiumos.root,
         context.output
       );
       if (flashImageStatus instanceof Error) return flashImageStatus;
