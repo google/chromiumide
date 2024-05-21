@@ -9,9 +9,10 @@ import {WrapFs} from '../../../../shared/app/common/wrap_fs';
 import * as cros from '../../../common/cros';
 import * as testing from '../../testing';
 
-async function prepareBoardsDir(
-  td: string
-): Promise<[commonUtil.Chroot, commonUtil.CrosOut]> {
+async function prepareBoardsDir(td: string): Promise<{
+  chroot: string;
+  out: string;
+}> {
   const chroot = await testing.buildFakeChroot(td);
   await testing.putFiles(chroot, {
     '/build/amd64-generic/x': 'x',
@@ -27,14 +28,14 @@ async function prepareBoardsDir(
   );
   await fs.promises.utimes(path.join(chroot, '/build/betty-pi-arc'), 1, 1);
   await fs.promises.utimes(path.join(chroot, '/build/coral'), 3, 3);
-  return [chroot, commonUtil.crosOutDir(commonUtil.sourceDir(chroot))];
+  return {chroot, out: commonUtil.crosOutDir(commonUtil.sourceDir(chroot))};
 }
 
 describe('Boards that are set up', () => {
   const tempDir = testing.tempDir();
 
   it('are listed most recent first', async () => {
-    const [chroot, out] = await prepareBoardsDir(tempDir.path);
+    const {chroot, out} = await prepareBoardsDir(tempDir.path);
 
     expect(
       await cros.getSetupBoardsRecentFirst(new WrapFs(chroot), new WrapFs(out))
@@ -42,7 +43,7 @@ describe('Boards that are set up', () => {
   });
 
   it('are listed in alphabetic order', async () => {
-    const [chroot, out] = await prepareBoardsDir(tempDir.path);
+    const {chroot, out} = await prepareBoardsDir(tempDir.path);
 
     expect(
       await cros.getSetupBoardsAlphabetic(new WrapFs(chroot), new WrapFs(out))
@@ -52,8 +53,8 @@ describe('Boards that are set up', () => {
   it('can be listed, even if /build does not exist', async () => {
     expect(
       await cros.getSetupBoardsAlphabetic(
-        new WrapFs(tempDir.path as commonUtil.Chroot),
-        new WrapFs(tempDir.path as commonUtil.CrosOut)
+        new WrapFs(tempDir.path),
+        new WrapFs(tempDir.path)
       )
     ).toEqual([]);
   });
