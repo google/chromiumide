@@ -13,6 +13,7 @@ export class ChromiumosCppXrefs {
     private readonly cppXrefs: CppXrefs
   ) {
     cppXrefs.register(
+      output => new compdbGenerator.Kernel(chrootService, output),
       output => new compdbGenerator.Platform2(chrootService, output),
       output => new compdbGenerator.PlatformEc(chrootService, output)
     );

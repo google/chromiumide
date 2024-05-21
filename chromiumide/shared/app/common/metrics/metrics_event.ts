@@ -188,7 +188,10 @@ type CppXrefsEvent = EventBase & {
       }
     | {
         category: 'background';
-        name: 'cppxrefs_interact_with_platform2_cpp' | 'cppxrefs_no_chroot';
+        name:
+          | 'cppxrefs_interact_with_platform2_cpp'
+          | 'cppxrefs_will_generate_compdb_on_kernel'
+          | 'cppxrefs_no_chroot';
       }
     | {
         category: 'error';
