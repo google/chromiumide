@@ -33,6 +33,7 @@ import * as codesearch from './features/codesearch';
 import * as deviceManagement from './features/device_management';
 import * as dirMetadata from './features/dir_metadata';
 import {DisclaimerOnMac} from './features/disclaimer_on_mac';
+import {Gcert} from './features/gcert';
 import * as gerrit from './features/gerrit';
 import * as gn from './features/gn';
 import * as hints from './features/hints';
@@ -176,6 +177,7 @@ async function postMetricsActivate(
       gitDirsWatcher
     );
   }
+  context.subscriptions.push(new Gcert(getUiLogger()));
 
   // We want to know if some users flip enablement bit.
   // If the feature is disabled it could mean that it's annoying.

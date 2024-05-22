@@ -249,6 +249,11 @@
         "title": "File a bug on Buganizer"
       },
       {
+        "command": "chromiumide.gcert.run",
+        "category": "CrOS",
+        "title": "Run gcert"
+      },
+      {
         "command": "chromiumide.resetUserID",
         "category": "CrOS",
         "title": "Generate a new random user ID for metrics collection"

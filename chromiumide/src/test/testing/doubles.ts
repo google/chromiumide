@@ -52,6 +52,7 @@ function newVscodeSpy() {
       'createOutputChannel',
       'createQuickPick',
       'createStatusBarItem',
+      'createTerminal',
       'showErrorMessage',
       'showInformationMessage',
       'showInputBox',
