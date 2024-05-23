@@ -9,10 +9,11 @@ import * as commonUtil from '../../../shared/app/common/common_util';
 import * as config from '../../../shared/app/services/config';
 import {CppXrefs} from '../../common/cpp_xrefs/cpp_xrefs';
 import {
-  CompdbGenerator,
-  ErrorDetails,
-  ShouldGenerateResult,
-} from '../../common/cpp_xrefs/types';
+  CompdbGeneratorCore,
+  GenerationScope,
+  GenericCompdbGenerator,
+} from '../../common/cpp_xrefs/generic_compdb_generator';
+import {ErrorDetails} from '../../common/cpp_xrefs/types';
 
 /**
  * Activates chromium C++ xrefs support.
@@ -23,21 +24,15 @@ export class ChromiumCppXrefs {
    */
   constructor(chromiumRoot: string, cppXrefs: CppXrefs) {
     cppXrefs.register(
-      output => new ChromiumCompdbGenerator(chromiumRoot, output)
+      output =>
+        new GenericCompdbGenerator(
+          new ChromiumCompdbGenerator(chromiumRoot, output)
+        )
     );
   }
 }
 
-/** Compdb generation status. */
-enum Status {
-  /** Generation has not been kicked. */
-  Initial,
-  Generating,
-  Generated,
-  Failed,
-}
-
-class ChromiumCompdbGenerator implements CompdbGenerator {
+class ChromiumCompdbGenerator implements CompdbGeneratorCore {
   constructor(
     private readonly chromiumRoot: string,
     private readonly output: vscode.OutputChannel
@@ -45,65 +40,36 @@ class ChromiumCompdbGenerator implements CompdbGenerator {
 
   readonly name = 'chromium';
 
-  private status = Status.Initial;
-
-  async shouldGenerate(
+  async generationScope(
     document: vscode.TextDocument
-  ): Promise<ShouldGenerateResult> {
+  ): Promise<GenerationScope> {
     // Rebuild when a GN file is edited.
     if (document.languageId === 'gn') {
-      return ShouldGenerateResult.Yes;
+      return GenerationScope.Always;
     }
 
     if (!['c', 'cpp'].includes(document.languageId)) {
-      return ShouldGenerateResult.NoUnsupported;
+      return GenerationScope.Unsupported;
     }
-
-    switch (this.status) {
-      case Status.Initial:
-        return ShouldGenerateResult.Yes;
-      case Status.Generated: {
-        if (!fs.existsSync(this.compdbPath)) {
-          // Corner case: compdb was generated but then manually removed. In
-          // this case we can safely rerun the same command and regenerate it.
-          return ShouldGenerateResult.Yes;
-        }
-        return ShouldGenerateResult.NoNeedNoChange;
-      }
-      case Status.Generating:
-        return ShouldGenerateResult.NoGenerating;
-      case Status.Failed:
-        // We don't retry the generation if it fails. Instead we instruct the
-        // user to manually fix the problem and then reload the IDE through the
-        // error message.
-        return ShouldGenerateResult.NoHasFailed;
-    }
+    return GenerationScope.InitOnly;
   }
 
-  private get compdbPath(): string {
+  async compdbPath(_document: vscode.TextDocument): Promise<string> {
     return path.join(this.chromiumRoot, 'src/compile_commands.json');
   }
 
   async generate(
-    _document: vscode.TextDocument,
+    document: vscode.TextDocument,
     token: vscode.CancellationToken
-  ): Promise<void> {
-    const previousStatus = this.status;
+  ): Promise<undefined | ErrorDetails | vscode.CancellationError> {
+    const compdbPath = await this.compdbPath(document);
 
-    this.status = Status.Generating;
-    const result = await this.generateInner(token);
+    const result = await this.generateInner(compdbPath, token);
     if (result instanceof Error) {
-      if (token.isCancellationRequested) {
-        this.status = previousStatus;
-      } else {
-        this.status = Status.Failed;
-      }
-      throw result;
+      return result;
     }
 
-    this.status = Status.Generated;
-
-    const folderToOpen = path.dirname(this.compdbPath);
+    const folderToOpen = path.dirname(compdbPath);
     const workspaceHasCompdb = vscode.workspace.workspaceFolders?.find(
       folder => folder.uri.fsPath === folderToOpen
     );
@@ -115,7 +81,7 @@ class ChromiumCompdbGenerator implements CompdbGenerator {
     if (config.cppXrefs.suggestWorkspaceFolder.get()) {
       void (async () => {
         const choice = await vscode.window.showWarningMessage(
-          `Compilation database has been generated in ${this.compdbPath}, but no workspace folders contain the file to provide C++ xrefs`,
+          `Compilation database has been generated in ${compdbPath}, but no workspace folders contain the file to provide C++ xrefs`,
           'Open src',
           "Don't show again"
         );
@@ -130,6 +96,7 @@ class ChromiumCompdbGenerator implements CompdbGenerator {
   }
 
   private async generateInner(
+    compdbPath: string,
     token: vscode.CancellationToken
   ): Promise<undefined | ErrorDetails> {
     const currentLink = path.join(this.chromiumRoot, 'src/out/current_link');
@@ -149,7 +116,7 @@ class ChromiumCompdbGenerator implements CompdbGenerator {
     );
     const result = await commonUtil.exec(
       exe,
-      ['-p', 'out/current_link', '-o', this.compdbPath],
+      ['-p', 'out/current_link', '-o', compdbPath],
       {
         cancellationToken: token,
         cwd: path.join(this.chromiumRoot, 'src'),
