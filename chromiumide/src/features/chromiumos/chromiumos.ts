@@ -4,6 +4,7 @@
 
 import * as vscode from 'vscode';
 import {getDriver} from '../../../shared/app/common/driver_repository';
+import * as defaultBoard from '../../../shared/app/features/default_board';
 import * as config from '../../../shared/app/services/config';
 import * as bgTaskStatus from '../../../shared/app/ui/bg_task_status';
 import * as cipd from '../../common/cipd';
@@ -13,7 +14,6 @@ import * as boilerplate from '../boilerplate';
 import {BoardsAndPackages} from './boards_and_packages';
 import {Coverage} from './coverage';
 import {ChromiumosCppXrefs} from './cpp_xrefs';
-import * as defaultBoard from './default_board';
 import * as ebuild from './ebuild';
 import {Platform2Gtest} from './platform2_gtest';
 import * as platformEc from './platform_ec';

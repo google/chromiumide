@@ -3,14 +3,70 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {vscodeRegisterCommand} from '../../../shared/app/common/vscode/commands';
 import {
   BoardOrHost,
   parseBoardOrHost,
 } from '../common/chromiumos/board_or_host';
 import {getSetupBoardsRecentFirst} from '../common/chromiumos/boards';
 import * as commonUtil from '../common/common_util';
+import {getDriver} from '../common/driver_repository';
 import {WrapFs} from '../common/wrap_fs';
 import * as config from '../services/config';
+
+const driver = getDriver();
+
+export function activate(
+  context: vscode.ExtensionContext,
+  chroot: WrapFs
+): void {
+  const boardStatusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Left
+  );
+  boardStatusBarItem.command = 'chromiumide.selectBoard';
+
+  context.subscriptions.push(
+    config.board.onDidChange(() => {
+      updateBoardStatus(boardStatusBarItem);
+    })
+  );
+  updateBoardStatus(boardStatusBarItem);
+
+  context.subscriptions.push(
+    vscodeRegisterCommand('chromiumide.selectBoard', async () => {
+      const board = await selectAndUpdateDefaultBoard(chroot, {
+        suggestMostRecent: false,
+      });
+      if (board instanceof NoBoardError) {
+        await vscode.window.showErrorMessage(
+          `Selecting board: ${board.message}`
+        );
+        return;
+      }
+      // Type-check that errors are handled.
+      ((_: BoardOrHost | null) => {})(board);
+      if (board) {
+        driver.metrics.send({
+          category: 'interactive',
+          group: 'misc',
+          name: 'select_target_board',
+          description: 'select default board',
+          board: board.toString(),
+        });
+      }
+    })
+  );
+}
+
+function updateBoardStatus(boardStatusBarItem: vscode.StatusBarItem) {
+  const board = config.board.get();
+  boardStatusBarItem.text = board;
+  if (board) {
+    boardStatusBarItem.show();
+  } else {
+    boardStatusBarItem.hide();
+  }
+}
 
 export class NoBoardError extends Error {
   constructor() {
