@@ -132,7 +132,7 @@ export class Chromiumos implements vscode.Disposable {
       }
 
       this.featureName = 'defaultBoard';
-      defaultBoard.activate(ephemeralContext, chrootService);
+      defaultBoard.activate(ephemeralContext, chrootService.chroot);
 
       if (config.underDevelopment.platform2GtestDebugging.get()) {
         this.subscriptions.push(new Platform2Gtest(this.root, chrootService));
