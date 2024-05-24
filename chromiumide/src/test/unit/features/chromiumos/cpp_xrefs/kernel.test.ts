@@ -100,6 +100,13 @@ describe('Kernel C++ xrefs', () => {
           await fs.promises.mkdir(path.dirname(chrootCompdb), {
             recursive: true,
           });
+          // HACK: `generate` compares the timestamp (ms) of the generated compdb if a file already
+          // existed in the same location and returns an error if the timestamp didn't change,
+          // thinking it was not updated. However in unit tests it's possible for the file to be
+          // updated in a very quick succession unless we have the following line to ensure there to
+          // be at least 1 ms difference.
+          await new Promise(resolve => setTimeout(resolve, 1));
+
           await fs.promises.writeFile(chrootCompdb, '{}', 'utf8');
           emergeCallCount++;
           return '';
