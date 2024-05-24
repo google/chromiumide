@@ -109,6 +109,9 @@ export class CppXrefs implements vscode.Disposable {
 
   dispose(): void {
     vscode.Disposable.from(...this.subscriptions).dispose();
+    for (const g of this.generators.splice(0)) {
+      g.dispose?.();
+    }
   }
 
   private async maybeGenerate(

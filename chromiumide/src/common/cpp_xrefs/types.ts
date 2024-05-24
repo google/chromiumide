@@ -73,4 +73,9 @@ export interface CompdbGenerator {
     document: vscode.TextDocument,
     token: vscode.CancellationToken
   ): Promise<void>;
+
+  /**
+   * Disposes of the instance.
+   */
+  dispose?(): void;
 }

@@ -134,6 +134,18 @@ describe('Kernel C++ xrefs', () => {
 
       await state.maybeGenerateReader.read();
       expect(emergeCallCount).toEqual(1); // not called again after success
+
+      await config.board.update('kukui');
+      await config.board.update('brya');
+
+      // Wait for the config change handler to finish. Assuming the handler just clears some states
+      // without using `await`, this should work.
+      await testing.flushMicrotasks();
+
+      vscodeEmitters.workspace.onDidSaveTextDocument.fire(cppDocument);
+
+      await state.maybeGenerateReader.read();
+      expect(emergeCallCount).toEqual(2); // board change resets cached state
     });
   }
 

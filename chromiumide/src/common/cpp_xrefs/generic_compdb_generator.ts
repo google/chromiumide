@@ -19,7 +19,17 @@ enum GenerationState {
  * attempts and don't run needless computations after success or failure.
  */
 export class GenericCompdbGenerator implements CompdbGenerator {
-  constructor(private readonly core: CompdbGeneratorCore) {}
+  private readonly subscriptions: vscode.Disposable[] = [];
+
+  constructor(private readonly core: CompdbGeneratorCore) {
+    if (core.onDidChangeConfig) {
+      this.subscriptions.push(
+        core.onDidChangeConfig(() => {
+          this.generationStates.clear();
+        })
+      );
+    }
+  }
 
   readonly name = this.core.name;
 
@@ -91,6 +101,10 @@ export class GenericCompdbGenerator implements CompdbGenerator {
 
     this.generationStates.set(compdbPath, GenerationState.Generated);
   }
+
+  dispose(): void {
+    vscode.Disposable.from(...this.subscriptions).dispose();
+  }
 }
 
 export enum GenerationScope {
@@ -104,6 +118,11 @@ export enum GenerationScope {
 
 export interface CompdbGeneratorCore {
   readonly name: string;
+
+  /**
+   * Fires when a config change that requires compdb regeneration arises.
+   */
+  readonly onDidChangeConfig?: vscode.Event<unknown>;
 
   /**
    * Returns whether compdb should be generated for the document.

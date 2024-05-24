@@ -12,6 +12,7 @@ import {
   NoBoardError,
   getOrSelectDefaultBoard,
 } from '../../../../../shared/app/features/default_board';
+import * as config from '../../../../../shared/app/services/config';
 import {
   CompdbGeneratorCore,
   GenerationScope,
@@ -31,6 +32,8 @@ export class Kernel implements CompdbGeneratorCore {
   ) {}
 
   readonly name = 'kernel';
+
+  readonly onDidChangeConfig = config.board.onDidChange;
 
   async generationScope(document: TextDocument): Promise<GenerationScope> {
     if (!['cpp', 'c'].includes(document.languageId)) {

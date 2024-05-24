@@ -10,6 +10,7 @@ import {
   NoBoardError,
   getOrSelectDefaultBoard,
 } from '../../../../../shared/app/features/default_board';
+import * as config from '../../../../../shared/app/services/config';
 import {
   CompdbGeneratorCore,
   GenerationScope,
@@ -29,6 +30,8 @@ const driver = getDriver();
 
 export class Platform2 implements CompdbGeneratorCore {
   readonly name = 'platform2';
+
+  readonly onDidChangeConfig = config.board.onDidChange;
 
   private readonly packages: Packages;
 
