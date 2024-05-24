@@ -131,7 +131,7 @@ describe('autoninja wrapper', () => {
       () => 'stdout is unused',
       jasmine.objectContaining({
         cwd: 'cwd',
-        env: jasmine.objectContaining({
+        extraEnv: jasmine.objectContaining({
           PATH: jasmine.stringContaining('/opt/custom_depot_tools'),
           NINJA_STATUS: '[%f/%t] ',
           CLICOLOR_FORCE: '1',

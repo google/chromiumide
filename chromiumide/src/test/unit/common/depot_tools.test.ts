@@ -5,13 +5,13 @@
 import 'jasmine';
 import * as vscode from 'vscode';
 import * as config from '../../../../shared/app/services/config';
-import * as depotTools from '../../../common/depot_tools';
+import {TEST_ONLY, extraEnvForDepotTools} from '../../../common/depot_tools';
 import * as testing from '../../testing';
 import * as fakes from '../../testing/fakes';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const resetpromptedForMissingDepotTools =
-  depotTools.TEST_ONLY.resetpromptedForMissingDepotTools;
+  TEST_ONLY.resetpromptedForMissingDepotTools;
 
 beforeEach(async () => {
   resetpromptedForMissingDepotTools();
@@ -24,14 +24,14 @@ describe('depot_tools', () => {
   it('adjusts PATH based on settings', async () => {
     await config.paths.depotTools.update('/opt/custom_depot_tools');
 
-    expect((await depotTools.envForDepotTools()).PATH).toEqual(
+    expect((await extraEnvForDepotTools()).PATH).toEqual(
       jasmine.stringMatching('^/opt/custom_depot_tools:.*:.*/depot_tools')
     );
   });
   it('adjusts PATH if settings empty', async () => {
     await config.paths.depotTools.update('');
 
-    expect((await depotTools.envForDepotTools()).PATH).toEqual(
+    expect((await extraEnvForDepotTools()).PATH).toEqual(
       jasmine.stringMatching('^.*:.*/depot_tools')
     );
   });
@@ -52,9 +52,9 @@ describe('and depot_tools not found', () => {
 
     // Ask for depot tools twice (here and in the expect).
     // This shouldn't result in any additional window openings.
-    await depotTools.envForDepotTools();
+    await extraEnvForDepotTools();
 
-    expect((await depotTools.envForDepotTools()).PATH).toEqual(
+    expect((await extraEnvForDepotTools()).PATH).toEqual(
       jasmine.stringMatching(`^${tempDir.path}.*`)
     );
 
@@ -63,10 +63,10 @@ describe('and depot_tools not found', () => {
   });
 
   it('and cancel selected', async () => {
-    await depotTools.envForDepotTools();
+    await extraEnvForDepotTools();
     vscodeSpy.window.showWarningMessage.and.resolveTo(undefined);
 
-    await depotTools.envForDepotTools();
+    await extraEnvForDepotTools();
 
     expect(vscodeSpy.window.showWarningMessage).toHaveBeenCalledTimes(1);
     expect(vscodeSpy.window.showOpenDialog).toHaveBeenCalledTimes(0);
@@ -86,10 +86,10 @@ describe('and depot_tools not found', () => {
       Promise.resolve([userDir])
     );
 
-    await depotTools.envForDepotTools();
+    await extraEnvForDepotTools();
 
     // Both windows were shown twice and the path was updated.
-    expect((await depotTools.envForDepotTools()).PATH).toEqual(
+    expect((await extraEnvForDepotTools()).PATH).toEqual(
       jasmine.stringMatching(`^${tempDir.path}.*`)
     );
     expect(vscodeSpy.window.showOpenDialog).toHaveBeenCalledTimes(2);

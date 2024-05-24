@@ -10,7 +10,7 @@ import * as commonUtil from '../../../../shared/app/common/common_util';
 import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {CancelledError} from '../../../../shared/app/common/exec/types';
 import * as config from '../../../../shared/app/services/config';
-import * as depotTools from '../../../common/depot_tools';
+import {extraEnvForDepotTools} from '../../../common/depot_tools';
 import {AbstractRunner} from '../../gtest/abstract_runner';
 import {GtestCase} from '../../gtest/gtest_case';
 import * as gtestTestListParser from '../../gtest/gtest_test_list_parser';
@@ -89,7 +89,7 @@ export class Runner extends AbstractRunner {
       {
         cancellationToken: this.cancellation,
         cwd: this.srcPath,
-        env: await depotTools.envForDepotTools(),
+        extraEnv: await extraEnvForDepotTools(),
         logger: this.output,
         logStdout: true,
       }
@@ -133,7 +133,7 @@ export class Runner extends AbstractRunner {
       {
         cancellationToken: this.cancellation,
         cwd: this.srcPath,
-        env: await depotTools.envForDepotTools(),
+        extraEnv: await extraEnvForDepotTools(),
         logger: this.output,
       }
     );
@@ -189,7 +189,7 @@ export class Runner extends AbstractRunner {
       {
         cancellationToken: this.cancellation,
         cwd: this.srcPath,
-        env: await depotTools.envForDepotTools(),
+        extraEnv: await extraEnvForDepotTools(),
         logger: this.output,
         logStdout: true,
         ignoreNonZeroExit: true,

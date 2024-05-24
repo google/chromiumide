@@ -53,7 +53,7 @@ describe('CIPD repository', () => {
       'cipd',
       jasmine.anything(),
       async (_name, _args, options) => {
-        capturedPath = options?.env?.PATH;
+        capturedPath = options?.extraEnv?.PATH;
         return 'ok';
       }
     );

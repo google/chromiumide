@@ -10,7 +10,7 @@ import * as commonUtil from '../../shared/app/common/common_util';
 import {getDriver} from '../../shared/app/common/driver_repository';
 import {AbnormalExitError} from '../../shared/app/common/exec/types';
 import * as config from '../../shared/app/services/config';
-import * as depotTools from './depot_tools';
+import {extraEnvForDepotTools} from './depot_tools';
 import {Mutex} from './mutex';
 
 const driver = getDriver();
@@ -36,7 +36,7 @@ export class CipdRepository {
     version: string,
     output: vscode.OutputChannel
   ): Promise<void> {
-    const env = await depotTools.envForDepotTools();
+    const extraEnv = await extraEnvForDepotTools();
 
     const errorDetails = (error: Error) => {
       // We send only selected data to avoid capturing too much
@@ -55,7 +55,7 @@ export class CipdRepository {
           ['init', this.installDir, '-force'],
           {
             logger: output,
-            env,
+            extraEnv,
           }
         );
         if (result instanceof Error) {
@@ -76,7 +76,7 @@ export class CipdRepository {
         {
           logger: output,
           logStdout: true,
-          env,
+          extraEnv,
         }
       );
       if (result instanceof Error) {

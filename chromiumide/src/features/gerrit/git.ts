@@ -6,7 +6,7 @@ import * as fs from 'fs/promises';
 import * as os from 'os';
 import * as path from 'path';
 import * as commonUtil from '../../../shared/app/common/common_util';
-import {envForDepotTools} from '../../common/depot_tools';
+import {extraEnvForDepotTools} from '../../common/depot_tools';
 import {Sink} from './sink';
 
 /** Kind of a Git remote repository */
@@ -377,7 +377,7 @@ export async function readChangeIdsUsingGitCl(
       cwd: gitDir,
       logger: sink,
       logStdout: true,
-      env: await envForDepotTools(),
+      extraEnv: await extraEnvForDepotTools(),
     }
   );
   if (result instanceof Error) {

@@ -17,14 +17,16 @@ const DEPOT_TOOLS_README_URL =
 
 let promptedForMissingDepotTools = false;
 
-// Expand the `PATH` environment variable to `<custom_setting>:$PATH:~/depot_tools`. This gives
-// preference to the custom setting and a fallback on a default.
-export async function envForDepotTools(): Promise<{PATH: string}> {
-  let env = await depotToolsPath();
+/**
+ * Expands the `PATH` environment variable to `<custom_setting>:$PATH:~/depot_tools`. This gives
+ * preference to the custom setting and a fallback on a default.
+ */
+export async function extraEnvForDepotTools(): Promise<{PATH: string}> {
+  let extraEnv = await depotToolsPath();
 
   // The `cros` command should be in depot tools and available.
   const whichCros = await commonUtil.exec('which', ['cros'], {
-    env,
+    extraEnv,
   });
 
   // If it's not prompt the user until ok or canceled.
@@ -32,20 +34,20 @@ export async function envForDepotTools(): Promise<{PATH: string}> {
     const validatedPath = await promptForDepotToolsPath();
     if (validatedPath) {
       await config.paths.depotTools.update(validatedPath);
-      env = await depotToolsPath();
+      extraEnv = await depotToolsPath();
       await vscode.window.showInformationMessage(
         `Depot Tools path updated to: ${validatedPath}`
       );
     }
   }
-  return env;
+  return extraEnv;
 }
 
-// Prompt the user for a path and check if `cros` is contained within.
-//
-// Returns:
-//   A string path on successful attempt.
-//   'undefined' upon a user cancelation.
+/**
+ * Prompts the user for a path and check if `cros` is contained within.
+ *
+ * @returns A string path on successful attempt. `undefined` upon a user cancelation.
+ */
 async function promptForDepotToolsPath(): Promise<string | undefined> {
   promptedForMissingDepotTools = true;
 
@@ -114,12 +116,13 @@ async function depotToolsPath(): Promise<{PATH: string}> {
   expandedPath.push(homeDepotTools);
 
   return {
-    ...process.env,
     PATH: expandedPath.join(':'),
   };
 }
 
-// For testing, reset the prompted state.
+/**
+ * For testing, reset the prompted state.
+ */
 function resetpromptedForMissingDepotTools(): void {
   promptedForMissingDepotTools = false;
 }

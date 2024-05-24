@@ -33,8 +33,8 @@ describe('OutputDirectoriesDataProvider', () => {
       expect(args[0]).toEqual('args');
 
       expect(options?.cwd).toBe(tempDir.path);
-      expect(options?.env).toBeTruthy();
-      expect(options?.env!.PATH).toEqual(
+      expect(options?.extraEnv).toBeTruthy();
+      expect(options?.extraEnv!.PATH).toEqual(
         jasmine.stringMatching('^/opt/custom_depot_tools:.*/depot_tools')
       );
       return {exitStatus: 0, stdout: 'invalid json here', stderr: ''};

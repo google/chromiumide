@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as common_util from '../../../shared/app/common/common_util';
 import {vscodeRegisterCommand} from '../../../shared/app/common/vscode/commands';
-import * as depotTools from '../../common/depot_tools';
+import {extraEnvForDepotTools} from '../../common/depot_tools';
 
 export function activate(
   context: vscode.ExtensionContext,
@@ -69,7 +69,7 @@ export function activate(
               repoRoots.map(async repoRoot => {
                 const result = await common_util.exec('git', ['cl', 'format'], {
                   cwd: repoRoot.fsPath,
-                  env: await depotTools.envForDepotTools(),
+                  extraEnv: await extraEnvForDepotTools(),
                   cancellationToken: token,
                 });
                 if (result instanceof Error) {

@@ -5,7 +5,7 @@
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../shared/app/common/common_util';
 import * as config from '../../../shared/app/services/config';
-import * as depotTools from '../../common/depot_tools';
+import {extraEnvForDepotTools} from '../../common/depot_tools';
 import {LineBufferedOutputAdapter} from '../../common/line_buffered_output_adapter';
 
 type PickedOutputChannel = Pick<vscode.OutputChannel, 'append'>;
@@ -81,8 +81,8 @@ export async function runAutoninja(
     logger,
     logStdout: true,
     treeKillWhenCancelling: config.underDevelopment.autoninjaImprovements.get(),
-    env: {
-      ...(await depotTools.envForDepotTools()),
+    extraEnv: {
+      ...(await extraEnvForDepotTools()),
 
       // Force ninja status line format in case the user has overwritten it (used in
       // `AutoninjaOutputAdapter` to track compile progress).

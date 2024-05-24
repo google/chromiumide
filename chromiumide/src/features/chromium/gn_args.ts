@@ -10,7 +10,7 @@ import {
   AbnormalExitError,
   CancelledError,
 } from '../../../shared/app/common/exec/types';
-import {envForDepotTools} from '../../common/depot_tools';
+import {extraEnvForDepotTools} from '../../common/depot_tools';
 
 export type TargetOs =
   | 'linux'
@@ -67,7 +67,7 @@ export async function readGnArgs(
     ],
     {
       cwd: srcPath,
-      env: await envForDepotTools(),
+      extraEnv: await extraEnvForDepotTools(),
       cancellationToken: token,
     }
   );
