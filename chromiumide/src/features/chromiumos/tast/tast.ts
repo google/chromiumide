@@ -20,6 +20,7 @@ export class Tast implements vscode.Disposable {
         if (e.added.find(isTastTests)) {
           this.tastTests?.dispose();
           this.tastTests = new TastTests(chrootService);
+          void this.tastTests.initialize();
         }
         if (e.removed.find(isTastTests)) {
           this.tastTests?.dispose();
@@ -29,6 +30,7 @@ export class Tast implements vscode.Disposable {
 
     if (gitDirsWatcher.visibleGitDirs.find(isTastTests)) {
       this.tastTests = new TastTests(chrootService);
+      void this.tastTests.initialize();
     }
   }
 

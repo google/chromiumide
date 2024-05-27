@@ -45,16 +45,13 @@ export class TastTests implements vscode.Disposable {
     return [...this.visibleTestCases.values()];
   }
 
+  /**
+   * Constructs the class instance. `initialize` must be called on the instance for it to start
+   * working.
+   */
   constructor(
-    private readonly chrootService: services.chromiumos.ChrootService,
-    private readonly workspaceFoldersProvider = () =>
-      vscode.workspace.workspaceFolders
-  ) {
-    void (async () => {
-      const success = await this.initialize();
-      this.onDidInitializeEmitter.fire(success);
-    })();
-  }
+    private readonly chrootService: services.chromiumos.ChrootService
+  ) {}
 
   private tastTestsDir = driver.path.join(
     this.chrootService.chromiumos.root,
@@ -66,7 +63,12 @@ export class TastTests implements vscode.Disposable {
   );
 
   private static checkPrerequisiteFailed = false;
-  private async initialize(): Promise<boolean> {
+  async initialize(): Promise<void> {
+    const success = await this.initializeInner();
+    this.onDidInitializeEmitter.fire(success);
+  }
+
+  private async initializeInner() {
     if (TastTests.checkPrerequisiteFailed) {
       // Avoid showing the same warnings when a tast-tests file is closed and
       // then opened again.
@@ -188,7 +190,7 @@ export class TastTests implements vscode.Disposable {
    */
   private missingWorkspaceFolders(): string[] {
     const includes = (target: string) =>
-      !!this.workspaceFoldersProvider()?.find(
+      !!vscode.workspace.workspaceFolders?.find(
         folder => folder.uri.fsPath === target
       );
 
