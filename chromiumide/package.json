@@ -1016,6 +1016,11 @@
           "description": "Link to the hash of the current revision instead of TOT",
           "default": false
         },
+        "chromiumide.crosFormat.suggestSetAsDefault": {
+          "type": "boolean",
+          "description": "Suggest user to set ChromiumIDE as the workspace default formatter",
+          "default": true
+        },
         "chromiumide.deviceManagement.usePinnedCrosfleet": {
           "type": "boolean",
           "description": "Uses a pinned version of crosfleet as a temporary workaround for crosfleet API issues.",

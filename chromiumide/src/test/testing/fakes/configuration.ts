@@ -66,7 +66,9 @@ export class FakeWorkspaceConfiguration<T> {
         return v;
       }
     }
-    return this.defaults.get(section) ?? defaultValue;
+    const defaultConfig = this.defaults.get(section);
+    // Check explicitly if default config is undefined since configs may have null as value.
+    return defaultConfig === undefined ? defaultValue : defaultConfig;
   }
 
   has(section: string): boolean {

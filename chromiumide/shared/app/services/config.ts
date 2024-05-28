@@ -29,10 +29,9 @@ class ConfigValue<T> {
     const value = vscode.workspace
       .getConfiguration(this.prefix())
       .get<T>(this.section);
-
     if (value === undefined) {
       throw new Error(
-        `BUG: ${this.prefix}.${this.section} is not defined in package.json`
+        `BUG: ${this.prefix()}.${this.section} is not defined in package.json`
       );
     }
     return value;
@@ -149,6 +148,12 @@ export const codeSearch = {
 export const cppXrefs = {
   suggestWorkspaceFolder: new ConfigValue<boolean>(
     'cppXrefs.suggestWorkspaceFolder'
+  ),
+};
+
+export const crosFormat = {
+  suggestSetAsDefault: new ConfigValue<boolean>(
+    'crosFormat.suggestSetAsDefault'
   ),
 };
 
@@ -292,6 +297,13 @@ const vscodeSettings = {
     exclude: new ConfigValue<Record<string, boolean>>(
       'exclude',
       () => 'files',
+      vscode.ConfigurationTarget.Workspace
+    ),
+  },
+  editor: {
+    defaultFormatter: new ConfigValue<string | null>(
+      'defaultFormatter',
+      () => 'editor',
       vscode.ConfigurationTarget.Workspace
     ),
   },

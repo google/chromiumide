@@ -7,6 +7,7 @@ import {crosExeFromCrosRoot} from '../common/chromiumos/cros';
 import * as commonUtil from '../common/common_util';
 import {getDriver} from '../common/driver_repository';
 import {extensionName} from '../common/extension_name';
+import * as config from '../services/config';
 import {StatusManager, TaskStatus} from '../ui/bg_task_status';
 import {getUiLogger} from '../ui/log';
 
@@ -36,8 +37,83 @@ export function activate(
     vscode.languages.registerDocumentFormattingEditProvider(
       [{scheme: 'file'}],
       new CrosFormat(statusManager, outputChannel)
+    ),
+    vscode.workspace.onDidChangeWorkspaceFolders(e =>
+      maybeSuggestSettingDefaultFormatter(
+        e.added,
+        context.extension.id,
+        outputChannel
+      )
     )
   );
+  void maybeSuggestSettingDefaultFormatter(
+    vscode.workspace.workspaceFolders ?? [],
+    context.extension.id,
+    outputChannel
+  );
+}
+
+async function maybeSuggestSettingDefaultFormatter(
+  folders: Readonly<vscode.WorkspaceFolder[]>,
+  extensionId: string,
+  outputChannel?: vscode.OutputChannel
+): Promise<void> {
+  outputChannel?.appendLine(
+    `New workspace folders added (${folders
+      .map(f => f.uri.path)
+      .join(
+        ', '
+      )}). Current default formatter is ${config.vscode.editor.defaultFormatter.get()} and suggest setting chromiumide as default is ${
+      config.crosFormat.suggestSetAsDefault.get() ? 'enabled' : 'disabled'
+    }.`
+  );
+
+  // Exit early if it is already the default formatter, or user has disabled the suggestion.
+  if (
+    config.vscode.editor.defaultFormatter.get() === extensionId ||
+    !config.crosFormat.suggestSetAsDefault.get()
+  ) {
+    return;
+  }
+
+  // If the workspace folder is in a CrOS repo, suggest setting cros format as the workspace
+  // default formatter.
+  if (
+    folders.some(
+      async folder =>
+        (await driver.cros.findSourceDir(folder.uri.fsPath)) !== undefined
+    )
+  ) {
+    const choice = await vscode.window.showInformationMessage(
+      'Do you want to set `cros format` as your default formatter in this workspace?',
+      'Yes',
+      "Don't ask again in this workspace",
+      'Never ask again'
+    );
+    if (choice === 'Yes') {
+      outputChannel?.appendLine(
+        `Setting ${extensionId} as default formatter in workspace`
+      );
+      await config.vscode.editor.defaultFormatter.update(extensionId);
+    } else if (choice === "Don't ask again in this workspace") {
+      outputChannel?.appendLine(
+        'Do not update default formatter and will not ask again in this workspace'
+      );
+      // Update workspace setting to not ask again.
+      await config.crosFormat.suggestSetAsDefault.update(
+        false,
+        vscode.ConfigurationTarget.Workspace
+      );
+    } else if (choice === 'Never ask again') {
+      outputChannel?.appendLine(
+        'Do not update default formatter and will not ask again in all workspaces'
+      );
+      // Note this setting is global and user will not be prompted to set the default formatter
+      // in other workspaces.
+      await config.crosFormat.suggestSetAsDefault.update(false);
+    }
+    return;
+  }
 }
 
 /*
@@ -231,4 +307,5 @@ class CrosFormat implements vscode.DocumentFormattingEditProvider {
 export const TEST_ONLY = {
   CrosFormat,
   pathIsIgnored,
+  maybeSuggestSettingDefaultFormatter,
 };

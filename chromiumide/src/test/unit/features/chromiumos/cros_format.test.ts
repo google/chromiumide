@@ -11,10 +11,16 @@ import {
   TaskStatus,
 } from '../../../../../shared/app/ui/bg_task_status';
 import * as testing from '../../../testing';
-import {FakeTextDocument} from '../../../testing/fakes';
+import {
+  FakeTextDocument,
+  FakeWorkspaceConfiguration,
+} from '../../../testing/fakes';
 
-const {CrosFormat, pathIsIgnored} = TEST_ONLY;
+const {CrosFormat, pathIsIgnored, maybeSuggestSettingDefaultFormatter} =
+  TEST_ONLY;
 const driver = getDriver();
+
+const formatterName = 'Google.cros-ide';
 
 describe('Cros format', () => {
   const tempDir = testing.tempDir();
@@ -162,9 +168,9 @@ describe('Cros format', () => {
   });
 });
 
-describe('Cros format matches file with correct presubmit ignore pattern', () => {
+describe('pathIsIgnored', () => {
   const tempDir = testing.tempDir();
-  it('', async () => {
+  it('matches file with correct presubmit ignore pattern', async () => {
     const crosRoot = driver.path.join(tempDir.path, 'chromeos/');
     await testing.putFiles(tempDir.path, {
       '.presubmitignore': '**/*',
@@ -220,5 +226,224 @@ subdir2/
         .withContext(`${path} should ${ignored ? '' : 'not '}be ignored`)
         .toBe(ignored);
     }
+  });
+});
+
+describe('maybeSuggestSettingDefaultFormatter', () => {
+  const {vscodeEmitters, vscodeSpy} = testing.installVscodeDouble();
+  testing.installFakeConfigs(vscodeSpy, vscodeEmitters);
+  const tempDir = testing.tempDir();
+
+  const subscriptions: vscode.Disposable[] = [];
+  testing.cleanState(async () => {
+    await testing.buildFakeChroot(tempDir.path);
+  });
+
+  it('shows suggestion when config not set', async () => {
+    const defaultFormatterConfig = FakeWorkspaceConfiguration.fromDefaults<
+      string | null
+    >('editor', new Map([['defaultFormatter', null]]), subscriptions);
+    vscodeSpy.workspace.getConfiguration
+      .withArgs('editor')
+      .and.returnValue(defaultFormatterConfig);
+
+    void maybeSuggestSettingDefaultFormatter(
+      [
+        {
+          uri: vscode.Uri.file(tempDir.path),
+        } as vscode.WorkspaceFolder,
+      ],
+      formatterName
+    );
+    expect(vscodeSpy.window.showInformationMessage).toHaveBeenCalledOnceWith(
+      jasmine.stringContaining('default formatter'),
+      jasmine.anything(),
+      jasmine.anything(),
+      jasmine.anything()
+    );
+  });
+
+  it('shows suggestion when config is another formatter', () => {
+    const defaultFormatterConfig = FakeWorkspaceConfiguration.fromDefaults<
+      string | null
+    >('editor', new Map([['defaultFormatter', 'prettier']]), subscriptions);
+    vscodeSpy.workspace.getConfiguration
+      .withArgs('editor')
+      .and.returnValue(defaultFormatterConfig);
+
+    void maybeSuggestSettingDefaultFormatter(
+      [
+        {
+          uri: vscode.Uri.file(tempDir.path),
+        } as vscode.WorkspaceFolder,
+      ],
+      formatterName
+    );
+    expect(vscodeSpy.window.showInformationMessage).toHaveBeenCalledOnceWith(
+      jasmine.stringContaining('default formatter'),
+      jasmine.anything(),
+      jasmine.anything(),
+      jasmine.anything()
+    );
+  });
+
+  it('does not show suggestion when config is already set to the one by extension', () => {
+    const defaultFormatterConfig = FakeWorkspaceConfiguration.fromDefaults<
+      string | null
+    >(
+      'editor',
+      new Map([['defaultFormatter', 'Google.cros-ide']]),
+      subscriptions
+    );
+    vscodeSpy.workspace.getConfiguration
+      .withArgs('editor')
+      .and.returnValue(defaultFormatterConfig);
+
+    void maybeSuggestSettingDefaultFormatter(
+      [
+        {
+          uri: vscode.Uri.file(tempDir.path),
+        } as vscode.WorkspaceFolder,
+      ],
+      formatterName
+    );
+    expect(vscodeSpy.window.showInformationMessage).not.toHaveBeenCalled();
+  });
+
+  it('updates workspace config value if user says yes', async () => {
+    const editorConfig = FakeWorkspaceConfiguration.fromDefaults<string | null>(
+      'editor',
+      new Map([['defaultFormatter', 'prettier']]),
+      subscriptions
+    );
+    vscodeSpy.workspace.getConfiguration
+      .withArgs('editor')
+      .and.returnValue(editorConfig);
+    vscodeSpy.window.showInformationMessage
+      .withArgs(
+        jasmine.stringContaining('default formatter'),
+        jasmine.anything(),
+        jasmine.anything(),
+        jasmine.anything()
+      )
+      .and.returnValue('Yes');
+
+    await maybeSuggestSettingDefaultFormatter(
+      [
+        {
+          uri: vscode.Uri.file(tempDir.path),
+        } as vscode.WorkspaceFolder,
+      ],
+      formatterName
+    );
+
+    // Confirm default formatter is updated to the one provided by the extension.
+    expect(editorConfig.get('defaultFormatter')).toEqual('Google.cros-ide');
+  });
+
+  it('updates workspace but not global suggestion config if user requests so', async () => {
+    const editorConfig = FakeWorkspaceConfiguration.fromDefaults<string | null>(
+      'editor',
+      new Map([['defaultFormatter', 'prettier']]),
+      subscriptions
+    );
+    const chromiumideConfig = FakeWorkspaceConfiguration.fromSection(
+      'chromiumide',
+      subscriptions
+    );
+    vscodeSpy.workspace.getConfiguration
+      .withArgs('editor')
+      .and.returnValue(editorConfig);
+    vscodeSpy.workspace.getConfiguration
+      .withArgs('chromiumide')
+      .and.returnValue(chromiumideConfig);
+    vscodeSpy.window.showInformationMessage
+      .withArgs(
+        jasmine.stringContaining('default formatter'),
+        jasmine.anything(),
+        jasmine.anything(),
+        jasmine.anything()
+      )
+      .and.returnValue("Don't ask again in this workspace");
+
+    await maybeSuggestSettingDefaultFormatter(
+      [
+        {
+          uri: vscode.Uri.file(tempDir.path),
+        } as vscode.WorkspaceFolder,
+      ],
+      formatterName
+    );
+
+    await maybeSuggestSettingDefaultFormatter(
+      [
+        {
+          uri: vscode.Uri.file(tempDir.path),
+        } as vscode.WorkspaceFolder,
+      ],
+      formatterName
+    );
+
+    // Users will not be prompted on the second time and default formatter remains unchanged.
+    expect(vscodeSpy.window.showInformationMessage).toHaveBeenCalledTimes(1);
+    expect(editorConfig.get('defaultFormatter')).toEqual('prettier');
+    expect(chromiumideConfig.inspect('crosFormat.suggestSetAsDefault')).toEqual(
+      jasmine.objectContaining({
+        workspaceValue: false,
+      })
+    );
+  });
+
+  it('do not ask again ever if user requested', async () => {
+    const editorConfig = FakeWorkspaceConfiguration.fromDefaults<string | null>(
+      'editor',
+      new Map([['defaultFormatter', 'prettier']]),
+      subscriptions
+    );
+    const chromiumideConfig = FakeWorkspaceConfiguration.fromSection(
+      'chromiumide',
+      subscriptions
+    );
+    vscodeSpy.workspace.getConfiguration
+      .withArgs('editor')
+      .and.returnValue(editorConfig);
+    vscodeSpy.workspace.getConfiguration
+      .withArgs('chromiumide')
+      .and.returnValue(chromiumideConfig);
+    vscodeSpy.window.showInformationMessage
+      .withArgs(
+        jasmine.stringContaining('default formatter'),
+        jasmine.anything(),
+        jasmine.anything(),
+        jasmine.anything()
+      )
+      .and.returnValue('Never ask again');
+
+    await maybeSuggestSettingDefaultFormatter(
+      [
+        {
+          uri: vscode.Uri.file(tempDir.path),
+        } as vscode.WorkspaceFolder,
+      ],
+      formatterName
+    );
+
+    await maybeSuggestSettingDefaultFormatter(
+      [
+        {
+          uri: vscode.Uri.file(tempDir.path),
+        } as vscode.WorkspaceFolder,
+      ],
+      formatterName
+    );
+
+    // Users will not be prompted on the second time and default formatter remains unchanged.
+    expect(vscodeSpy.window.showInformationMessage).toHaveBeenCalledTimes(1);
+    expect(editorConfig.get('defaultFormatter')).toEqual('prettier');
+    expect(chromiumideConfig.inspect('crosFormat.suggestSetAsDefault')).toEqual(
+      jasmine.objectContaining({
+        globalValue: false,
+      })
+    );
   });
 });
