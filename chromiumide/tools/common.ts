@@ -5,6 +5,10 @@
 import * as childProcess from 'child_process';
 import * as shutil from '../shared/app/common/shutil';
 
+/**
+ * Executes the command
+ * @throws if it exits with non-zero exit status.
+ */
 export async function execute(
   name: string,
   args: string[],
@@ -12,6 +16,8 @@ export async function execute(
     logStdout?: boolean;
     logStderr?: boolean;
     cwd?: string;
+    extraEnv?: Record<string, string>;
+    noLogPrefix?: boolean;
   }
 ): Promise<string> {
   const {logStdout, logStderr, cwd} = opts || {};
@@ -26,6 +32,10 @@ export async function execute(
 
     const command = childProcess.spawn(name, args, {
       cwd,
+      env: {
+        ...process.env,
+        ...(opts?.extraEnv ?? {}),
+      },
     });
 
     command.stdout.setEncoding('utf-8');
@@ -35,14 +45,16 @@ export async function execute(
     let lastChar = '';
     command.stdout.on('data', (data: string) => {
       if (logStdout) {
-        logger.append('STDOUT: ' + data);
+        const prefix = opts?.noLogPrefix ? '' : 'STDOUT: ';
+        logger.append(prefix + data);
         lastChar = data[data.length - 1];
       }
       stdout += data;
     });
     command.stderr.on('data', (data: string) => {
       if (logStderr) {
-        logger.append('STDERR: ' + data);
+        const prefix = opts?.noLogPrefix ? '' : 'STDERR: ';
+        logger.append(prefix + data);
       }
     });
 
