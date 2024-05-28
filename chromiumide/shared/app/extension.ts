@@ -9,7 +9,6 @@ import {LoggingBundle, createLinterLoggingBundle} from './common/logs';
 import * as feedback from './common/metrics/feedback';
 import * as crosFormat from './features/cros_format';
 import * as crosLint from './features/cros_lint';
-import * as config from './services/config';
 import * as bgTaskStatus from './ui/bg_task_status';
 
 /**
@@ -32,9 +31,7 @@ export async function activate(
   const linterLogger = createLinterLoggingBundle(context);
   crosLint.activate(context, statusManager, linterLogger);
 
-  if (config.crosFormat.enabled.get()) {
-    crosFormat.activate(context, statusManager);
-  }
+  crosFormat.activate(context, statusManager);
 
   return {statusManager, linterLogger};
 }
