@@ -449,6 +449,11 @@ type BoardsAndPackagesEvent = EventBase & {
         package: string;
         board: string;
       }
+    | {
+        category: 'background';
+        name: 'boards_and_packages_get_setup_boards';
+        build_dir: string;
+      }
   );
 
 type SpellcheckerEvent = EventBase &

@@ -68,8 +68,19 @@ async function getSetupBoardsOrdered<T>(
   compareFn: (a: T, b: T) => number
 ): Promise<string[]> {
   const res = [];
-  for (const fs of [chroot, out]) {
-    res.push(...(await getSetupBoardsOrderedInner(fs, keyFn, compareFn)));
+  const fsNames = ['chroot', 'out'];
+  for (const [i, fs] of [chroot, out].entries()) {
+    const boards = await getSetupBoardsOrderedInner(fs, keyFn, compareFn);
+    if (boards.length > 0) {
+      driver.metrics.send({
+        category: 'background',
+        group: 'boards_and_packages',
+        name: 'boards_and_packages_get_setup_boards',
+        description: 'get already boards setup',
+        build_dir: fsNames[i],
+      });
+    }
+    res.push(...boards);
   }
   return res;
 }
