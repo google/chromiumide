@@ -155,6 +155,19 @@ export const crosFormat = {
   suggestSetAsDefault: new ConfigValue<boolean>(
     'crosFormat.suggestSetAsDefault'
   ),
+  alwaysDefaultInCros: new ConfigValue<boolean>(
+    'crosFormat.alwaysDefaultInCros'
+  ),
+  suggestAlwaysDefaultInCros: new ConfigValue<boolean>(
+    'crosFormat.suggestAlwaysDefaultInCros'
+  ),
+  // The config to keep track of whether we have set default formatter automatically in this
+  // workspace at least once so that any manual change by user will be retained.
+  hasBeenSetAsDefaultInThisWorkspace: new ConfigValue<boolean>(
+    'crosFormat.hasBeenSetAsDefaultInThisWorkspace',
+    undefined,
+    vscode.ConfigurationTarget.Workspace
+  ),
 };
 
 export const disclaimerOnMac = {

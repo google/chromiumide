@@ -31,7 +31,7 @@ export async function activate(
   const linterLogger = createLinterLoggingBundle(context);
   crosLint.activate(context, statusManager, linterLogger);
 
-  crosFormat.activate(context, statusManager);
+  void crosFormat.activate(context, statusManager);
 
   return {statusManager, linterLogger};
 }
