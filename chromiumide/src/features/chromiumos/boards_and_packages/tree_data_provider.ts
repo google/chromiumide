@@ -14,6 +14,30 @@ export class BoardsAndPackagesTreeDataProvider
   >();
   readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
 
+  private readonly onDidDisposeEmitter = new vscode.EventEmitter<void>();
+  /**
+   * Fired once when the instance is disposed of after ensuring the number of in-flight async
+   * operations is zero.
+   */
+  readonly onDidDispose = this.onDidDisposeEmitter.event;
+
+  private inFlightAsyncOperations = 0;
+  private addInFlightOperations(delta: 1 | -1) {
+    if (this.disposed && delta > 0) {
+      throw new Error(
+        'Internal error: in-flight async operations should not increase after dispose'
+      );
+    }
+    this.inFlightAsyncOperations += delta;
+    this.maybeFireOnDidDispose();
+  }
+  private maybeFireOnDidDispose() {
+    if (this.disposed && this.inFlightAsyncOperations === 0) {
+      this.onDidDisposeEmitter.fire();
+      this.onDidDisposeEmitter.dispose();
+    }
+  }
+
   private disposed = false;
 
   private readonly root = new RootItem();
@@ -24,7 +48,12 @@ export class BoardsAndPackagesTreeDataProvider
   ) {}
 
   async getTreeItem(breadcrumbs: Breadcrumbs): Promise<vscode.TreeItem> {
-    return (await this.getItem(breadcrumbs)).treeItem;
+    if (this.disposed) return {};
+
+    this.addInFlightOperations(1);
+    const res = (await this.getItem(breadcrumbs)).treeItem;
+    this.addInFlightOperations(-1);
+    return res;
   }
 
   private async getItem(breadcrumbs: Breadcrumbs): Promise<Item> {
@@ -53,6 +82,8 @@ export class BoardsAndPackagesTreeDataProvider
   ): Promise<Breadcrumbs[]> {
     if (this.disposed) return [];
 
+    this.addInFlightOperations(1);
+
     const item = breadcrumbs ? searchItem(this.root, breadcrumbs)! : this.root;
 
     const ctx = {
@@ -60,9 +91,13 @@ export class BoardsAndPackagesTreeDataProvider
       output: this.output,
     };
 
-    const error = await item.refreshChildren(ctx);
-    if (error instanceof Error && !this.disposed) {
-      void vscode.window.showErrorMessage(error.message);
+    try {
+      const error = await item.refreshChildren(ctx);
+      if (error instanceof Error && !this.disposed) {
+        void vscode.window.showErrorMessage(error.message);
+      }
+    } finally {
+      this.addInFlightOperations(-1);
     }
 
     return item.children.map(x => x.breadcrumbs);
@@ -82,5 +117,7 @@ export class BoardsAndPackagesTreeDataProvider
   dispose(): void {
     this.disposed = true;
     this.onDidChangeTreeDataEmitter.dispose();
+
+    this.maybeFireOnDidDispose();
   }
 }

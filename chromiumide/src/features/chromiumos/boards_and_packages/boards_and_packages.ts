@@ -24,6 +24,15 @@ export class BoardsAndPackages implements vscode.Disposable {
   private readonly treeDataProvider: BoardsAndPackagesTreeDataProvider;
   private readonly treeView: vscode.TreeView<Breadcrumbs>;
 
+  /**
+   * Tests instantiating this class should subscribe to this event and should finish only after the
+   * event is received; otherwise, in-flight operations might continue running after the test
+   * finishes and that could cause flakiness.
+   */
+  get onDidDispose(): vscode.Event<void> {
+    return this.treeDataProvider.onDidDispose;
+  }
+
   constructor(chrootService: ChrootService, statusManager: StatusManager) {
     const output = vscode.window.createOutputChannel('Boards and packages');
     this.subscriptions.push(output);

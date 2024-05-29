@@ -30,6 +30,8 @@ describe('Boards and packages', () => {
 
   afterEach(async () => {
     vscode.Disposable.from(...subscriptions.splice(0).reverse()).dispose();
+    await state.onDidDispose.read();
+    state.onDidDispose.dispose();
     BoardItem.clearCacheForTesting();
   });
 
@@ -53,10 +55,15 @@ describe('Boards and packages', () => {
     );
     subscriptions.push(boardsAndPackages);
 
+    const onDidDispose = new testing.EventReader(
+      boardsAndPackages.onDidDispose
+    );
+
     return {
       chromiumosRoot,
       chroot,
       boardsAndPackages,
+      onDidDispose,
     };
   });
 
