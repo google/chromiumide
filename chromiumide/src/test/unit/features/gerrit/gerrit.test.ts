@@ -25,10 +25,7 @@ import {FakeGerrit} from './fake_env';
 
 const driver = getDriver();
 
-const GITCOOKIES_PATH = path.join(
-  __dirname,
-  '../../../../../../src/test/testdata/gerrit/gitcookies'
-);
+const GITCOOKIES_PATH = testing.testdataUri('gerrit/gitcookies').fsPath;
 
 describe('Gerrit', () => {
   const tempDir = testing.tempDir();

@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import * as fs from 'fs';
-import * as path from 'path';
 import {parseBoardOrHost} from '../../../../../../shared/app/common/chromiumos/board_or_host';
 import {
   Platform2Package,
@@ -75,10 +74,7 @@ describe('platform2TestWorkingDirectory works for', () => {
 
 describe('parsePlatform2EbuildOrThrow works for', () => {
   const {vscodeSpy} = testing.installVscodeDouble();
-  const ebuildPath = path.join(
-    __dirname,
-    '../../../../../../../src/test/testdata/portage/portage-9999.ebuild'
-  );
+  const ebuildPath = testing.testdataUri('portage/portage-9999.ebuild').fsPath;
   beforeEach(async () => {
     vscodeSpy.workspace.openTextDocument.and.returnValue(
       new FakeTextDocument({

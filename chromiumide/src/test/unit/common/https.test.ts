@@ -2,21 +2,18 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as fs from 'fs';
 import * as https from 'https';
-import * as path from 'path';
 import {Https, HttpsError} from '../../../common/https';
 import * as netUtil from '../../../common/net_util';
-
-const TEST_DATA = '../../../../../src/test/testdata/https/';
+import * as testing from '../../testing';
 
 const serverOptions = {
-  key: fs.readFileSync(path.resolve(__dirname, TEST_DATA, 'key.pem')),
-  cert: fs.readFileSync(path.resolve(__dirname, TEST_DATA, 'cert.pem')),
+  key: testing.testdataString('https/key.pem'),
+  cert: testing.testdataString('https/cert.pem'),
 };
 
 const requestOptions = {
-  ca: [fs.readFileSync(path.resolve(__dirname, TEST_DATA, 'cert.pem'))],
+  ca: testing.testdataString('https/cert.pem'),
   rejectUnauthorized: true,
   requestCert: true,
   agent: false,

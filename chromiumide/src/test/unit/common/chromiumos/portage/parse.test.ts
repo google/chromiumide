@@ -2,14 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as fs from 'fs';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import {
   EbuildStrValue,
   ParsedEbuild,
   parseEbuildOrThrow,
 } from '../../../../../common/chromiumos/portage/parse';
+import * as testing from '../../../../testing';
 import {FakeTextDocument} from '../../../../testing/fakes';
 
 describe('Ebuild parser', () => {
@@ -101,13 +100,7 @@ describe('Ebuild parser', () => {
     },
     {
       name: 'parses realistic example',
-      content: fs.readFileSync(
-        path.join(
-          __dirname,
-          '../../../../../../../src/test/testdata/portage/portage-9999.ebuild'
-        ),
-        'utf8'
-      ),
+      content: testing.testdataString('portage/portage-9999.ebuild'),
       want: new ParsedEbuild(
         [
           {
