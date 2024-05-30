@@ -22,7 +22,7 @@ describe('Sudo service', () => {
       .withArgs('sudo', arrayWithPrefix('--askpass', '--'), jasmine.anything())
       .and.callFake(
         async (_sudo, [_askpass, _hyphens, ...restArgs], options) => {
-          const askpass = options!.env?.SUDO_ASKPASS;
+          const askpass = options!.extraEnv?.SUDO_ASKPASS;
           if (!askpass) {
             return new Error('SUDO_ASKPASS not set');
           }
