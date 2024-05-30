@@ -161,10 +161,6 @@ export const disclaimerOnMac = {
   enabled: new ConfigValue<boolean>('disclaimerOnMac.enabled'),
 };
 
-export const ebuildSupport = {
-  enabled: new ConfigValue<boolean>('ebuildSupport.enabled'),
-};
-
 export const gerrit = {
   enabled: new ConfigValue<boolean>('gerrit.enabled'),
 };

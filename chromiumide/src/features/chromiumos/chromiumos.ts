@@ -98,9 +98,7 @@ export class Chromiumos implements vscode.Disposable {
       );
     }
 
-    if (config.ebuildSupport.enabled.get()) {
-      ebuild.activate(ephemeralContext, this.root);
-    }
+    ebuild.activate(ephemeralContext, this.root);
 
     const chrootService = services.chromiumos.ChrootService.maybeCreate(
       this.root

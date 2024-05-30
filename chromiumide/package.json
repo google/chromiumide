@@ -1063,11 +1063,6 @@
           "description": "Enable showing disclaimer on Mac",
           "default": true
         },
-        "chromiumide.ebuildSupport.enabled": {
-          "type": "boolean",
-          "description": "Enable features for ChromeOS EBuilds",
-          "default": true
-        },
         "chromiumide.gerrit.enabled": {
           "type": "boolean",
           "markdownDescription": "Enable Gerrit comments.",
