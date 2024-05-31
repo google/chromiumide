@@ -13,7 +13,7 @@ import {
   PORTAGE_PREDEFINED_READ_ONLY_VARAIBLES,
   PORTAGE_PREDEFINED_READ_ONLY_VARIABLES_HOVER_STRING,
 } from './shared/constants';
-import {getEbuildWordRangeAtPosition} from './util';
+import {getEbuildWordRangeAtPosition, sendMetrics} from './util';
 
 export function onHover(
   ctx: Context,
@@ -27,15 +27,37 @@ export function onHover(
   const word = document.getText(range);
 
   if (PORTAGE_PREDEFINED_READ_ONLY_VARAIBLES.includes(word)) {
+    void sendMetrics(ctx.connection, {
+      category: 'background',
+      group: 'ebuild',
+      name: 'show_portage_predefined_read_only_variable_hover',
+      description:
+        'ebuild: user hovered on portage predefined read-only variable',
+      word: word,
+    });
     return {
       contents: PORTAGE_PREDEFINED_READ_ONLY_VARIABLES_HOVER_STRING(word),
       range,
     };
   }
   if (EBUILD_DEFINED_VARIABLES.includes(word)) {
+    void sendMetrics(ctx.connection, {
+      category: 'background',
+      group: 'ebuild',
+      name: 'show_ebuild_defined_variable_hover',
+      description: 'ebuild: user hovered on ebuild-defined variable',
+      word: word,
+    });
     return {contents: EBUILD_DEFINED_VARIABLES_HOVER_STRING(word), range};
   }
   if (EBUILD_PHASE_FUNCTIONS.includes(word)) {
+    void sendMetrics(ctx.connection, {
+      category: 'background',
+      group: 'ebuild',
+      name: 'show_ebuild_phase_function_hover',
+      description: 'ebuild: user hovered on an ebuild phase function',
+      word: word,
+    });
     return {contents: EBUILD_PHASE_FUNCTIONS_HOVER_STRING(word), range};
   }
 }

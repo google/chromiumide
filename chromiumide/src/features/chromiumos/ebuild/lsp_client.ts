@@ -12,10 +12,13 @@ import {
   ServerOptions,
   TransportKind,
 } from 'vscode-languageclient/node';
-import {InitializationOptions} from '../../../../server/ebuild_lsp/shared/constants';
+import {driver} from '../../../../shared/app/common/chromiumos/cros';
+import type {InitializationOptions} from '../../../../server/ebuild_lsp/shared/constants';
+import type {MetricsEvent} from '../../../../server/ebuild_lsp/shared/event';
 
 export class EbuildLspClient implements Disposable {
   private readonly client: LanguageClient;
+  private readonly subscriptions: vscode.Disposable[] = [];
 
   /** Instantiates the client, `start` should be called for the feature to start working. */
   constructor(
@@ -57,6 +60,13 @@ export class EbuildLspClient implements Disposable {
       serverOptions,
       clientOptions
     );
+
+    this.subscriptions.push(
+      this.client,
+      this.client.onNotification('custom/metrics', (event: MetricsEvent) => {
+        driver.metrics.send(event);
+      })
+    );
   }
 
   /** Starts the client. This will also launch the server. */
@@ -82,5 +92,6 @@ export class EbuildLspClient implements Disposable {
         `Internal error: ebuild LSP; client.stop(): ${e}`
       );
     }
+    vscode.Disposable.from(...this.subscriptions.splice(0).reverse()).dispose();
   }
 }

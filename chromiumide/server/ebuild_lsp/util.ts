@@ -2,11 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import {Connection} from 'vscode-languageserver';
 import {
   Position,
   TextDocument,
   Range,
 } from 'vscode-languageserver-textdocument';
+import type {MetricsEvent} from './shared/event';
 
 /**
  * Gets a word containing the letter in the position. This is not a reliable method to find a token
@@ -95,3 +97,10 @@ function createWordRegExp(allowInWords = ''): RegExp {
 }
 
 const USUAL_WORD_SEPARATORS = '`~!@#$%^&*()-=+[{]}\\|;:\'",.<>/?';
+
+export async function sendMetrics(
+  connection: Connection,
+  event: MetricsEvent
+): Promise<void> {
+  await connection.sendNotification('custom/metrics', event);
+}
