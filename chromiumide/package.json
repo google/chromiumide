@@ -1140,11 +1140,6 @@
           "description": "Enable build + deploy for chromium code (incomplete)",
           "default": false
         },
-        "chromiumide.underDevelopment.ebuildLsp": {
-          "type": "boolean",
-          "description": "Provide ebuild langauge support via LSP",
-          "default": true
-        },
         "chromiumide.underDevelopment.platform2GtestDebugging": {
           "type": "boolean",
           "description": "Enable platform2 gtest debugging support",
