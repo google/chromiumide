@@ -4,6 +4,7 @@
 
 import * as vscode from 'vscode';
 import {
+  QuickPickItemWithPrefillButton,
   SimplePickItem,
   showInputBoxWithSuggestions,
 } from '../../../../shared/app/ui/input_box';
@@ -41,7 +42,7 @@ export async function promptNewHostname(
     ownedDeviceRepository
   );
   return await showInputBoxWithSuggestions(
-    suggestedHosts.map(x => new SimplePickItem(x)),
+    suggestedHosts.map(x => new QuickPickItemWithPrefillButton(x)),
     {
       title,
       placeholder: 'host[:port]',
