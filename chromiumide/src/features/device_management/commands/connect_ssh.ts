@@ -6,7 +6,12 @@ import * as vscode from 'vscode';
 import * as commonUtil from '../../../../shared/app/common/common_util';
 import {getDriver} from '../../../../shared/app/common/driver_repository';
 import * as shutil from '../../../../shared/app/common/shutil';
+import {
+  QuickPickItemWithPrefillButton,
+  showInputBoxWithSuggestions,
+} from '../../../../shared/app/ui/input_box';
 import {MemoryOutputChannel} from '../../../common/memory_output_channel';
+import {OptionsParser} from '../../../common/parse';
 import {TeeOutputChannel} from '../../../common/tee_output_channel';
 import {
   createShowLogsButton,
@@ -21,6 +26,7 @@ const driver = getDriver();
 export async function connectToDeviceForShell(
   context: CommandContext,
   selectedHostname?: string,
+  extraOptions?: string[],
   onDidFinishForTesting?: vscode.EventEmitter<void>
 ): Promise<void> {
   driver.metrics.send({
@@ -43,7 +49,9 @@ export async function connectToDeviceForShell(
   const terminal = vscode.window.createTerminal(hostname);
   terminal.sendText(
     'exec ' +
-      shutil.escapeArray(sshUtil.buildSshCommand(hostname, context.sshIdentity))
+      shutil.escapeArray(
+        sshUtil.buildSshCommand(hostname, context.sshIdentity, extraOptions)
+      )
   );
   terminal.show();
 
@@ -94,5 +102,59 @@ async function checkSshConnection(
       ...err.buttons,
       createShowLogsButton(context.output),
     ]);
+  }
+}
+
+export async function connectToDeviceForShellWithOptions(
+  context: CommandContext,
+  selectedHostname?: string,
+  onDidFinishForTesting?: vscode.EventEmitter<void>
+): Promise<void> {
+  let initialValue: string | undefined = undefined;
+  for (;;) {
+    const presets = [
+      new QuickPickItemWithPrefillButton(
+        '-L 2222:localhost:22', // label
+        undefined,
+        'Forward local connections to port 2222 to device port 22' // description
+      ),
+      new QuickPickItemWithPrefillButton(
+        '-L 1234:localhost:1234',
+        undefined,
+        'Forward local connections to port 1234 to device port 1234'
+      ),
+    ];
+    const optionsString = await showInputBoxWithSuggestions(presets, {
+      title: 'SSH with options',
+      placeholder: 'Enter extra options for the SSH command',
+      value: initialValue,
+    });
+    if (optionsString === undefined) return;
+
+    const options = parseOptions(optionsString.trim() + '\n');
+    if (options instanceof Error) {
+      void vscode.window.showErrorMessage(options.message);
+      initialValue = optionsString;
+      // Allow the user to fix the string and try again.
+      continue;
+    }
+
+    await connectToDeviceForShell(
+      context,
+      selectedHostname,
+      options,
+      onDidFinishForTesting
+    );
+
+    break;
+  }
+}
+
+function parseOptions(optionsString: string): string[] | Error {
+  const parser = new OptionsParser(optionsString);
+  try {
+    return parser.parseOrThrow();
+  } catch (e) {
+    return e as Error;
   }
 }

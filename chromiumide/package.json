@@ -117,6 +117,11 @@
         "icon": "$(terminal)"
       },
       {
+        "command": "chromiumide.deviceManagement.connectToDeviceForShellWithOptions",
+        "category": "CrOS",
+        "title": "Connect to Device (Shell) with options"
+      },
+      {
         "command": "chromiumide.deviceManagement.openSystemLogViewer",
         "category": "CrOS",
         "title": "Open System Log Viewer",
@@ -692,6 +697,11 @@
           "command": "chromiumide.deviceManagement.connectToDeviceForShell",
           "when": "view == devices && viewItem =~ /^device-/",
           "group": "1_connect@3"
+        },
+        {
+          "command": "chromiumide.deviceManagement.connectToDeviceForShellWithOptions",
+          "when": "view == devices && viewItem =~ /^device-/",
+          "group": "1_connect@4"
         },
         {
           "command": "chromiumide.deviceManagement.flashPrebuiltImage",
