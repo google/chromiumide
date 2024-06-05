@@ -3,17 +3,17 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as commonUtil from '../../../../../../../../shared/app/common/common_util';
-import {CancelledError} from '../../../../../../../../shared/app/common/exec/types';
+import * as commonUtil from '../../../../../../../shared/app/common/common_util';
+import {CancelledError} from '../../../../../../../shared/app/common/exec/types';
 import {
   TestResult,
   runTastTests,
-} from '../../../../../../../features/device_management/commands/tast/run_tast_tests';
-import {TEST_ONLY} from '../../../../../../../features/device_management/commands/tast/tast_common';
-import {ChrootService} from '../../../../../../../services/chromiumos';
-import * as testing from '../../../../../../testing';
-import {installChrootCommandHandler} from '../../../../../../testing/fakes';
-import {arrayWithPrefix} from '../../../../../testing/jasmine/asymmetric_matcher';
+} from '../../../../../../features/device_management/commands/tast/run_tast_tests';
+import {TEST_ONLY} from '../../../../../../features/device_management/commands/tast/tast_common';
+import {ChrootService} from '../../../../../../services/chromiumos';
+import * as testing from '../../../../../testing';
+import {installChrootCommandHandler} from '../../../../../testing/fakes';
+import {arrayWithPrefix} from '../../../../testing/jasmine/asymmetric_matcher';
 import {prepareCommonFakes} from '../common';
 
 describe('runTastTests', () => {

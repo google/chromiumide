@@ -7,7 +7,7 @@ import {
   LeasedDevice,
   OwnedDevice,
   OwnedDeviceRepository,
-} from '../../../../../features/device_management/device_repository';
+} from '../../../../features/device_management/device_repository';
 
 export class FakeOwnedDeviceRepository
   implements Pick<OwnedDeviceRepository, 'getDevices'>

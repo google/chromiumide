@@ -8,9 +8,9 @@ import * as vscode from 'vscode';
 import {
   DebugTastTestsResult,
   debugTastTests,
-} from '../../../../../../../features/device_management/commands/tast/debug_tast_tests';
-import {ChrootService} from '../../../../../../../services/chromiumos';
-import * as testing from '../../../../../../testing';
+} from '../../../../../../features/device_management/commands/tast/debug_tast_tests';
+import {ChrootService} from '../../../../../../services/chromiumos';
+import * as testing from '../../../../../testing';
 import {prepareCommonFakes} from '../common';
 
 describe('debugTastTests', () => {

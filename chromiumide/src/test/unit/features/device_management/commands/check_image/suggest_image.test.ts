@@ -3,19 +3,19 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {AbnormalExitError} from '../../../../../../../../shared/app/common/exec/types';
+import {AbnormalExitError} from '../../../../../../../shared/app/common/exec/types';
 import {
   showSuggestedImagesInputBox,
   TEST_ONLY,
-} from '../../../../../../../features/device_management/commands/check_image/suggest_image';
-import {ChrootService} from '../../../../../../../services/chromiumos';
-import * as testing from '../../../../../../testing';
+} from '../../../../../../features/device_management/commands/check_image/suggest_image';
+import {ChrootService} from '../../../../../../services/chromiumos';
+import * as testing from '../../../../../testing';
 import {
   installChrootCommandHandler,
   installFakeSudo,
   VoidOutputChannel,
-} from '../../../../../../testing/fakes';
-import {FakeQuickPick} from '../../../../../../testing/fakes/quick_pick';
+} from '../../../../../testing/fakes';
+import {FakeQuickPick} from '../../../../../testing/fakes/quick_pick';
 import {HOSTNAME, CONFIG, getTestingInput, BOARD_NAME} from './common';
 
 const {

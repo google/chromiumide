@@ -7,22 +7,22 @@ import * as vscode from 'vscode';
 import {
   BoardOrHost,
   parseBoardOrHost,
-} from '../../../../../../../shared/app/common/chromiumos/board_or_host';
-import {getDriver} from '../../../../../../../shared/app/common/driver_repository';
-import {AbnormalExitError} from '../../../../../../../shared/app/common/exec/types';
-import {SimplePickItem} from '../../../../../../../shared/app/ui/input_box';
-import {CommandContext} from '../../../../../../features/device_management/commands/common';
-import {TEST_ONLY} from '../../../../../../features/device_management/commands/tast/tast_common';
+} from '../../../../../../shared/app/common/chromiumos/board_or_host';
+import {getDriver} from '../../../../../../shared/app/common/driver_repository';
+import {AbnormalExitError} from '../../../../../../shared/app/common/exec/types';
+import {SimplePickItem} from '../../../../../../shared/app/ui/input_box';
+import {CommandContext} from '../../../../../features/device_management/commands/common';
+import {TEST_ONLY} from '../../../../../features/device_management/commands/tast/tast_common';
 import {
   DeviceAttributes,
   DeviceClient,
-} from '../../../../../../features/device_management/device_client';
-import {DeviceCategory} from '../../../../../../features/device_management/device_repository';
-import {SshIdentity} from '../../../../../../features/device_management/ssh_identity';
-import {ChromiumosServiceModule} from '../../../../../../services/chromiumos';
-import * as testing from '../../../../../testing';
-import {VscodeGetters, VscodeSpy} from '../../../../../testing/doubles';
-import {arrayWithPrefix} from '../../../../testing/jasmine/asymmetric_matcher';
+} from '../../../../../features/device_management/device_client';
+import {DeviceCategory} from '../../../../../features/device_management/device_repository';
+import {SshIdentity} from '../../../../../features/device_management/ssh_identity';
+import {ChromiumosServiceModule} from '../../../../../services/chromiumos';
+import * as testing from '../../../../testing';
+import {VscodeGetters, VscodeSpy} from '../../../../testing/doubles';
+import {arrayWithPrefix} from '../../../testing/jasmine/asymmetric_matcher';
 import {FakeDeviceRepository} from '../fake_device_repository';
 import {FakeSshServer} from '../fake_ssh_server';
 

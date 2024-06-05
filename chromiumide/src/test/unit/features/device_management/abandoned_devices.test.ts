@@ -5,9 +5,9 @@
 import {
   AbandonedDevices,
   TEST_ONLY,
-} from '../../../../../features/device_management/abandoned_devices';
-import {cleanState} from '../../../../testing';
-import * as fakes from '../../../../testing/fakes';
+} from '../../../../features/device_management/abandoned_devices';
+import {cleanState} from '../../../testing';
+import * as fakes from '../../../testing/fakes';
 
 const {GLOBAL_STATE_KEY} = TEST_ONLY;
 

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import {CompatibilityChecker} from '../../../../../../../features/device_management/commands/check_image/compatibility';
+import {CompatibilityChecker} from '../../../../../../features/device_management/commands/check_image/compatibility';
 import {CONFIG, getTestingInput} from './common';
 
 describe('check image compatibility when', () => {

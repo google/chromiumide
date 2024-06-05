@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as ssh from 'ssh2';
-import {SshIdentity} from '../../../../../features/device_management/ssh_identity';
+import {SshIdentity} from '../../../../features/device_management/ssh_identity';
 import type * as vscode from 'vscode';
 
 const FAKE_SSH_HOST_KEY = `-----BEGIN OPENSSH PRIVATE KEY-----

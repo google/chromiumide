@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import {parseSyslogLine} from '../../../../../../features/device_management/syslog/model';
+import {parseSyslogLine} from '../../../../../features/device_management/syslog/model';
 
 const TIMESTAMP = '2023-01-18T12:34:56.789000Z';
 const PROCESS = 'processname[12345]';

@@ -4,12 +4,12 @@
 
 import 'jasmine';
 import * as vscode from 'vscode';
-import {SshIdentity} from '../../../../../features/device_management/ssh_identity';
-import * as vnc from '../../../../../features/device_management/vnc_session';
-import * as webviewShared from '../../../../../features/device_management/webview_shared';
-import {ChromiumosServiceModule} from '../../../../../services/chromiumos';
-import * as testing from '../../../../testing';
-import * as extensionTesting from '../../../extension_testing';
+import {SshIdentity} from '../../../../features/device_management/ssh_identity';
+import * as vnc from '../../../../features/device_management/vnc_session';
+import * as webviewShared from '../../../../features/device_management/webview_shared';
+import {ChromiumosServiceModule} from '../../../../services/chromiumos';
+import * as testing from '../../../testing';
+import * as extensionTesting from '../../extension_testing';
 import {FakeSshServer} from './fake_ssh_server';
 import {FakeVncServer} from './fake_vnc_server';
 

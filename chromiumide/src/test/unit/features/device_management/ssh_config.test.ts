@@ -5,8 +5,8 @@
 import * as fs from 'fs';
 import mockFs = require('mock-fs');
 import 'jasmine';
-import {DeviceCategory} from '../../../../../features/device_management/device_repository';
-import * as sshConfig from '../../../../../features/device_management/ssh_config';
+import {DeviceCategory} from '../../../../features/device_management/device_repository';
+import * as sshConfig from '../../../../features/device_management/ssh_config';
 import {FakeOwnedDeviceRepository} from './fake_device_repository';
 
 const TEST_CONFIG_FILE = `

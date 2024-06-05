@@ -3,18 +3,18 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {crosRoot} from '../../../../../../../shared/app/common/common_util';
-import {getCrosPath} from '../../../../../../common/chromiumos/cros_client';
-import {TEST_ONLY} from '../../../../../../features/device_management/commands/flash_prebuilt_image';
+import {crosRoot} from '../../../../../../shared/app/common/common_util';
+import {getCrosPath} from '../../../../../common/chromiumos/cros_client';
+import {TEST_ONLY} from '../../../../../features/device_management/commands/flash_prebuilt_image';
 import {
   DeviceClient,
   DeviceAttributes,
-} from '../../../../../../features/device_management/device_client';
-import {DeviceCategory} from '../../../../../../features/device_management/device_repository';
-import {SshIdentity} from '../../../../../../features/device_management/ssh_identity';
-import {ChromiumosServiceModule} from '../../../../../../services/chromiumos';
-import * as testing from '../../../../../testing';
-import {VoidOutputChannel} from '../../../../../testing/fakes';
+} from '../../../../../features/device_management/device_client';
+import {DeviceCategory} from '../../../../../features/device_management/device_repository';
+import {SshIdentity} from '../../../../../features/device_management/ssh_identity';
+import {ChromiumosServiceModule} from '../../../../../services/chromiumos';
+import * as testing from '../../../../testing';
+import {VoidOutputChannel} from '../../../../testing/fakes';
 import {FakeDeviceRepository} from '../fake_device_repository';
 
 const {flashImageToDevice} = TEST_ONLY;

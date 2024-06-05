@@ -3,13 +3,13 @@
 // found in the LICENSE file.
 
 import 'jasmine';
-import * as config from '../../../../../../shared/app/services/config';
-import * as abandonedDevices from '../../../../../features/device_management/abandoned_devices';
-import * as crosfleet from '../../../../../features/device_management/crosfleet';
-import * as repository from '../../../../../features/device_management/device_repository';
-import * as testing from '../../../../testing';
-import * as fakes from '../../../../testing/fakes';
-import {GcloudState} from '../../../../testing/fakes/crosfleet';
+import * as config from '../../../../../shared/app/services/config';
+import * as abandonedDevices from '../../../../features/device_management/abandoned_devices';
+import * as crosfleet from '../../../../features/device_management/crosfleet';
+import * as repository from '../../../../features/device_management/device_repository';
+import * as testing from '../../../testing';
+import * as fakes from '../../../testing/fakes';
+import {GcloudState} from '../../../testing/fakes/crosfleet';
 
 describe('Owned device repository', () => {
   beforeEach(async () => {

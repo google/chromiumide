@@ -5,7 +5,7 @@
 import {
   CheckerConfig,
   CheckerInput,
-} from '../../../../../../../features/device_management/commands/check_image/types';
+} from '../../../../../../features/device_management/commands/check_image/types';
 
 export const CONFIG: CheckerConfig = {versionMaxSkew: 7};
 

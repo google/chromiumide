@@ -7,11 +7,11 @@ import {
   DeviceClient,
   DeviceAttributes,
   TEST_ONLY,
-} from '../../../../../features/device_management/device_client';
-import {DeviceCategory} from '../../../../../features/device_management/device_repository';
-import {SshIdentity} from '../../../../../features/device_management/ssh_identity';
-import {ChromiumosServiceModule} from '../../../../../services/chromiumos';
-import * as testing from '../../../../testing';
+} from '../../../../features/device_management/device_client';
+import {DeviceCategory} from '../../../../features/device_management/device_repository';
+import {SshIdentity} from '../../../../features/device_management/ssh_identity';
+import {ChromiumosServiceModule} from '../../../../services/chromiumos';
+import * as testing from '../../../testing';
 import {FakeDeviceRepository} from './fake_device_repository';
 
 const LSB_RELEASE_PREBUILT_RELEASE = `DEVICETYPE=CHROMEBOOK

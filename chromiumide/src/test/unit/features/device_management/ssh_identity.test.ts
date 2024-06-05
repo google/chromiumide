@@ -4,9 +4,9 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {SshIdentity} from '../../../../../features/device_management/ssh_identity';
-import {ChromiumosServiceModule} from '../../../../../services/chromiumos';
-import * as testing from '../../../../testing';
+import {SshIdentity} from '../../../../features/device_management/ssh_identity';
+import {ChromiumosServiceModule} from '../../../../services/chromiumos';
+import * as testing from '../../../testing';
 
 describe('SSH identity', () => {
   const tempDir = testing.tempDir();
