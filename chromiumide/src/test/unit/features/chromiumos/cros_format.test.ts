@@ -5,7 +5,9 @@
 import * as vscode from 'vscode';
 import {getDriver} from '../../../../../shared/app/common/driver_repository';
 import {ExecResult} from '../../../../../shared/app/common/exec/types';
-import {TEST_ONLY} from '../../../../../shared/app/features/cros_format';
+import {maybeConfigureOrSuggestSettingDefaultFormatter} from '../../../../../shared/app/features/cros_format/default_formatter';
+import {CrosFormatEditProvider} from '../../../../../shared/app/features/cros_format/formatting_edit_provider';
+import {isPresubmitignored} from '../../../../../shared/app/features/cros_format/presubmitignore';
 import * as config from '../../../../../shared/app/services/config';
 import {
   StatusManager,
@@ -17,16 +19,11 @@ import {
   FakeWorkspaceConfiguration,
 } from '../../../testing/fakes';
 
-const {
-  CrosFormat,
-  pathIsIgnored,
-  maybeConfigureOrSuggestSettingDefaultFormatter,
-} = TEST_ONLY;
 const driver = getDriver();
 
 const formatterName = 'Google.cros-ide';
 
-describe('Cros format', () => {
+describe('CrosFormatEditProvider', () => {
   const tempDir = testing.tempDir();
   const fakeExec = testing.installFakeExec();
 
@@ -43,13 +40,13 @@ describe('Cros format', () => {
     const statusManager = jasmine.createSpyObj<StatusManager>('statusManager', [
       'setStatus',
     ]);
-    const crosFormat = new CrosFormat(
+    const editProvider = new CrosFormatEditProvider(
       statusManager,
       vscode.window.createOutputChannel('unused')
     );
     return {
       statusManager,
-      crosFormat,
+      editProvider,
       crosUri,
     };
   });
@@ -61,7 +58,7 @@ describe('Cros format', () => {
   it('shows error when the command fails (execution error)', async () => {
     fakeExec.and.resolveTo(new Error());
 
-    await state.crosFormat.provideDocumentFormattingEdits(
+    await state.editProvider.provideDocumentFormattingEdits(
       new FakeTextDocument({uri: state.crosUri})
     );
 
@@ -85,7 +82,7 @@ describe('Cros format', () => {
     };
     fakeExec.and.resolveTo(execResult);
 
-    await state.crosFormat.provideDocumentFormattingEdits(
+    await state.editProvider.provideDocumentFormattingEdits(
       new FakeTextDocument({uri: state.crosUri})
     );
 
@@ -109,7 +106,7 @@ describe('Cros format', () => {
     };
     fakeExec.and.resolveTo(execResult);
 
-    const edits = await state.crosFormat.provideDocumentFormattingEdits(
+    const edits = await state.editProvider.provideDocumentFormattingEdits(
       new FakeTextDocument({uri: state.crosUri})
     );
 
@@ -129,7 +126,7 @@ describe('Cros format', () => {
     };
     fakeExec.and.resolveTo(execResult);
 
-    const edits = await state.crosFormat.provideDocumentFormattingEdits(
+    const edits = await state.editProvider.provideDocumentFormattingEdits(
       new FakeTextDocument({uri: state.crosUri})
     );
 
@@ -148,7 +145,7 @@ describe('Cros format', () => {
   });
 
   it('does not format files outside CrOS chroot', async () => {
-    const edits = await state.crosFormat.provideDocumentFormattingEdits(
+    const edits = await state.editProvider.provideDocumentFormattingEdits(
       new FakeTextDocument({uri: vscode.Uri.file('/not/a/cros/file.md')})
     );
 
@@ -162,7 +159,7 @@ describe('Cros format', () => {
       'src/some/.presubmitignore': '*.md',
     });
 
-    const edits = await state.crosFormat.provideDocumentFormattingEdits(
+    const edits = await state.editProvider.provideDocumentFormattingEdits(
       new FakeTextDocument({uri: state.crosUri})
     );
 
@@ -226,7 +223,9 @@ subdir2/
     ];
 
     for (const {path, ignored} of testcases) {
-      expect(await pathIsIgnored(driver.path.join(crosRoot, path), crosRoot))
+      expect(
+        await isPresubmitignored(driver.path.join(crosRoot, path), crosRoot)
+      )
         .withContext(`${path} should ${ignored ? '' : 'not '}be ignored`)
         .toBe(ignored);
     }
