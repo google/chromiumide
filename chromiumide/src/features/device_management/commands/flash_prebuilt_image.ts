@@ -65,7 +65,7 @@ export async function showAllLocalImagesInputBox(
       fs.existsSync(path.join(imagesDir, image, 'chromiumos_test_image.bin'))
     );
   if (images.length === 0) {
-    throw new Error(`No image available at ${imagesDir}.`);
+    throw new Error(`No test image available at ${imagesDir}.`);
   }
 
   // Move 'latest' (symlink to the most recent image) to beginning of array since it is the most
