@@ -99,6 +99,11 @@
         "title": "Generate C++ xrefs for the active file"
       },
       {
+        "command": "chromiumide.crosFormat.forceFormat",
+        "category": "CrOS",
+        "title": "Format Document (Forced)"
+      },
+      {
         "command": "chromiumide.deviceManagement.setDefaultDevice",
         "category": "CrOS",
         "title": "Set as Default Device"

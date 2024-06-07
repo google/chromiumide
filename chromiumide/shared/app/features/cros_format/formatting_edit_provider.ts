@@ -26,17 +26,46 @@ export class CrosFormatEditProvider
   async provideDocumentFormattingEdits(
     document: vscode.TextDocument
   ): Promise<vscode.TextEdit[] | undefined> {
+    const replace = await this.provideReplace(document, {force: false});
+    if (!replace) return;
+
+    return [vscode.TextEdit.replace(replace.location, replace.value)];
+  }
+
+  async forceFormat(editor: vscode.TextEditor): Promise<void> {
+    const replace = await this.provideReplace(editor.document, {force: true});
+    if (!replace) return;
+
+    await editor.edit(edit => {
+      edit.replace(replace.location, replace.value);
+    });
+  }
+
+  private async provideReplace(
+    document: vscode.TextDocument,
+    {force}: {force: boolean}
+  ): Promise<
+    | {
+        location: vscode.Range;
+        value: string;
+      }
+    | undefined
+  > {
     const fsPath = document.uri.fsPath;
     const crosRoot = await driver.cros.findSourceDir(fsPath);
     if (!crosRoot) {
       this.output.appendLine(`Not in CrOS repo; not formatting ${fsPath}.`);
-      return undefined;
-    }
-    if (await isPresubmitignored(document.uri.fsPath, crosRoot, this.output)) {
-      return undefined;
+      return;
     }
 
-    this.output.appendLine(`Formatting ${fsPath}...`);
+    if (!force && (await isPresubmitignored(fsPath, crosRoot, this.output))) {
+      this.output.appendLine(`${fsPath} is .presubmitignore-d`);
+      return;
+    }
+
+    this.output.appendLine(
+      `${force ? 'Force formatting' : 'Formatting'} ${fsPath}...`
+    );
 
     const crosExe = crosExeFromCrosRoot(crosRoot);
     const formatterOutput = await commonUtil.exec(
@@ -57,7 +86,7 @@ export class CrosFormatEditProvider
         name: 'cros_format_call_error',
         description: 'call to cros format failed',
       });
-      return undefined;
+      return;
     }
 
     switch (formatterOutput.exitStatus) {
@@ -65,7 +94,7 @@ export class CrosFormatEditProvider
       case 0: {
         this.output.appendLine('no changes needed');
         this.statusManager.setStatus(FORMATTER, TaskStatus.OK);
-        return undefined;
+        return;
       }
       // 1 means input requires formatting
       case 1: {
@@ -83,9 +112,10 @@ export class CrosFormatEditProvider
           document.positionAt(0),
           document.positionAt(document.getText().length)
         );
-        return [
-          vscode.TextEdit.replace(wholeFileRange, formatterOutput.stdout),
-        ];
+        return {
+          location: wholeFileRange,
+          value: formatterOutput.stdout,
+        };
       }
       // 65 means EX_DATA: Syntax errors prevented parsing & formatting.
       case 65: {
@@ -99,7 +129,7 @@ export class CrosFormatEditProvider
           name: 'cros_format_return_error',
           description: 'cros format returned syntax error',
         });
-        return undefined;
+        return;
       }
       // All other errors, e.g. when the command exits due to a signal and there is no exit status.
       // cros format tool may exit with status code 66 for file not found but it should never occur
@@ -113,7 +143,7 @@ export class CrosFormatEditProvider
           name: 'cros_format_return_error',
           description: 'cros format returned error',
         });
-        return undefined;
+        return;
       }
     }
   }

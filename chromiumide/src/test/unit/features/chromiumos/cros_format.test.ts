@@ -17,6 +17,7 @@ import * as testing from '../../../testing';
 import {
   FakeTextDocument,
   FakeWorkspaceConfiguration,
+  FakeTextEditor,
 } from '../../../testing/fakes';
 
 const driver = getDriver();
@@ -166,6 +167,29 @@ describe('CrosFormatEditProvider', () => {
     expect(fakeExec).not.toHaveBeenCalled();
     expect(edits).toBeUndefined();
     expect(driver.metrics.send).not.toHaveBeenCalled();
+  });
+
+  it('force format when instructed so', async () => {
+    await testing.putFiles(tempDir.path, {
+      'src/some/.presubmitignore': '*.md',
+    });
+
+    const textEditor = new FakeTextEditor(
+      new FakeTextDocument({
+        uri: state.crosUri,
+        text: 'before fmt',
+      })
+    );
+
+    fakeExec.and.resolveTo({
+      exitStatus: 1,
+      stderr: '',
+      stdout: 'after fmt',
+    });
+
+    await state.editProvider.forceFormat(textEditor);
+
+    expect(textEditor.document.text).toEqual('after fmt');
   });
 });
 

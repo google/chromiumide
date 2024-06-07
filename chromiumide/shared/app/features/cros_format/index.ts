@@ -4,6 +4,7 @@
 
 import * as vscode from 'vscode';
 import {extensionName} from '../../common/extension_name';
+import {vscodeRegisterTextEditorCommand} from '../../common/vscode/commands';
 import {StatusManager, TaskStatus} from '../../ui/bg_task_status';
 import {maybeConfigureOrSuggestSettingDefaultFormatter} from './default_formatter';
 import {CrosFormatEditProvider, FORMATTER} from './formatting_edit_provider';
@@ -20,10 +21,17 @@ export function activate(
     outputChannel: output,
   });
 
+  const editProvider = new CrosFormatEditProvider(statusManager, output);
+
   context.subscriptions.push(
     vscode.languages.registerDocumentFormattingEditProvider(
       [{scheme: 'file'}],
-      new CrosFormatEditProvider(statusManager, output)
+      editProvider
+    ),
+    vscodeRegisterTextEditorCommand(
+      'chromiumide.crosFormat.forceFormat',
+      // Can't use the edit parameter in async callback; edit is only valid while callback runs.
+      editor => editProvider.forceFormat(editor)
     ),
     vscode.workspace.onDidChangeWorkspaceFolders(e =>
       maybeConfigureOrSuggestSettingDefaultFormatter(
