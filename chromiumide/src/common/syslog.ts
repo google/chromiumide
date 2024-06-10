@@ -38,7 +38,7 @@ export type LocalSyslogEntry = {
  * on DUT.
  *
  * Example line on local machine:
- * 2024-06-07T03:00:40.905743+00:00 oka5.c.googlers.com glinux-scheduler[3782168]: msg
+ * 2024-06-07T03:00:40.905743+00:00 example.com glinux-scheduler[3782168]: msg
  *
  * Example line on chromeos device:
  * 2024-06-06T04:34:16.875867Z INFO kernel: msg
