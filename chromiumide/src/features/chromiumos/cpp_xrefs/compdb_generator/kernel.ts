@@ -74,8 +74,9 @@ export class Kernel implements CompdbGeneratorCore {
     const gitDir = await findGitDir(document.fileName);
     if (!gitDir) return;
 
-    const chroot = this.chrootService.chroot;
-    const board = await getOrPromptToSelectDefaultBoard(chroot);
+    const board = await getOrPromptToSelectDefaultBoard(
+      this.chrootService.chroot.root
+    );
 
     if (board instanceof Error) {
       return new ErrorDetails('no board', board.message);

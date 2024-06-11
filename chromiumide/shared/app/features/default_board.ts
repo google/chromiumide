@@ -23,7 +23,7 @@ const driver = getDriver();
 
 export function activate(
   context: vscode.ExtensionContext,
-  chroot: WrapFs
+  chroot: string
 ): void {
   const boardStatusBarItem = vscode.window.createStatusBarItem(
     vscode.StatusBarAlignment.Left
@@ -89,7 +89,7 @@ function updateBoardStatus(boardStatusBarItem: vscode.StatusBarItem) {
  * failed).
  */
 export async function getOrPromptToSelectDefaultBoard(
-  chroot: WrapFs,
+  chroot: string,
   platform = driver.platform()
 ): Promise<BoardOrHost | undefined | NoBoardError | Error> {
   // Default board has been set, return directly.
@@ -159,13 +159,13 @@ async function selectAndUpdateDefaultBoard(
 }
 
 async function getBoards(
-  chroot: WrapFs,
+  chroot: string,
   platform = driver.platform()
 ): Promise<string[] | NoBoardError | Error> {
-  const chromiumosRoot = crosRoot(chroot.root);
+  const chromiumosRoot = crosRoot(chroot);
   return platform === Platform.VSCODE
     ? await getSetupBoardsRecentFirst(
-        chroot,
+        new WrapFs(chroot),
         new WrapFs(crosOutDir(chromiumosRoot))
       )
     : await getAllChromeosBoards(chromiumosRoot);

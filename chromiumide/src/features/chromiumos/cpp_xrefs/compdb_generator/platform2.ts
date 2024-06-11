@@ -90,8 +90,9 @@ export class Platform2 implements CompdbGeneratorCore {
     document: vscode.TextDocument,
     _token: vscode.CancellationToken
   ): Promise<undefined | ErrorDetails | vscode.CancellationError> {
-    const chroot = this.chrootService.chroot;
-    const board = await getOrPromptToSelectDefaultBoard(chroot);
+    const board = await getOrPromptToSelectDefaultBoard(
+      this.chrootService.chroot.root
+    );
     if (board instanceof Error) {
       return new ErrorDetails('no board', board.message);
     }

@@ -4,7 +4,6 @@
 
 import {Board} from '../../../../../shared/app/common/chromiumos/board_or_host/board';
 import {NoBoardError} from '../../../../../shared/app/common/chromiumos/boards';
-import {WrapFs} from '../../../../../shared/app/common/wrap_fs';
 import * as defaultBoard from '../../../../../shared/app/features/default_board';
 import * as config from '../../../../../shared/app/services/config';
 import {Platform} from '../../../../../shared/driver';
@@ -24,17 +23,15 @@ describe('getOrSelectDefaultBoard on vscode', () => {
     await config.board.update('amd64-generic');
     const chroot = await testing.buildFakeChroot(tempDir.path);
 
-    expect(
-      await defaultBoard.getOrPromptToSelectDefaultBoard(new WrapFs(chroot))
-    ).toEqual(Board.newBoard('amd64-generic'));
+    expect(await defaultBoard.getOrPromptToSelectDefaultBoard(chroot)).toEqual(
+      Board.newBoard('amd64-generic')
+    );
   });
 
   it('returns error if no board has been setup', async () => {
     const chroot = await testing.buildFakeChroot(tempDir.path);
 
-    const error = await defaultBoard.getOrPromptToSelectDefaultBoard(
-      new WrapFs(chroot)
-    );
+    const error = await defaultBoard.getOrPromptToSelectDefaultBoard(chroot);
     expect(error).toBeInstanceOf(NoBoardError);
     if (error instanceof NoBoardError) {
       expect(error.message).toContain('no board has been setup');
@@ -57,9 +54,9 @@ describe('getOrSelectDefaultBoard on vscode', () => {
       )
       .and.returnValue('Yes');
 
-    expect(
-      await defaultBoard.getOrPromptToSelectDefaultBoard(new WrapFs(chroot))
-    ).toEqual(Board.newBoard('amd64-generic'));
+    expect(await defaultBoard.getOrPromptToSelectDefaultBoard(chroot)).toEqual(
+      Board.newBoard('amd64-generic')
+    );
     expect(config.board.get()).toBe('amd64-generic');
   });
 
@@ -87,9 +84,9 @@ describe('getOrSelectDefaultBoard on vscode', () => {
       })
       .and.returnValue('coral');
 
-    expect(
-      await defaultBoard.getOrPromptToSelectDefaultBoard(new WrapFs(chroot))
-    ).toEqual(Board.newBoard('coral'));
+    expect(await defaultBoard.getOrPromptToSelectDefaultBoard(chroot)).toEqual(
+      Board.newBoard('coral')
+    );
     expect(config.board.get()).toBe('coral');
   });
 
@@ -109,7 +106,7 @@ describe('getOrSelectDefaultBoard on vscode', () => {
       .and.returnValue(undefined);
 
     expect(
-      await defaultBoard.getOrPromptToSelectDefaultBoard(new WrapFs(chroot))
+      await defaultBoard.getOrPromptToSelectDefaultBoard(chroot)
     ).toBeUndefined();
     expect(config.board.get()).toBe('');
   });
@@ -135,7 +132,7 @@ describe('getOrSelectDefaultBoard on vscode', () => {
       .and.returnValue(undefined);
 
     expect(
-      await defaultBoard.getOrPromptToSelectDefaultBoard(new WrapFs(chroot))
+      await defaultBoard.getOrPromptToSelectDefaultBoard(chroot)
     ).toBeUndefined();
     expect(config.board.get()).toBe('');
   });
@@ -157,7 +154,7 @@ describe('getOrSelectDefaultBoard on cider', () => {
 
     expect(
       await defaultBoard.getOrPromptToSelectDefaultBoard(
-        new WrapFs(state.chroot),
+        state.chroot,
         Platform.CIDER
       )
     ).toEqual(Board.newBoard('amd64-generic'));
@@ -172,7 +169,7 @@ describe('getOrSelectDefaultBoard on cider', () => {
     );
 
     const error = await defaultBoard.getOrPromptToSelectDefaultBoard(
-      new WrapFs(state.chroot),
+      state.chroot,
       Platform.CIDER
     );
 
@@ -209,7 +206,7 @@ describe('getOrSelectDefaultBoard on cider', () => {
 
     expect(
       await defaultBoard.getOrPromptToSelectDefaultBoard(
-        new WrapFs(state.chroot),
+        state.chroot,
         Platform.CIDER
       )
     ).toEqual(Board.newBoard('coral'));
@@ -229,7 +226,7 @@ describe('getOrSelectDefaultBoard on cider', () => {
 
     expect(
       await defaultBoard.getOrPromptToSelectDefaultBoard(
-        new WrapFs(state.chroot),
+        state.chroot,
         Platform.CIDER
       )
     ).toBeUndefined();
@@ -254,7 +251,7 @@ describe('getOrSelectDefaultBoard on cider', () => {
 
     expect(
       await defaultBoard.getOrPromptToSelectDefaultBoard(
-        new WrapFs(state.chroot),
+        state.chroot,
         Platform.CIDER
       )
     ).toBeUndefined();
