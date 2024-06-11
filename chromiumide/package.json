@@ -96,7 +96,8 @@
       {
         "command": "chromiumide.cppxrefs.forceGenerate",
         "category": "CrOS",
-        "title": "Generate C++ xrefs for the active file"
+        "title": "Generate C++ xrefs for the active file",
+        "icon": "$(refresh)"
       },
       {
         "command": "chromiumide.crosFormat.forceFormat",
@@ -696,7 +697,7 @@
         {
           "command": "chromiumide.cppxrefs.forceGenerate",
           "when": "view == chromiumide-status && viewItem == cppxrefs",
-          "group": "1_generate"
+          "group": "inline"
         },
         {
           "command": "chromiumide.deviceManagement.connectToDeviceForScreen",
