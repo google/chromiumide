@@ -3,19 +3,21 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {crosExeFor, driver} from '../../common/chromiumos/cros';
+import {crosExeFor} from '../../common/chromiumos/cros';
+import {getDriver} from '../../common/driver_repository';
 import {ProcessEnv} from '../../common/exec/types';
+import {OptionsParser} from '../../common/parse';
+import {PresubmitCfg} from '../../common/presubmit_cfg';
 import {assertNever} from '../../common/typecheck';
 import * as config from '../../services/config';
 import {LintCommand, LintConfig} from './lint_config';
-import {
-  createDiagnostic,
-  isTastFile,
-  parseGolintOutput,
-  sameFile,
-} from './util';
+import {createDiagnostic, parseGolintOutput, sameFile} from './util';
+
+const driver = getDriver();
 
 export class CrosLintConfig implements LintConfig {
+  private parseErrorMessageShown = false;
+
   readonly name = 'cros lint';
   constructor(
     readonly languageId: 'cpp' | 'gn' | 'go' | 'python' | 'shellscript'
@@ -24,37 +26,65 @@ export class CrosLintConfig implements LintConfig {
   async command(
     document: vscode.TextDocument
   ): Promise<LintCommand | undefined> {
-    // cros lint is not configured to run in PRESUBMIT.cfg in tast, tast-tests, tast-tests-private.
-    // TODO(b/337138396): Honor PRESUBMIT.cfg in general.
-    if (isTastFile(document.fileName)) return;
+    const crosRoot = await driver.cros.findSourceDir(document.fileName);
+    if (crosRoot === undefined) return;
 
-    const exe = await crosExeFor(document.fileName);
-    if (!exe) return;
+    const crosExe = await crosExeFor(document.fileName);
+    if (!crosExe) return;
 
-    const args = this.arguments(document.fileName);
-    const cwd = this.cwd(exe);
-    const extraEnv = await this.extraEnv(exe);
+    const presubmitCfg = await PresubmitCfg.forDocument(document, crosRoot);
+    // Don't lint if PRESUBMIT.cfg doesn't exist.
+    if (!presubmitCfg) return;
+
+    // Somewhat similar logic to what follows exists in formatting_edit_provider.ts for cros format,
+    // but there are subtle differences and as the proverb [1] goes, a little copying is better than
+    // a little dependency. [1] https://go-proverbs.github.io/
+
+    // As of its writing no PRESUBMIT.cfg has more than one cros lint entries.
+    const rawCommand = presubmitCfg.crosLintRunAsHookScript()?.[0];
+    if (!rawCommand) return; // don't lint
+
+    const parser = new OptionsParser(rawCommand, {
+      allowArgs: true,
+      allowLongOptions: true,
+      allowEqualSeparator: true,
+    });
+    let command;
+    try {
+      command = parser.parseOrThrow();
+    } catch (e) {
+      if (!this.parseErrorMessageShown) {
+        this.parseErrorMessageShown = true;
+        void vscode.window.showErrorMessage(
+          `Failed to parse cros lint command in PRESUBMIT.cfg for ${document.fileName}: ${e}`
+        );
+      }
+      return;
+    }
+
+    // Update args so that the command lints the file.
+    command[0] = crosExe; // Replace 'bin/cros' (for chromite) or 'cros'.
+    const endOfOptions = command.indexOf('--');
+    if (endOfOptions >= 0) command.splice(endOfOptions);
+    remove(command, '--commit', /.*/);
+    remove(command, '${PRESUBMIT_FILES}');
+
+    if (this.languageId === 'shellscript') {
+      command.push('--output=parseable');
+    }
+
+    const cwd = this.cwd(crosExe, presubmitCfg.root);
+
+    // The path to the file must be specified with the relative path so that --exclude and --include
+    // paths are honored.
+    command.push(driver.path.relative(cwd, document.fileName));
 
     return {
-      name: exe,
-      args,
+      name: command[0],
+      args: command.slice(1),
       cwd,
-      extraEnv,
+      extraEnv: {...(await this.extraEnv(crosExe)), PWD: cwd},
     };
-  }
-
-  private arguments(path: string): string[] {
-    switch (this.languageId) {
-      case 'cpp':
-      case 'gn':
-      case 'go':
-      case 'python':
-        return ['lint', path];
-      case 'shellscript':
-        return ['lint', '--output=parseable', path];
-      default:
-        assertNever(this.languageId);
-    }
   }
 
   parse(
@@ -78,17 +108,17 @@ export class CrosLintConfig implements LintConfig {
     }
   }
 
-  private cwd(exePath: string): string | undefined {
+  private cwd(crosExe: string, presubmitCfgRoot: string): string {
     switch (this.languageId) {
       case 'gn':
         // gnlint.py needs to be run inside ChromiumOS source tree,
         // otherwise it complains about formatting.
-        return driver.path.dirname(exePath);
+        return driver.path.dirname(crosExe);
       case 'cpp':
       case 'go':
       case 'python':
       case 'shellscript':
-        return;
+        return presubmitCfgRoot;
       default:
         assertNever(this.languageId);
     }
@@ -269,4 +299,20 @@ function parseCrosLintShell(
     }
   }
   return diagnostics;
+}
+
+/** Removes every subslice in `a` that matches `rs`. */
+function remove(a: string[], ...rs: (RegExp | string)[]) {
+  if (rs.length === 0) return;
+  for (let i = 0; i < a.length - rs.length + 1; ) {
+    if (
+      rs.every((r, j) =>
+        r instanceof RegExp ? r.test(a[i + j]) : r === a[i + j]
+      )
+    ) {
+      a.splice(i, rs.length);
+      continue;
+    }
+    i++;
+  }
 }

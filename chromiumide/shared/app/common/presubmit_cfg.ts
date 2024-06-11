@@ -76,4 +76,18 @@ export class PresubmitCfg {
     // examine the values as the source of truth here.
     return Object.values(hooks).filter(x => re.test(x));
   }
+
+  /**
+   * Returns all the `cros lint` commands run as hook script.
+   */
+  crosLintRunAsHookScript(): string[] {
+    const hooks = this.keyValues(Section.HookScripts);
+    if (!hooks) return [];
+
+    // Don't start the regex with `^cros` because some configs specify bin/cros.
+    const re = /\bcros\s+lint\b/;
+    // cros lint command is usually keyed by 'cros lint', but it's just by convention, so we
+    // examine the values as the source of truth here.
+    return Object.values(hooks).filter(x => re.test(x));
+  }
 }

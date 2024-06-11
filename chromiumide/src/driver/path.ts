@@ -15,4 +15,7 @@ export class PathImpl implements Path {
   basename(pathInput: string, suffix?: string | undefined): string {
     return path.basename(pathInput, suffix);
   }
+  relative(from: string, to: string): string {
+    return path.relative(from, to);
+  }
 }

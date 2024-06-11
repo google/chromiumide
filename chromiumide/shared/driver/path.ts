@@ -6,4 +6,6 @@ export type Path = Readonly<{
   join: (...paths: string[]) => string;
   dirname: (path: string) => string;
   basename: (path: string, suffix?: string | undefined) => string;
+  /** {@link https://nodejs.org/api/path.html#pathrelativefrom-to} */
+  relative: (from: string, to: string) => string;
 }>;

@@ -76,12 +76,19 @@ export async function buildFakeChroot(tempDir: string): Promise<string> {
  * constants the function sets up (such as 42 for chroot_version); for that a test should overwrite
  * the file it cares about on its own.
  */
-export async function buildFakeChromeos(chromeosRoot: string): Promise<void> {
+export async function buildFakeChromeos(chromeosRoot: string): Promise<{
+  chroot: string;
+  cros: string;
+}> {
   await repoInit(chromeosRoot);
   await putFiles(chromeosRoot, {
     'chroot/etc/cros_chroot_version': '42',
     'chromite/bin/cros': '', // for crosExeFor to find the cros executable.
   });
+  return {
+    chroot: path.join(chromeosRoot, 'chroot'),
+    cros: path.join(chromeosRoot, 'chromite/bin/cros'),
+  };
 }
 
 const DOT_GCLIENT = `solutions = [
