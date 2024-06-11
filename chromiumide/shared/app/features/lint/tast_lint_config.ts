@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import * as commonUtil from '../../common/common_util';
 import {getDriver} from '../../common/driver_repository';
 import {LintCommand, LintConfig} from './lint_config';
-import {tastLintPath, isTastFile, parseGolintOutput} from './util';
+import {parseGolintOutput} from './util';
 
 const driver = getDriver();
 
@@ -18,13 +18,11 @@ export class TastLintConfig implements LintConfig {
   async command(
     document: vscode.TextDocument
   ): Promise<LintCommand | undefined> {
-    if (!isTastFile(document.fileName)) return;
+    const linterSubpath = tastLintPath(document.fileName);
+    if (!linterSubpath) return;
 
     const goFound = await checkForGo();
     if (!goFound) return;
-
-    const linterSubpath = tastLintPath(document.fileName);
-    if (!linterSubpath) return;
 
     const chromiumosRoot = await driver.cros.findSourceDir(document.fileName);
     if (chromiumosRoot === undefined) return;
@@ -55,6 +53,18 @@ export class TastLintConfig implements LintConfig {
   // run_lint.sh exits with non-zero status when the file cannot be parsed,
   // which happens often when the code is edited.
   readonly ignoreEmptyDiagnostics = true;
+}
+
+const TAST_RE = /^.*\/platform\/(tast-tests-private|tast-tests|tast).*/;
+
+/**
+ * Returns the tast linter path relative from chromeos root if and only if the file is under tast,
+ * tast-tests, or tast-tests-private directory.
+ */
+function tastLintPath(path: string): string | undefined {
+  const m = TAST_RE.exec(path);
+  if (!m) return;
+  return `src/platform/${m[1]}/tools/run_lint.sh`;
 }
 
 let goWarningShown = false;

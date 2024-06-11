@@ -38,22 +38,6 @@ export function createDiagnostic(
   return diagnostic;
 }
 
-const TAST_RE = /^.*\/platform\/(tast-tests-private|tast-tests|tast).*/;
-
-/**
- * Returns the tast linter path relative from chromeos root if and only if the file is under tast,
- * tast-tests, or tast-tests-private directory.
- */
-export function tastLintPath(path: string): string | undefined {
-  const m = TAST_RE.exec(path);
-  if (!m) return;
-  return `src/platform/${m[1]}/tools/run_lint.sh`;
-}
-
-export function isTastFile(path: string): boolean {
-  return tastLintPath(path) !== undefined;
-}
-
 /**
  * Parses the output from golint that cros lint uses for linting Go files. Linter for tast tests
  * uses the same format and its output can be parsed with this function as well.
