@@ -284,20 +284,18 @@ cros format: cros format --include=webrtc_apm/* --exclude=* --check --commit \${
     });
 });
 
-describe('pathIsIgnored', () => {
+describe('isPresubmitignored', () => {
   const tempDir = testing.tempDir();
+
   it('matches file with correct presubmit ignore pattern', async () => {
-    const crosRoot = driver.path.join(tempDir.path, 'chromeos/');
+    const crosRoot = driver.path.join(tempDir.path, 'chromeos');
     await testing.putFiles(tempDir.path, {
       '.presubmitignore': '**/*',
     });
 
-    await testing.putFiles(crosRoot, {
-      // For driver.cros.findSourceDir to find the cros repo root (based on finding chroot).
-      'chroot/etc/cros_chroot_version': 'fake chroot',
-      // For crosExeFor to find the cros executable.
-      'chromite/bin/cros': 'fakeCrosExe',
+    await testing.buildFakeChromeos(crosRoot);
 
+    await testing.putFiles(crosRoot, {
       // .presubmitignore files in the fake CrOS repo.
       'src/.presubmitignore': `
 **/*.h
@@ -347,7 +345,7 @@ subdir2/
   });
 });
 
-describe('maybeConfigOrSuggestSettingDefaultFormatter', () => {
+describe('maybeConfigureOrSuggestSettingDefaultFormatter', () => {
   const {vscodeEmitters, vscodeSpy} = testing.installVscodeDouble();
   testing.installFakeConfigs(vscodeSpy, vscodeEmitters);
   const tempDirCrosRoot = testing.tempDir();
