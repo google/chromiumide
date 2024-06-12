@@ -1448,6 +1448,7 @@
     "test": "wireit",
     "cq-test": "wireit",
     "unit-test": "wireit",
+    "unit-test-parallel": "wireit",
     "integration-test": "wireit",
     "e2e-test": "wireit",
     "lint": "wireit",
@@ -1568,6 +1569,12 @@
       "env": {
         "NODE_PATH": "out/src/test/unit/injected_modules"
       },
+      "dependencies": [
+        "build-tests"
+      ]
+    },
+    "unit-test-parallel": {
+      "command": "./tools/run_unit_tests_in_parallel.sh",
       "dependencies": [
         "build-tests"
       ]
