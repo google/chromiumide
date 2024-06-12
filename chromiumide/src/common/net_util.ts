@@ -2,11 +2,21 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import * as crypto from 'crypto';
 import * as net from 'net';
 import * as vscode from 'vscode';
 import {Lsof} from './lsof';
 
 export async function findUnusedPort(): Promise<number> {
+  // Concurrent `server.listen` calls could choose the same port, and the behavior can cause test
+  // flakiness if those are run in parallel. To prevent the race condition, we first try random
+  // ports.
+  for (let i = 0; i < 10; i++) {
+    const port = crypto.randomInt(1024, 65536);
+    if (!(await isPortUsed(port))) return port;
+  }
+
+  // Fall back to server.listen.
   return new Promise<number>(resolve => {
     const server = net.createServer();
     server.listen(0, 'localhost', () => {

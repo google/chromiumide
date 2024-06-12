@@ -13,11 +13,11 @@ import * as fakes from '../../testing/fakes';
 const resetpromptedForMissingDepotTools =
   TEST_ONLY.resetpromptedForMissingDepotTools;
 
-beforeEach(async () => {
-  resetpromptedForMissingDepotTools();
-});
-
 describe('depot_tools', () => {
+  beforeEach(async () => {
+    resetpromptedForMissingDepotTools();
+  });
+
   const {vscodeEmitters, vscodeSpy} = testing.installVscodeDouble();
   testing.installFakeConfigs(vscodeSpy, vscodeEmitters);
 
@@ -38,6 +38,10 @@ describe('depot_tools', () => {
 });
 
 describe('and depot_tools not found', () => {
+  beforeEach(async () => {
+    resetpromptedForMissingDepotTools();
+  });
+
   const {vscodeEmitters, vscodeSpy} = testing.installVscodeDouble();
   testing.installFakeConfigs(vscodeSpy, vscodeEmitters);
   const fakeExec = testing.installFakeExec();
