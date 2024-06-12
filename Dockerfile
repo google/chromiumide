@@ -12,8 +12,16 @@ ENV DEBIAN_FRONTEND noninteractive
 RUN apt update && apt upgrade -y
 
 # Install some common tools.
-RUN apt install -y curl git python3 rsync software-properties-common sudo \
-                   wget xvfb
+RUN apt install -y \
+    curl \
+    git \
+    netcat \
+    python3 \
+    rsync \
+    software-properties-common \
+    sudo \
+    wget \
+    xvfb
 
 RUN apt-get install -y wget
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | \
