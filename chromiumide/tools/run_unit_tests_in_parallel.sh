@@ -30,7 +30,7 @@ if [[ -n "$1" ]]; then
 
   echo "${pgid}" > "$1"
 
-  env NODE_OPTIONS='-r source-map-support/register' NODE_PATH=out/src/test/unit/injected_modules npx jasmine --config=src/test/unit/jasmine.json --parallel=auto --color
+  env NODE_OPTIONS='-r source-map-support/register' NODE_PATH=out/src/test/unit/injected_modules npx jasmine --config=src/test/unit/jasmine.json --parallel=32 --color
 
   status=$?
 
