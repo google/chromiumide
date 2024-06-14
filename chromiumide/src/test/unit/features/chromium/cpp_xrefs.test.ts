@@ -126,7 +126,7 @@ describe('Chromium C++ xrefs', () => {
       noCurrentLink: true,
       workspaceFolders: ['src'],
       wantErrorMessage: jasmine.stringContaining(
-        'see [our guide](http://go/chromiumide-doc-chromium)'
+        'see [our guide](http://go/chromiumide-doc-chromium-output-directory)'
       ),
     },
     {

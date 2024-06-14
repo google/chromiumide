@@ -101,7 +101,7 @@ class ChromiumCompdbGenerator implements CompdbGeneratorCore {
   ): Promise<undefined | ErrorDetails> {
     const currentLink = path.join(this.chromiumRoot, 'src/out/current_link');
     if (!fs.existsSync(currentLink)) {
-      const doc = 'http://go/chromiumide-doc-chromium';
+      const doc = 'http://go/chromiumide-doc-chromium-output-directory';
       return new ErrorDetails(
         'out dir not exist',
         `out/current_link does not exist; see [our guide](${doc}) for set up instructions`
