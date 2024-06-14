@@ -168,11 +168,14 @@ export class CrosFormatEditProvider
   }
 
   /**
-   * Constructs the command that should be executed to format the given file. If `forceFormat` is
-   * true, returns the command that formats the file unconditionally. Otherwise, if PRESUBMIT.cfg is
-   * configured to run cros format, it constructs the command based on the config; otherwise returns
-   * undefined, meaning the file is not formatted on upload and the IDE should not run the
-   * formatter.
+   * Constructs the command that should be executed to format the given file.
+   * @param forceFormat overrides rule from PRESUBMIT.cfg or lack thereof and returns the default
+   * command that formats the file unconditionally.
+   * @returns one of
+   *   - the cros format command that should be run; default when forceFormat is true or the one
+   *      parsed from the file's git repo's PRESUBMIT.cfg.
+   *   - undefined; if PRESUBMIT.cfg does not exist or it does not contain a cros format rule.
+   *   - Error on failure to find or parse the PRESUBMIT.cfg.
    */
   private async constructCrosFormatCommand(
     document: vscode.TextDocument,

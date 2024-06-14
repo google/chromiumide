@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {findGitDir} from './common_util';
 import {ConfigParser} from './configparser';
 import {getDriver} from './driver_repository';
 import {LruCache} from './lru_cache';
@@ -59,18 +60,21 @@ export class PresubmitCfg {
       return cached === 'undefined' ? undefined : cached;
     }
 
-    let prefix = document.fileName;
-    while (prefix.startsWith(crosRoot)) {
-      const cand = driver.path.join(prefix, PRESUBMIT_CFG);
+    const gitRepoRoot = await findGitDir(document.fileName, crosRoot);
+    if (gitRepoRoot) {
+      const cand = driver.path.join(gitRepoRoot, PRESUBMIT_CFG);
       if (await driver.fs.exists(cand)) {
-        const cfg = new PresubmitCfg(await driver.fs.readFile(cand), prefix);
+        const cfg = new PresubmitCfg(
+          await driver.fs.readFile(cand),
+          gitRepoRoot
+        );
         cache?.set(document.fileName, cfg);
         return cfg;
       }
-      prefix = driver.path.dirname(prefix);
     }
 
     cache?.set(document.fileName, 'undefined');
+    return undefined;
   }
 
   private keyValues(section: Section): Record<string, string> | undefined {

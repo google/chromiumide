@@ -27,6 +27,7 @@ describe('Linter integration', () => {
 
   it('honors PRESUBMIT.cfg for cros lint', async () => {
     await testing.putFiles(state.chromeosRoot, {
+      'infra/recipes/.git/config': '',
       // Some fields are removed from the real content for brevity.
       'infra/recipes/PRESUBMIT.cfg': `[Hook Scripts]
 cros format = cros format --check --commit \${PRESUBMIT_COMMIT} --include '*.proto' --include 'OWNERS*' --exclude '*' \${PRESUBMIT_FILES}
