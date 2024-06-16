@@ -1385,6 +1385,17 @@
         "language": "portage",
         "scopeName": "source.portage",
         "path": "./languages/portage.tmLanguage.json"
+      },
+      {
+        "injectTo": [
+          "source.js",
+          "source.ts"
+        ],
+        "scopeName": "inline.embedded-trusted-html",
+        "path": "./languages/embedded-html.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.basic": "html"
+        }
       }
     ],
     "taskDefinitions": [

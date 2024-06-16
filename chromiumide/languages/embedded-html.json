@@ -1,0 +1,27 @@
+{
+  "injectionSelector": "L:source.js - comment - string, L:source.ts - comment - string",
+  "patterns": [
+    {
+      "contentName": "meta.embedded.block.basic",
+      "begin": "(getTrustedHTML\\s*)(`)",
+      "beginCaptures": {
+        "1": {
+          "name": "variable.other.ts"
+        },
+        "2": {
+          "name": "punctuation.definition.string.template.begin.js"
+        }
+      },
+      "end": "`",
+      "patterns": [
+        {
+          "include": "text.html.basic"
+        },
+        {
+          "match": "."
+        }
+      ]
+    }
+  ],
+  "scopeName": "inline.embedded-trusted-html"
+}
