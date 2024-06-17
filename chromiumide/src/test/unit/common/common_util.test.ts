@@ -207,7 +207,8 @@ describe('Logging exec', () => {
   it('supports killing the process tree when cancelling', async () => {
     const MARKER = crypto.randomUUID() + crypto.randomUUID();
     async function countRunning() {
-      const psAux = await commonUtil.exec('ps', ['ax', '-o', 'command']);
+      // Give ww for unlimited width, cancelling the effect of COLUMNS environment variable if any.
+      const psAux = await commonUtil.exec('ps', ['awwx', '-o', 'command']);
       return (
         (psAux as ExecResult).stdout.match(new RegExp(MARKER, 'g'))?.length ?? 0
       );
