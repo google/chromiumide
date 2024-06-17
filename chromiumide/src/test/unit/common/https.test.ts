@@ -19,6 +19,12 @@ const requestOptions = {
   agent: false,
 };
 
+async function listen(server: https.Server, port: number) {
+  const listening = new Promise(resolve => server.on('listening', resolve));
+  server.listen(port);
+  await listening;
+}
+
 describe('http get request', () => {
   let server: https.Server;
 
@@ -27,13 +33,12 @@ describe('http get request', () => {
   });
 
   it('returns data', async () => {
+    server = https.createServer(serverOptions, (req, resp) => {
+      resp.writeHead(200);
+      resp.end('hello');
+    });
     const port = await netUtil.findUnusedPort();
-    server = https
-      .createServer(serverOptions, (req, resp) => {
-        resp.writeHead(200);
-        resp.end('hello');
-      })
-      .listen(port);
+    await listen(server, port);
 
     await expectAsync(
       Https.getOrThrow(`https://localhost:${port}/`, requestOptions)
@@ -41,13 +46,12 @@ describe('http get request', () => {
   });
 
   it('throws on 403 (forbidden)', async () => {
+    server = https.createServer(serverOptions, (_req, resp) => {
+      resp.writeHead(403);
+      resp.end();
+    });
     const port = await netUtil.findUnusedPort();
-    server = https
-      .createServer(serverOptions, (_req, resp) => {
-        resp.writeHead(403);
-        resp.end();
-      })
-      .listen(port);
+    await listen(server, port);
 
     await expectAsync(
       Https.getOrThrow(`https://localhost:${port}/`, requestOptions)
@@ -57,13 +61,12 @@ describe('http get request', () => {
   });
 
   it('throws on 404 (not found)', async () => {
+    server = https.createServer(serverOptions, (_req, resp) => {
+      resp.writeHead(404);
+      resp.end();
+    });
     const port = await netUtil.findUnusedPort();
-    server = https
-      .createServer(serverOptions, (_req, resp) => {
-        resp.writeHead(404);
-        resp.end();
-      })
-      .listen(port);
+    await listen(server, port);
 
     await expectAsync(
       Https.getOrThrow(`https://localhost:${port}/`, requestOptions)
@@ -73,13 +76,12 @@ describe('http get request', () => {
   });
 
   it('throws on error', async () => {
+    server = https.createServer(serverOptions, (_req, resp) => {
+      resp.writeHead(200);
+      resp.end('hello');
+    });
     const port = await netUtil.findUnusedPort();
-    server = https
-      .createServer(serverOptions, (_req, resp) => {
-        resp.writeHead(200);
-        resp.end('hello');
-      })
-      .listen(port);
+    await listen(server, port);
 
     // Note the absence of the `requestOptions`. The request will be rejected
     // due to a self-signed certificated.
@@ -103,13 +105,12 @@ describe('http delete request', () => {
   });
 
   it('returns data', async () => {
+    server = https.createServer(serverOptions, (req, resp) => {
+      resp.writeHead(200);
+      resp.end('hello');
+    });
     const port = await netUtil.findUnusedPort();
-    server = https
-      .createServer(serverOptions, (req, resp) => {
-        resp.writeHead(200);
-        resp.end('hello');
-      })
-      .listen(port);
+    await listen(server, port);
 
     await expectAsync(
       Https.deleteOrThrow(`https://localhost:${port}/`, requestOptions)
@@ -117,13 +118,12 @@ describe('http delete request', () => {
   });
 
   it('throws on 403 (forbidden)', async () => {
+    server = https.createServer(serverOptions, (_req, resp) => {
+      resp.writeHead(403);
+      resp.end();
+    });
     const port = await netUtil.findUnusedPort();
-    server = https
-      .createServer(serverOptions, (_req, resp) => {
-        resp.writeHead(403);
-        resp.end();
-      })
-      .listen(port);
+    await listen(server, port);
 
     await expectAsync(
       Https.deleteOrThrow(`https://localhost:${port}/`, requestOptions)
@@ -133,13 +133,12 @@ describe('http delete request', () => {
   });
 
   it('throws on error', async () => {
+    server = https.createServer(serverOptions, (_req, resp) => {
+      resp.writeHead(200);
+      resp.end('hello');
+    });
     const port = await netUtil.findUnusedPort();
-    server = https
-      .createServer(serverOptions, (_req, resp) => {
-        resp.writeHead(200);
-        resp.end('hello');
-      })
-      .listen(port);
+    await listen(server, port);
 
     // Note the absence of the `requestOptions`. The request will be rejected
     // due to a self-signed certificated.
@@ -163,13 +162,12 @@ describe('http put request', () => {
   });
 
   it('returns data', async () => {
+    server = https.createServer(serverOptions, (req, resp) => {
+      resp.writeHead(200);
+      resp.end('hello');
+    });
     const port = await netUtil.findUnusedPort();
-    server = https
-      .createServer(serverOptions, (req, resp) => {
-        resp.writeHead(200);
-        resp.end('hello');
-      })
-      .listen(port);
+    await listen(server, port);
 
     await expectAsync(
       Https.putJsonOrThrow(`https://localhost:${port}/`, 'hi', requestOptions)
@@ -177,13 +175,12 @@ describe('http put request', () => {
   });
 
   it('throws on 403 (forbidden)', async () => {
+    server = https.createServer(serverOptions, (_req, resp) => {
+      resp.writeHead(403);
+      resp.end();
+    });
     const port = await netUtil.findUnusedPort();
-    server = https
-      .createServer(serverOptions, (_req, resp) => {
-        resp.writeHead(403);
-        resp.end();
-      })
-      .listen(port);
+    await listen(server, port);
 
     await expectAsync(
       Https.putJsonOrThrow(`https://localhost:${port}/`, 'hi', requestOptions)
@@ -193,13 +190,12 @@ describe('http put request', () => {
   });
 
   it('throws on error', async () => {
+    server = https.createServer(serverOptions, (_req, resp) => {
+      resp.writeHead(200);
+      resp.end('hello');
+    });
     const port = await netUtil.findUnusedPort();
-    server = https
-      .createServer(serverOptions, (_req, resp) => {
-        resp.writeHead(200);
-        resp.end('hello');
-      })
-      .listen(port);
+    await listen(server, port);
 
     // Note the absence of the `requestOptions`. The request will be rejected
     // due to a self-signed certificated.
@@ -223,13 +219,12 @@ describe('http post request', () => {
   });
 
   it('returns data', async () => {
+    server = https.createServer(serverOptions, (req, resp) => {
+      resp.writeHead(200);
+      resp.end('hello');
+    });
     const port = await netUtil.findUnusedPort();
-    server = https
-      .createServer(serverOptions, (req, resp) => {
-        resp.writeHead(200);
-        resp.end('hello');
-      })
-      .listen(port);
+    await listen(server, port);
 
     await expectAsync(
       Https.postJsonOrThrow(`https://localhost:${port}/`, 'hi', requestOptions)
@@ -237,13 +232,12 @@ describe('http post request', () => {
   });
 
   it('throws on 403 (forbidden)', async () => {
+    server = https.createServer(serverOptions, (_req, resp) => {
+      resp.writeHead(403);
+      resp.end();
+    });
     const port = await netUtil.findUnusedPort();
-    server = https
-      .createServer(serverOptions, (_req, resp) => {
-        resp.writeHead(403);
-        resp.end();
-      })
-      .listen(port);
+    await listen(server, port);
 
     await expectAsync(
       Https.postJsonOrThrow(`https://localhost:${port}/`, 'hi', requestOptions)
@@ -253,13 +247,12 @@ describe('http post request', () => {
   });
 
   it('throws on error', async () => {
+    server = https.createServer(serverOptions, (_req, resp) => {
+      resp.writeHead(200);
+      resp.end('hello');
+    });
     const port = await netUtil.findUnusedPort();
-    server = https
-      .createServer(serverOptions, (_req, resp) => {
-        resp.writeHead(200);
-        resp.end('hello');
-      })
-      .listen(port);
+    await listen(server, port);
 
     // Note the absence of the `requestOptions`. The request will be rejected
     // due to a self-signed certificated.
