@@ -3,31 +3,24 @@
 // found in the LICENSE file.
 
 import * as path from 'path';
-import glob = require('glob');
+import * as util from 'util';
+import glob from 'glob';
+import Jasmine from 'jasmine';
 import {registerDriver} from '../../../shared/app/common/driver_repository';
 import {DriverImpl} from '../../driver';
-const Jasmine = require('jasmine');
 
-export function run(): Promise<void> {
+export async function run(): Promise<void> {
   const testsRoot = __dirname;
 
-  return new Promise((c, e) => {
-    glob('**/**.test.js', {cwd: testsRoot}, (err, files) => {
-      if (err) {
-        return e(err);
-      }
+  registerDriver(new DriverImpl());
 
-      registerDriver(new DriverImpl());
-      const jasmine = new Jasmine();
+  const files = await util.promisify(glob)('**/*.test.js', {cwd: testsRoot});
+  const jasmine = new Jasmine();
+  files.forEach(f => jasmine.addSpecFile(path.resolve(testsRoot, f)));
 
-      files.forEach(f => jasmine.addSpecFile(path.resolve(testsRoot, f)));
-
-      jasmine.execute().then((jasmineDoneInfo: jasmine.JasmineDoneInfo) => {
-        if (jasmineDoneInfo.overallStatus === 'passed') {
-          return c();
-        }
-        return e(new Error(jasmineDoneInfo.overallStatus));
-      });
-    });
-  });
+  const jasmineDoneInfo = await jasmine.execute();
+  if (jasmineDoneInfo.overallStatus === 'passed') {
+    return;
+  }
+  throw new Error(jasmineDoneInfo.overallStatus);
 }
