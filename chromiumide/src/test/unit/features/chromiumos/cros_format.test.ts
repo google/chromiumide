@@ -75,6 +75,8 @@ describe('Cros format feature', () => {
     const crosFile = (subpath: string) =>
       vscode.Uri.file(driver.path.join(crosRoot, subpath));
 
+    fakeExec.installStdout('which', ['cros'], '/fake/path/to/depot_tools/cros');
+
     return {
       crosRoot,
       onDidHandleEvent,
@@ -183,7 +185,11 @@ describe('Cros format feature', () => {
       new FakeTextDocument({uri: state.crosFile('src/platform2/foo.c')})
     );
 
-    expect(fakeExec).toHaveBeenCalled();
+    expect(fakeExec).toHaveBeenCalledWith(
+      jasmine.stringContaining('chromite/bin/cros'),
+      jasmine.arrayContaining(['format']),
+      jasmine.anything()
+    );
     expect(edits).toBeDefined();
     expect(state.statusManager.getStatus('Formatter')).toEqual(TaskStatus.OK);
     expect(driver.metrics.send).toHaveBeenCalledOnceWith({
@@ -206,7 +212,11 @@ describe('Cros format feature', () => {
       })
     );
 
-    expect(fakeExec).not.toHaveBeenCalled();
+    expect(fakeExec).not.toHaveBeenCalledWith(
+      jasmine.stringContaining('chromite/bin/cros'),
+      jasmine.arrayContaining(['format']),
+      jasmine.anything()
+    );
     expect(edits).toBeUndefined();
     expect(driver.metrics.send).not.toHaveBeenCalled();
   });
@@ -241,7 +251,11 @@ cros format = cros format --check --commit \${PRESUBMIT_COMMIT} --include '*.pro
       new FakeTextDocument({uri: state.crosFile('src/platform2/foo.c')})
     );
 
-    expect(fakeExec).not.toHaveBeenCalled();
+    expect(fakeExec).not.toHaveBeenCalledWith(
+      jasmine.stringContaining('chromite/bin/cros'),
+      jasmine.arrayContaining(['format']),
+      jasmine.anything()
+    );
     expect(edits).toBeUndefined();
     expect(driver.metrics.send).not.toHaveBeenCalled();
   });
@@ -263,11 +277,7 @@ cros format = cros format --check --commit \${PRESUBMIT_COMMIT} --include '*.pro
       })
     );
 
-    fakeExec.and.resolveTo({
-      exitStatus: 1,
-      stderr: '',
-      stdout: 'after fmt',
-    });
+    fakeExec.and.resolveTo({exitStatus: 1, stderr: '', stdout: 'after fmt'});
 
     vscodeGetters.window.activeTextEditor.and.returnValue(textEditor);
     await vscode.commands.executeCommand('chromiumide.crosFormat.forceFormat');
@@ -342,14 +352,18 @@ cros format: cros format --include=webrtc_apm/* --exclude=* --check --commit \${
 
       if (wantOptions) {
         expect(edits![0].newText).toEqual('x');
-        expect(fakeExec).toHaveBeenCalledOnceWith(
+        expect(fakeExec).toHaveBeenCalledWith(
           driver.path.join(state.crosRoot, 'chromite/bin/cros'),
           ['format', ...wantOptions, file.fsPath],
           jasmine.anything()
         );
       } else {
         expect(edits).toBeUndefined();
-        expect(fakeExec).not.toHaveBeenCalled();
+        expect(fakeExec).not.toHaveBeenCalledWith(
+          jasmine.stringContaining('chromite/bin/cros'),
+          jasmine.arrayContaining(['format']),
+          jasmine.anything()
+        );
       }
     });
 });

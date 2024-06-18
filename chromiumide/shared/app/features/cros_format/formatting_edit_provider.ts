@@ -5,6 +5,7 @@
 import * as vscode from 'vscode';
 import {crosExeFromCrosRoot} from '../../common/chromiumos/cros';
 import * as commonUtil from '../../common/common_util';
+import {extraEnvForDepotTools} from '../../common/depot_tools';
 import {getDriver} from '../../common/driver_repository';
 import {LruCache} from '../../common/lru_cache';
 import {OptionsParser} from '../../common/parse';
@@ -92,6 +93,7 @@ export class CrosFormatEditProvider
       logger: this.output,
       ignoreNonZeroExit: true,
       cwd: crosRoot,
+      extraEnv: await extraEnvForDepotTools(),
     });
 
     if (formatterOutput instanceof Error) {
