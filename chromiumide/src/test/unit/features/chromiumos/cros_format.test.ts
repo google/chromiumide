@@ -68,9 +68,6 @@ describe('Cros format feature', () => {
 
     const crosRoot = driver.path.join(tempDir.path, 'os');
     await testing.buildFakeChromeos(crosRoot);
-    await testing.putFiles(crosRoot, {
-      'src/platform2/.git/config': '',
-    });
 
     const crosFile = (subpath: string) =>
       vscode.Uri.file(driver.path.join(crosRoot, subpath));
@@ -95,15 +92,13 @@ describe('Cros format feature', () => {
 
   it('shows error when the command fails (execution error)', async () => {
     await fs.promises.writeFile(
-      state.crosFile('src/platform2/PRESUBMIT.cfg').fsPath,
+      state.crosFile('PRESUBMIT.cfg').fsPath,
       '[Hook Scripts]\ncros format = cros format --check --commit ${PRESUBMIT_COMMIT} ${PRESUBMIT_FILES}\n'
     );
 
     fakeExec.and.resolveTo(new Error());
 
-    await state.format(
-      new FakeTextDocument({uri: state.crosFile('src/platform2/foo.c')})
-    );
+    await state.format(new FakeTextDocument({uri: state.crosFile('foo.c')}));
 
     expect(state.statusManager.getStatus('Formatter')).toEqual(
       TaskStatus.ERROR
@@ -118,7 +113,7 @@ describe('Cros format feature', () => {
 
   it('shows error when the command fails due to file syntax error', async () => {
     await fs.promises.writeFile(
-      state.crosFile('src/platform2/PRESUBMIT.cfg').fsPath,
+      state.crosFile('PRESUBMIT.cfg').fsPath,
       '[Hook Scripts]\ncros format = cros format --check --commit ${PRESUBMIT_COMMIT} ${PRESUBMIT_FILES}\n'
     );
 
@@ -129,9 +124,7 @@ describe('Cros format feature', () => {
     };
     fakeExec.and.resolveTo(execResult);
 
-    await state.format(
-      new FakeTextDocument({uri: state.crosFile('src/platform2/foo.c')})
-    );
+    await state.format(new FakeTextDocument({uri: state.crosFile('foo.c')}));
 
     expect(state.statusManager.getStatus('Formatter')).toEqual(
       TaskStatus.ERROR
@@ -146,7 +139,7 @@ describe('Cros format feature', () => {
 
   it('does not format code that is already formatted correctly', async () => {
     await fs.promises.writeFile(
-      state.crosFile('src/platform2/PRESUBMIT.cfg').fsPath,
+      state.crosFile('PRESUBMIT.cfg').fsPath,
       '[Hook Scripts]\ncros format = cros format --check --commit ${PRESUBMIT_COMMIT} ${PRESUBMIT_FILES}\n'
     );
 
@@ -158,7 +151,7 @@ describe('Cros format feature', () => {
     fakeExec.and.resolveTo(execResult);
 
     const edits = await state.format(
-      new FakeTextDocument({uri: state.crosFile('src/platform2/foo.c')})
+      new FakeTextDocument({uri: state.crosFile('foo.c')})
     );
 
     expect(edits).toBeUndefined();
@@ -168,7 +161,7 @@ describe('Cros format feature', () => {
 
   it('formats code', async () => {
     await fs.promises.writeFile(
-      state.crosFile('src/platform2/PRESUBMIT.cfg').fsPath,
+      state.crosFile('PRESUBMIT.cfg').fsPath,
       '[Hook Scripts]\ncros format = cros format --check --commit ${PRESUBMIT_COMMIT} ${PRESUBMIT_FILES}\n'
     );
 
@@ -180,7 +173,7 @@ describe('Cros format feature', () => {
     fakeExec.and.resolveTo(execResult);
 
     const edits = await state.format(
-      new FakeTextDocument({uri: state.crosFile('src/platform2/foo.c')})
+      new FakeTextDocument({uri: state.crosFile('foo.c')})
     );
 
     expect(fakeExec).toHaveBeenCalled();
@@ -196,7 +189,7 @@ describe('Cros format feature', () => {
 
   it('does not format files outside CrOS', async () => {
     await fs.promises.writeFile(
-      state.crosFile('src/platform2/PRESUBMIT.cfg').fsPath,
+      state.crosFile('PRESUBMIT.cfg').fsPath,
       '[Hook Scripts]\ncros format = cros format --check --commit ${PRESUBMIT_COMMIT} ${PRESUBMIT_FILES}\n'
     );
 
@@ -211,34 +204,18 @@ describe('Cros format feature', () => {
     expect(driver.metrics.send).not.toHaveBeenCalled();
   });
 
-  it("does nothing if PRESUBMIT.cfg does not exist in the file's git repo", async () => {
-    const file = state.crosFile('src/platform2/foo/foo.c');
-
-    // Put PRESUBMIT.cfg in the file's parent git repo but that should not be used.
-    const content = `[Hook Scripts]
-cros format = cros format --check --commit \${PRESUBMIT_COMMIT} --include '*.proto' --include 'OWNERS*' --exclude '*' \${PRESUBMIT_FILES}
-`;
-    await testing.putFiles(state.crosRoot, {
-      'src/platform2/.git/config': '',
-      'src/platform2/PRESUBMIT.cfg': content,
-      'src/platform2/foo/.git/config': '',
-    });
-    const edits = await state.format(new FakeTextDocument({uri: file}));
-    expect(edits).toBeUndefined();
-  });
-
   it('does not format files that are in .presubmitignore', async () => {
     await fs.promises.writeFile(
-      state.crosFile('src/platform2/PRESUBMIT.cfg').fsPath,
+      state.crosFile('PRESUBMIT.cfg').fsPath,
       '[Hook Scripts]\ncros format = cros format --check --commit ${PRESUBMIT_COMMIT} ${PRESUBMIT_FILES}\n'
     );
 
     await testing.putFiles(state.crosRoot, {
-      'src/platform2/.presubmitignore': '*.c',
+      '.presubmitignore': '*.c',
     });
 
     const edits = await state.format(
-      new FakeTextDocument({uri: state.crosFile('src/platform2/foo.c')})
+      new FakeTextDocument({uri: state.crosFile('foo.c')})
     );
 
     expect(fakeExec).not.toHaveBeenCalled();
@@ -248,17 +225,17 @@ cros format = cros format --check --commit \${PRESUBMIT_COMMIT} --include '*.pro
 
   it('force format when instructed so', async () => {
     await fs.promises.writeFile(
-      state.crosFile('src/platform2/PRESUBMIT.cfg').fsPath,
+      state.crosFile('PRESUBMIT.cfg').fsPath,
       '[Hook Scripts]\ncros format = cros format --check --commit ${PRESUBMIT_COMMIT} ${PRESUBMIT_FILES}\n'
     );
 
     await testing.putFiles(state.crosRoot, {
-      'src/.presubmitignore': '*.c',
+      '.presubmitignore': '*.c',
     });
 
     const textEditor = new FakeTextEditor(
       new FakeTextDocument({
-        uri: state.crosFile('src/platform2/foo.c'),
+        uri: state.crosFile('foo.c'),
         text: 'before fmt',
       })
     );
@@ -278,13 +255,12 @@ cros format = cros format --check --commit \${PRESUBMIT_COMMIT} --include '*.pro
 
   for (const {name, content, wantOptions} of [
     {
-      name: 'constructs correct command from an empty PRESUBMIT.cfg',
+      name: 'not work on empty PRESUBMIT.cfg',
       content: '',
       wantOptions: undefined,
     },
     {
-      name: 'constructs correct command from a multi-line PRESUBMIT.cfg with other commands',
-      // Taken from chromite.
+      name: 'works on chromite/PRESUBMIT.cfg',
       content: `[Hook Scripts]
 cros format = bin/cros format --check --commit \${PRESUBMIT_COMMIT} \${PRESUBMIT_FILES}
 cros lint = bin/cros lint --commit \${PRESUBMIT_COMMIT} \${PRESUBMIT_FILES}
@@ -297,8 +273,8 @@ project_prefix_check: true
       wantOptions: ['--stdout'],
     },
     {
-      name: 'constructs correct command from PRESUBMIT.cfg with extra options come after --commit',
-      // Taken from infra/recipes, trimmed for brevity.
+      name: 'works on infra/recipes/PRESUBMIT.cfg',
+      // Trimmed for brevity.
       content: `[Hook Scripts]
 cros format = cros format --check --commit \${PRESUBMIT_COMMIT} --include '*.proto' --include 'OWNERS*' --exclude '*' \${PRESUBMIT_FILES}
 `,
@@ -313,8 +289,8 @@ cros format = cros format --check --commit \${PRESUBMIT_COMMIT} --include '*.pro
       ],
     },
     {
-      name: 'constructs correct command from PRESUBMIT.cfg with extra options come before --commit',
-      // Taken from third_party/webrtc-apm, trimmed for brevity.
+      name: 'works on third_party/webrtc-apm/PRESUBMIT.cfg',
+      // Trimmed for brevity.
       content: `[Hook Scripts]
 cros format: cros format --include=webrtc_apm/* --exclude=* --check --commit \${PRESUBMIT_COMMIT} -- \${PRESUBMIT_FILES}
 `,
@@ -323,12 +299,10 @@ cros format: cros format --include=webrtc_apm/* --exclude=* --check --commit \${
   ])
     it(name, async () => {
       // Test that PRESUMBIT.cfg is parsed and cros format is invoked with the expected arguments.
-      await fs.promises.writeFile(
-        state.crosFile('src/platform2/PRESUBMIT.cfg').fsPath,
-        content
-      );
 
-      const file = state.crosFile('src/platform2/foo/foo.c');
+      const file = state.crosFile('foo.c');
+
+      await testing.putFiles(state.crosRoot, {'PRESUBMIT.cfg': content});
 
       fakeExec.and.callFake(() =>
         Promise.resolve({
