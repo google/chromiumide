@@ -11,6 +11,7 @@ import {maybeConfigureOrSuggestSettingDefaultFormatter} from '../../../../../sha
 import {isPresubmitignored} from '../../../../../shared/app/features/cros_format/presubmitignore';
 import * as config from '../../../../../shared/app/services/config';
 import {TaskStatus} from '../../../../../shared/app/ui/bg_task_status';
+import {Platform} from '../../../../../shared/driver';
 import * as testing from '../../../testing';
 import {
   FakeTextDocument,
@@ -502,7 +503,7 @@ describe('maybeConfigureOrSuggestSettingDefaultFormatter', () => {
     expect(vscodeSpy.window.showInformationMessage).not.toHaveBeenCalled();
   });
 
-  it('updates workspace default formatter config value if user says yes and suggests setting it in all workspaces', async () => {
+  it('updates workspace default formatter config value if user says yes without asking to always set it (vscode only)', async () => {
     await config.vscode.editor.defaultFormatter.update('prettier');
 
     const chromiumideConfig = FakeWorkspaceConfiguration.fromSection(
@@ -521,13 +522,6 @@ describe('maybeConfigureOrSuggestSettingDefaultFormatter', () => {
         jasmine.anything()
       )
       .and.returnValue('Yes');
-    vscodeSpy.window.showInformationMessage
-      .withArgs(
-        jasmine.stringContaining('default formatter in all workspace'),
-        jasmine.anything(),
-        jasmine.anything()
-      )
-      .and.returnValue(undefined);
 
     await maybeConfigureOrSuggestSettingDefaultFormatter(
       [
@@ -542,7 +536,7 @@ describe('maybeConfigureOrSuggestSettingDefaultFormatter', () => {
     expect(config.vscode.editor.defaultFormatter.get()).toEqual(
       'Google.cros-ide'
     );
-    expect(vscodeSpy.window.showInformationMessage).toHaveBeenCalledTimes(2);
+    expect(vscodeSpy.window.showInformationMessage).toHaveBeenCalledTimes(1);
   });
 
   it('updates workspace but not global per-workspace suggestion config if user requests so', async () => {
@@ -637,15 +631,77 @@ describe('maybeConfigureOrSuggestSettingDefaultFormatter', () => {
     );
   });
 
-  it('updates workspace default formatter config value if always set as default is enabled', async () => {
+  it('updates workspace default formatter config value if user says yes and suggests setting it in all workspaces (cider only)', async () => {
     await config.vscode.editor.defaultFormatter.update('prettier');
 
     const chromiumideConfig = FakeWorkspaceConfiguration.fromSection(
       'chromiumide',
       subscriptions
     );
+    // Add cider-only configs.
+    await chromiumideConfig.update('crosFormat.alwaysDefaultInCros', false);
+    await chromiumideConfig.update(
+      'crosFormat.suggestAlwaysDefaultInCros',
+      true
+    );
+    await chromiumideConfig.update(
+      'crosFormat.hasBeenSetAsDefaultInThisWorkspace',
+      false,
+      vscode.ConfigurationTarget.Workspace
+    );
+    vscodeSpy.workspace.getConfiguration
+      .withArgs('chromiumide')
+      .and.returnValue(chromiumideConfig);
+
+    vscodeSpy.window.showInformationMessage
+      .withArgs(
+        jasmine.stringContaining('default formatter in this workspace'),
+        jasmine.anything(),
+        jasmine.anything(),
+        jasmine.anything()
+      )
+      .and.returnValue('Yes');
+    vscodeSpy.window.showInformationMessage
+      .withArgs(
+        jasmine.stringContaining('default formatter in all workspace'),
+        jasmine.anything(),
+        jasmine.anything()
+      )
+      .and.returnValue(undefined);
+
+    await maybeConfigureOrSuggestSettingDefaultFormatter(
+      [
+        {
+          uri: vscode.Uri.file(tempDirCrosRoot.path),
+        } as vscode.WorkspaceFolder,
+      ],
+      extensionId,
+      undefined,
+      Platform.CIDER
+    );
+
+    // Confirm default formatter is updated to the one provided by the extension.
+    expect(config.vscode.editor.defaultFormatter.get()).toEqual(
+      'Google.cros-ide'
+    );
+    expect(vscodeSpy.window.showInformationMessage).toHaveBeenCalledTimes(2);
+  });
+
+  it('updates workspace default formatter config value if always set as default is enabled (cider only)', async () => {
+    await config.vscode.editor.defaultFormatter.update('prettier');
+
+    const chromiumideConfig = FakeWorkspaceConfiguration.fromSection(
+      'chromiumide',
+      subscriptions
+    );
+    // Add cider-only configs.
     // User has enabled always automatically set default formatter in any CrOS workspace.
     await chromiumideConfig.update('crosFormat.alwaysDefaultInCros', true);
+    await chromiumideConfig.update(
+      'crosFormat.hasBeenSetAsDefaultInThisWorkspace',
+      false,
+      vscode.ConfigurationTarget.Workspace
+    );
     vscodeSpy.workspace.getConfiguration
       .withArgs('chromiumide')
       .and.returnValue(chromiumideConfig);
@@ -657,7 +713,9 @@ describe('maybeConfigureOrSuggestSettingDefaultFormatter', () => {
           uri: vscode.Uri.file(tempDirNotCros.path),
         } as vscode.WorkspaceFolder,
       ],
-      extensionId
+      extensionId,
+      undefined,
+      Platform.CIDER
     );
     // Do nothing.
     expect(config.vscode.editor.defaultFormatter.get()).toEqual('prettier');
@@ -670,7 +728,9 @@ describe('maybeConfigureOrSuggestSettingDefaultFormatter', () => {
           uri: vscode.Uri.file(tempDirCrosRoot.path),
         } as vscode.WorkspaceFolder,
       ],
-      extensionId
+      extensionId,
+      undefined,
+      Platform.CIDER
     );
     // Confirm default formatter is automatically updated to the one provided by the extension
     // without prompting user at all.
@@ -688,7 +748,9 @@ describe('maybeConfigureOrSuggestSettingDefaultFormatter', () => {
           uri: vscode.Uri.file(tempDirCrosRoot.path),
         } as vscode.WorkspaceFolder,
       ],
-      extensionId
+      extensionId,
+      undefined,
+      Platform.CIDER
     );
     // Default formatter should retain its value set and will not be updated nor prompts user.
     expect(config.vscode.editor.defaultFormatter.get()).toEqual('prettier');

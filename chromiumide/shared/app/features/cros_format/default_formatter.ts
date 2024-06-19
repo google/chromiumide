@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
+import {Platform} from '../../../driver';
 import {getDriver} from '../../common/driver_repository';
 import * as config from '../../services/config';
 
@@ -15,7 +16,8 @@ const driver = getDriver();
 export async function maybeConfigureOrSuggestSettingDefaultFormatter(
   folders: Readonly<vscode.WorkspaceFolder[]>,
   extensionId: string,
-  output?: vscode.OutputChannel
+  output?: vscode.OutputChannel,
+  platform = driver.platform()
 ): Promise<void> {
   output?.appendLine(
     `New workspace folders added (${folders
@@ -24,29 +26,38 @@ export async function maybeConfigureOrSuggestSettingDefaultFormatter(
         ', '
       )}). Current default formatter is ${config.vscode.editor.defaultFormatter.get()} and suggest setting chromiumide as default is ${
       config.crosFormat.suggestSetAsDefault.get() ? 'enabled' : 'disabled'
-    }. Always set as default in CrOS workspace option is ${
-      config.crosFormat.alwaysDefaultInCros.get() ? 'enabled' : 'disabled'
-    } and we have ${
-      config.crosFormat.hasBeenSetAsDefaultInThisWorkspace.get() ? '' : 'not'
-    } set it to ${extensionId} at least once.`
+    }.`
   );
+  if (platform === Platform.CIDER) {
+    output?.appendLine(
+      `Always set as default in CrOS workspace option is ${
+        config.crosFormat.alwaysDefaultInCros.get() ? 'enabled' : 'disabled'
+      } and we have ${
+        config.crosFormat.hasBeenSetAsDefaultInThisWorkspace.get() ? '' : 'not'
+      } set it to ${extensionId} at least once.`
+    );
+  }
 
   // Exit early if any of the following is true
   //   * chromiumide is already the default formatter,
   //   * user has disabled the suggestion,
-  //   * user has enabled the "always set as default in CrOS workspaces" option and it has been set
-  //     at least once by the extension.
+  //   * on cider, user has enabled the "always set as default in CrOS workspaces" option and it has
+  //     been set at least once by the extension.
   if (
     config.vscode.editor.defaultFormatter.get() === extensionId ||
     !config.crosFormat.suggestSetAsDefault.get() ||
-    (config.crosFormat.alwaysDefaultInCros.get() &&
+    (platform === Platform.CIDER &&
+      config.crosFormat.alwaysDefaultInCros.get() &&
       config.crosFormat.hasBeenSetAsDefaultInThisWorkspace.get())
   ) {
     return;
   }
 
-  // If user has enabled the "always set as default in CrOS workspaces" option.
-  if (config.crosFormat.alwaysDefaultInCros.get()) {
+  // If user has enabled the "always set as default in CrOS workspaces" option (cider only).
+  if (
+    platform === Platform.CIDER &&
+    config.crosFormat.alwaysDefaultInCros.get()
+  ) {
     if (
       !config.crosFormat.hasBeenSetAsDefaultInThisWorkspace.get() &&
       (await hasCrOSFolder(folders, output))
@@ -71,14 +82,19 @@ export async function maybeConfigureOrSuggestSettingDefaultFormatter(
     config.crosFormat.suggestSetAsDefault.get() &&
     (await hasCrOSFolder(folders, output))
   ) {
-    await suggestSettingDefaultFormatterInThisWorkspace(extensionId, output);
+    await suggestSettingDefaultFormatterInThisWorkspace(
+      extensionId,
+      output,
+      platform
+    );
     return;
   }
 }
 
 async function suggestSettingDefaultFormatterInThisWorkspace(
   extensionId: string,
-  output?: vscode.OutputChannel
+  output?: vscode.OutputChannel,
+  platform = driver.platform()
 ): Promise<void> {
   // If the workspace folder is in a CrOS repo, suggest setting cros format as the workspace
   // default formatter.
@@ -96,9 +112,13 @@ async function suggestSettingDefaultFormatterInThisWorkspace(
       `Setting ${extensionId} as default formatter in workspace`
     );
     await config.vscode.editor.defaultFormatter.update(extensionId);
+    // On cider, workspaces are created frequently.
     // Since user said yes to this prompt, they might want to always set the default formatter
     // automatically. Ask if they have not disabled the suggestion.
-    if (config.crosFormat.suggestAlwaysDefaultInCros.get()) {
+    if (
+      platform === Platform.CIDER &&
+      config.crosFormat.suggestAlwaysDefaultInCros.get()
+    ) {
       await suggestSettingDefaultFormatterAlways();
     }
   } else if (choice === CHOICE_NO_WORKPLACE) {

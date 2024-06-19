@@ -1079,21 +1079,6 @@
           "description": "Suggest user to set ChromiumIDE as the workspace default formatter",
           "default": true
         },
-        "chromiumide.crosFormat.alwaysDefaultInCros": {
-          "type": "boolean",
-          "description": "Automatically set ChromiumIDE as the workspace default formatter whenever a CrOS repo is opened",
-          "default": false
-        },
-        "chromiumide.crosFormat.suggestAlwaysDefaultInCros": {
-          "type": "boolean",
-          "description": "Suggest user to always automatically set ChromiumIDE as the workspace default formatter when a CrOS repo is opened",
-          "default": true
-        },
-        "chromiumide.crosFormat.hasBeenSetAsDefaultInThisWorkspace": {
-          "type": "boolean",
-          "description": "The extension has set ChromiumIDE formatter as the current workspace default formatter once. Only relevant when alwaysDefaultInCros is enabled.",
-          "default": false
-        },
         "chromiumide.deviceManagement.usePinnedCrosfleet": {
           "type": "boolean",
           "description": "Uses a pinned version of crosfleet as a temporary workaround for crosfleet API issues.",

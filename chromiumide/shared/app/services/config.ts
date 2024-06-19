@@ -158,11 +158,13 @@ export const crosFormat = {
   alwaysDefaultInCros: new ConfigValue<boolean>(
     'crosFormat.alwaysDefaultInCros'
   ),
+  // Only used and visible (in package.json) on Cider.
   suggestAlwaysDefaultInCros: new ConfigValue<boolean>(
     'crosFormat.suggestAlwaysDefaultInCros'
   ),
   // The config to keep track of whether we have set default formatter automatically in this
   // workspace at least once so that any manual change by user will be retained.
+  // Only used and visible (in package.json) on Cider.
   hasBeenSetAsDefaultInThisWorkspace: new ConfigValue<boolean>(
     'crosFormat.hasBeenSetAsDefaultInThisWorkspace',
     undefined,
