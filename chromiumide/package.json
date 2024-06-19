@@ -1251,6 +1251,12 @@
     },
     "languages": [
       {
+        "id": "python",
+        "extensions": [
+          ".gclient"
+        ]
+      },
+      {
         "id": "shellscript",
         "extensions": [
           ".eclass"
