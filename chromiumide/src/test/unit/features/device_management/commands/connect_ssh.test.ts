@@ -218,5 +218,5 @@ cnc
     );
 
     expect(processExists(pid)).toBeFalse();
-  }, 100);
+  });
 });
