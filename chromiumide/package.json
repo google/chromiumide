@@ -1555,7 +1555,7 @@
     },
     "test": {
       "dependencies": [
-        "unit-test-parallel",
+        "unit-test",
         "integration-test",
         "check",
         "lint"
