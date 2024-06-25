@@ -83,6 +83,9 @@ export class CrosFormatEditProvider
         return;
       }
       if (constructedArgs === undefined) {
+        this.output.appendLine(
+          `No PRESUBMIT.cfg or \`cros format\` command not found for ${fsPath}, not formatting the document.`
+        );
         return;
       }
       args = constructedArgs;
@@ -188,15 +191,33 @@ export class CrosFormatEditProvider
     const crosExe = crosExeFromCrosRoot(crosRoot);
     const defaultCommand = [crosExe, 'format', '--stdout', document.uri.fsPath];
 
-    if (forceFormat) return defaultCommand;
+    if (forceFormat) {
+      this.output.appendLine(
+        `Format ${document.uri.fsPath} in force mode, ignore PRESUBMIT.cfg and use default \`cros format\` command.`
+      );
+      return defaultCommand;
+    }
 
     const cfg = await PresubmitCfg.forDocument(document, crosRoot);
     // Don't format if PRESUBMIT.cfg doesn't exist.
-    if (!cfg) return undefined;
+    if (!cfg) {
+      this.output.appendLine(
+        `PRESUBMIT.cfg not found for ${document.uri.fsPath}, do not run \`cros format\`.`
+      );
+      return undefined;
+    }
+    this.output.appendLine(
+      `Using ${cfg.root}/PRESUBMIT.cfg to format ${document.uri.fsPath}.`
+    );
     // As of its writing no PRESUBMIT.cfg has more than one cros format entries.
     const command = cfg.crosFormatRunAsHookScript()?.[0];
     // Don't format if PRESUBMIT.cfg instructs not to run cros format.
-    if (!command) return undefined;
+    if (!command) {
+      this.output.appendLine(
+        `${cfg.root}/PRESUBMIT.cfg contains no \`cros format\` command.`
+      );
+      return undefined;
+    }
 
     const parser = new OptionsParser(command, {
       allowArgs: true,
@@ -211,6 +232,11 @@ export class CrosFormatEditProvider
         `parse cros format commad in PRESUBMIT.cfg for ${document.uri.fsPath}: ${e}`
       );
     }
+    this.output.appendLine(
+      `Parsed \`cros format\` command from ${
+        cfg.root
+      }/PRESUBMIT.cfg is ${args.join(' ')}.`
+    );
     // Update args so that the command outputs formatted text.
     args[0] = crosExe; // Replace 'bin/cros' (for chromite) or 'cros'.
     const endOfOptions = args.indexOf('--');
@@ -220,7 +246,6 @@ export class CrosFormatEditProvider
     remove(args, '${PRESUBMIT_FILES}');
 
     args.push('--stdout', document.uri.fsPath);
-
     return args;
   }
 }

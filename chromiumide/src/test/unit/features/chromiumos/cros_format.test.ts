@@ -331,6 +331,26 @@ cros format: cros format --include=webrtc_apm/* --exclude=* --check --commit \${
 `,
       wantOptions: ['--include', 'webrtc_apm/*', '--exclude', '*', '--stdout'],
     },
+    {
+      // Taken from src/platform2, trimmed for brevity.
+      name: 'constructs correct command from PRESUBMIT.cfg where  `cros format` contains string "[...]"',
+      content: `[Hook Scripts]
+cros format = cros format --check --commit \${PRESUBMIT_COMMIT} --include "*/DIR_METADATA" --include "OWNERS*" --include "*.[ch]" --include "*.cc" --include "*.cpp"  \${PRESUBMIT_FILES}
+`,
+      wantOptions: [
+        '--include',
+        '*/DIR_METADATA',
+        '--include',
+        'OWNERS*',
+        '--include',
+        '*.[ch]',
+        '--include',
+        '*.cc',
+        '--include',
+        '*.cpp',
+        '--stdout',
+      ],
+    },
   ])
     it(name, async () => {
       // Test that PRESUMBIT.cfg is parsed and cros format is invoked with the expected arguments.

@@ -16,7 +16,10 @@ export class ConfigParser {
   }
 
   parse(): Config {
-    const sectionRe = /\[(.*)\]/;
+    // A section header line looks like "[Hook Scripts]".
+    //   - the name should always be non-empty.
+    //   - the line should start with '[' (but allow ending with non-']' char in case of comments).
+    const sectionRe = /^\[(.+)\]/;
 
     const config: Config = {};
     let section = '';
@@ -31,10 +34,12 @@ export class ConfigParser {
 
       const m = sectionRe.exec(line);
       if (m) {
+        // Store key-value parsed so far of previous section to config.
         if (section) {
           config[section] = keyValues;
-          keyValues = {};
         }
+        // Reset key-value dict and section name for the new section encountered.
+        keyValues = {};
         section = m[1];
         continue;
       }
