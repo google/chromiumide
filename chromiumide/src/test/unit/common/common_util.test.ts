@@ -7,6 +7,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../shared/app/common/common_util';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {
   ExecResult,
   AbnormalExitError,
@@ -15,6 +16,8 @@ import {
 import {Mutex} from '../../../common/mutex';
 import {ALLOWED_ENV_NAMES} from '../../../driver/exec';
 import * as testing from '../../testing';
+
+const driver = getDriver();
 
 class SimpleLogger {
   constructor(private readonly f: (s: string) => void) {}
@@ -321,7 +324,7 @@ describe('findGitDir', () => {
 
   it('throws error when file is not under root', async () => {
     await expectAsync(
-      commonUtil.findGitDir(fullPath('a/b/c'), fullPath('x'))
+      driver.findGitDir(fullPath('a/b/c'), fullPath('x'))
     ).toBeRejectedWithError(/must be under/);
   });
 
@@ -337,23 +340,17 @@ describe('findGitDir', () => {
     });
     await commonUtil.exec('git', ['init'], {cwd: fullPath('a')});
 
-    expect(await commonUtil.findGitDir(fullPath('a/b/c/d.txt'))).toEqual(
+    expect(await driver.findGitDir(fullPath('a/b/c/d.txt'))).toEqual(
       fullPath('a/b')
     );
-    expect(
-      await commonUtil.findGitDir(fullPath('a/b/c/no_such_file.txt'))
-    ).toEqual(fullPath('a/b'));
-    expect(await commonUtil.findGitDir(fullPath('a/b/c'))).toEqual(
+    expect(await driver.findGitDir(fullPath('a/b/c/no_such_file.txt'))).toEqual(
       fullPath('a/b')
     );
-    expect(await commonUtil.findGitDir(fullPath('a/b'))).toEqual(
-      fullPath('a/b')
-    );
-    expect(await commonUtil.findGitDir(fullPath('a/e.txt'))).toEqual(
-      fullPath('a')
-    );
-    expect(await commonUtil.findGitDir(fullPath('a'))).toEqual(fullPath('a'));
-    expect(await commonUtil.findGitDir(fullPath('x/y/z.txt'))).toBeUndefined();
+    expect(await driver.findGitDir(fullPath('a/b/c'))).toEqual(fullPath('a/b'));
+    expect(await driver.findGitDir(fullPath('a/b'))).toEqual(fullPath('a/b'));
+    expect(await driver.findGitDir(fullPath('a/e.txt'))).toEqual(fullPath('a'));
+    expect(await driver.findGitDir(fullPath('a'))).toEqual(fullPath('a'));
+    expect(await driver.findGitDir(fullPath('x/y/z.txt'))).toBeUndefined();
   });
 });
 

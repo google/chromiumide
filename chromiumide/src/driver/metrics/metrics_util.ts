@@ -5,7 +5,6 @@
 import * as fs from 'fs';
 import * as https from 'https';
 import * as os from 'os';
-import * as commonUtil from '../../../shared/app/common/common_util';
 import {getDriver} from '../../../shared/app/common/driver_repository';
 import * as metricsEvent from '../../../shared/app/common/metrics/metrics_event';
 import {chromiumRoot} from '../../common/chromium/fs';
@@ -66,7 +65,7 @@ export async function getGitRepoName(
     return undefined;
   }
 
-  const gitDir = await commonUtil.findGitDir(filePath);
+  const gitDir = await driver.findGitDir(filePath);
   if (!gitDir) {
     return undefined;
   }

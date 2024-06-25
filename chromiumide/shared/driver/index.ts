@@ -22,6 +22,14 @@ export type Driver = Readonly<{
   os: Os;
   path: Path;
   metrics: Metrics;
+  /**
+   * Finds the root directory of the Git repository containing the filePath,
+   * which can be a regular file or a directory.
+   * @param root directory where the search should end at (exclusive, root can not be the git root
+   * directory). Default is root '/'.
+   * @returns undefined if the file is not under a Git repository.
+   */
+  findGitDir(filePath: string, root?: string): Promise<string | undefined>;
   exec: (
     name: string,
     args: string[],

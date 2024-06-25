@@ -7,7 +7,10 @@ import * as os from 'os';
 import * as path from 'path';
 import * as commonUtil from '../../../shared/app/common/common_util';
 import {extraEnvForDepotTools} from '../../../shared/app/common/depot_tools';
+import {getDriver} from '../../../shared/app/common/driver_repository';
 import {Sink} from './sink';
+
+const driver = getDriver();
 
 /** Kind of a Git remote repository */
 export type RepoId = 'cros' | 'cros-internal' | 'chromium';
@@ -427,7 +430,7 @@ export async function findGitDir(
   filePath: string,
   sink: Sink
 ): Promise<string | undefined> {
-  const gitDir = await commonUtil.findGitDir(filePath);
+  const gitDir = await driver.findGitDir(filePath);
   if (!gitDir) {
     sink.appendLine('Git directory not found for ' + filePath);
     return;

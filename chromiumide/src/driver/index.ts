@@ -33,6 +33,33 @@ export class DriverImpl implements Driver {
   matchGlob(path: string, pattern: string): boolean {
     return minimatch(path, pattern);
   }
+
+  async findGitDir(filePath: string, root = '/'): Promise<string | undefined> {
+    if (!filePath.startsWith(root)) {
+      throw new Error(
+        `internal error: findGitDir: ${filePath} must be under ${root}`
+      );
+    }
+
+    let dir: string;
+    if (!(await this.fs.exists(filePath))) {
+      // tests use files that do not exist
+      dir = this.path.dirname(filePath);
+    } else if (await this.fs.isDirectory(filePath)) {
+      dir = filePath;
+    } else {
+      dir = this.path.dirname(filePath);
+    }
+
+    while (dir !== root) {
+      if (await this.fs.exists(this.path.join(dir, '.git'))) {
+        return dir;
+      }
+      dir = this.path.dirname(dir);
+    }
+
+    return undefined;
+  }
   // Not implemented since the implementation does not have local dependency (only implemented for
   // cider).
   activateFeedback(): void {}

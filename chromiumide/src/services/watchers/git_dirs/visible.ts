@@ -3,7 +3,9 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as commonUtil from '../../../../shared/app/common/common_util';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
+
+const driver = getDriver();
 
 /**
  * Represents a change on the set of the git directories computed from visible
@@ -110,6 +112,6 @@ export class Watcher {
     if (!isUnderRoot) {
       return undefined;
     }
-    return await commonUtil.findGitDir(document.fileName);
+    return await driver.findGitDir(document.fileName);
   }
 }

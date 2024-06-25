@@ -4,7 +4,6 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as commonUtil from '../../shared/app/common/common_util';
 import {getDriver} from '../../shared/app/common/driver_repository';
 
 const driver = getDriver();
@@ -38,7 +37,7 @@ export class OwnersLink extends vscode.DocumentLink {
     if (this.relativeOrAbsolutePath.startsWith('/')) {
       // Resolve an "absolute" path: This assumes that all "absolute" paths are relative to the
       // nearest .git directory.
-      const gitDir = await commonUtil.findGitDir(this.documentUri.fsPath);
+      const gitDir = await driver.findGitDir(this.documentUri.fsPath);
       if (!gitDir) {
         void vscode.window.showErrorMessage(
           'Unable to resolve link: No nearest .git directory found.'

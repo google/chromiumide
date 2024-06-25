@@ -6,7 +6,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {TextDocument, CancellationToken} from 'vscode';
-import {findGitDir} from '../../../../../shared/app/common/common_util';
 import {getDriver} from '../../../../../shared/app/common/driver_repository';
 import {getOrPromptToSelectDefaultBoard} from '../../../../../shared/app/features/default_board';
 import * as config from '../../../../../shared/app/services/config';
@@ -37,7 +36,7 @@ export class Kernel implements CompdbGeneratorCore {
       return GenerationScope.Unsupported;
     }
 
-    const gitDir = await findGitDir(document.fileName);
+    const gitDir = await driver.findGitDir(document.fileName);
     if (!gitDir) {
       return GenerationScope.Unsupported;
     }
@@ -51,7 +50,7 @@ export class Kernel implements CompdbGeneratorCore {
   }
 
   async compdbPath(document: TextDocument): Promise<string> {
-    const gitDir = await findGitDir(document.fileName);
+    const gitDir = await driver.findGitDir(document.fileName);
     if (!gitDir) {
       throw new Error(
         `Internal error: git directory not found for ${document.fileName}`
@@ -71,7 +70,7 @@ export class Kernel implements CompdbGeneratorCore {
       description: 'interact with kernel files supporting xrefs',
     });
 
-    const gitDir = await findGitDir(document.fileName);
+    const gitDir = await driver.findGitDir(document.fileName);
     if (!gitDir) return;
 
     const board = await getOrPromptToSelectDefaultBoard(

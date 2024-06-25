@@ -4,7 +4,6 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as commonUtil from '../../../../shared/app/common/common_util';
 import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {assertNever} from '../../../../shared/app/common/typecheck';
 import {chromiumRoot} from '../../../common/chromium/fs';
@@ -178,7 +177,7 @@ export class ProductWatcher implements vscode.Disposable {
     }
     this.noWorkspaceHandled = true;
 
-    const gitFolder = await commonUtil.findGitDir(fileName);
+    const gitFolder = await driver.findGitDir(fileName);
 
     const openGitFolder = gitFolder
       ? `Open ${path.relative(productRoot, gitFolder)}`

@@ -5,7 +5,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as commonUtil from '../../../../../shared/app/common/common_util';
+import {getDriver} from '../../../../../shared/app/common/driver_repository';
 import * as config from '../../../../../shared/app/services/config';
 import {
   CompdbGenerator,
@@ -13,6 +13,8 @@ import {
   ShouldGenerateResult,
 } from '../../../../common/cpp_xrefs/types';
 import * as services from '../../../../services';
+
+const driver = getDriver();
 
 function getBoard() {
   return config.platformEc.board.get();
@@ -47,7 +49,7 @@ export class PlatformEc implements CompdbGenerator {
   async shouldGenerate(
     document: vscode.TextDocument
   ): Promise<ShouldGenerateResult> {
-    const gitDir = await commonUtil.findGitDir(document.fileName);
+    const gitDir = await driver.findGitDir(document.fileName);
     if (!gitDir?.endsWith('platform/ec')) {
       return ShouldGenerateResult.NoUnsupported;
     }

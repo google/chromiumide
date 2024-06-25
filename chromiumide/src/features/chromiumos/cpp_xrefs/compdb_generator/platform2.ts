@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as commonUtil from '../../../../../shared/app/common/common_util';
 import {getDriver} from '../../../../../shared/app/common/driver_repository';
 import {assertNever} from '../../../../../shared/app/common/typecheck';
 import {getOrPromptToSelectDefaultBoard} from '../../../../../shared/app/features/default_board';
@@ -50,7 +49,7 @@ export class Platform2 implements CompdbGeneratorCore {
       return GenerationScope.Unsupported;
     }
 
-    const gitDir = await commonUtil.findGitDir(document.fileName);
+    const gitDir = await driver.findGitDir(document.fileName);
     if (!gitDir?.endsWith('src/platform2')) {
       return GenerationScope.Unsupported;
     }

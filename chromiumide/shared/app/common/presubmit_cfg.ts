@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {findGitDir} from './common_util';
 import {ConfigParser} from './configparser';
 import {getDriver} from './driver_repository';
 import {LruCache} from './lru_cache';
@@ -60,7 +59,7 @@ export class PresubmitCfg {
       return cached === 'undefined' ? undefined : cached;
     }
 
-    const gitRepoRoot = await findGitDir(document.fileName, crosRoot);
+    const gitRepoRoot = await driver.findGitDir(document.fileName, crosRoot);
     if (gitRepoRoot) {
       const cand = driver.path.join(gitRepoRoot, PRESUBMIT_CFG);
       if (await driver.fs.exists(cand)) {

@@ -193,43 +193,6 @@ export function withTimeout<T>(
   ]);
 }
 
-/**
- * Finds the root directory of the Git repository containing the filePath,
- * which can be a regular file or a directory.
- * @param root directory where the search should end at (exclusive, root can not be the git root
- * directory). Default is root '/'.
- * @returns undefined if the file is not under a Git repository.
- */
-export async function findGitDir(
-  filePath: string,
-  root = '/'
-): Promise<string | undefined> {
-  if (!filePath.startsWith(root)) {
-    throw new Error(
-      `internal error: findGitDir: ${filePath} must be under ${root}`
-    );
-  }
-
-  let dir: string;
-  if (!(await driver.fs.exists(filePath))) {
-    // tests use files that do not exist
-    dir = driver.path.dirname(filePath);
-  } else if (await driver.fs.isDirectory(filePath)) {
-    dir = filePath;
-  } else {
-    dir = driver.path.dirname(filePath);
-  }
-
-  while (dir !== root) {
-    if (await driver.fs.exists(driver.path.join(dir, '.git'))) {
-      return dir;
-    }
-    dir = driver.path.dirname(dir);
-  }
-
-  return undefined;
-}
-
 export type Job<T> = () => Promise<T>;
 export type JobQueueItem<T> = {
   job: Job<T>;
