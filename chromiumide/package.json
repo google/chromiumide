@@ -144,6 +144,12 @@
         "icon": "$(output)"
       },
       {
+        "command": "chromiumide.deviceManagement.remoteDebug",
+        "category": "CrOS",
+        "title": "Remote debug (gdb)",
+        "icon": "$(debug)"
+      },
+      {
         "command": "chromiumide.deviceManagement.addDevice",
         "category": "CrOS",
         "title": "Add New Device",
@@ -732,7 +738,7 @@
         {
           "command": "chromiumide.deviceManagement.flashPrebuiltImage",
           "when": "view == devices && viewItem =~ /^device-/",
-          "group": "inline@3"
+          "group": "inline@5"
         },
         {
           "command": "chromiumide.deviceManagement.flashPrebuiltImage",
@@ -747,7 +753,7 @@
         {
           "command": "chromiumide.deviceManagement.deployToDevice",
           "when": "view == devices && viewItem =~ /^device-/",
-          "group": "inline@3"
+          "group": "inline@4"
         },
         {
           "command": "chromiumide.deviceManagement.deployToDevice",
@@ -757,12 +763,22 @@
         {
           "command": "chromiumide.deviceManagement.openSystemLogViewer",
           "when": "view == devices && viewItem =~ /^device-/",
-          "group": "inline@4"
+          "group": "inline@6"
         },
         {
           "command": "chromiumide.deviceManagement.openSystemLogViewer",
           "when": "view == devices && viewItem =~ /^device-/ && config.chromiumide.underDevelopment.systemLogViewer",
           "group": "2_operation@2"
+        },
+        {
+          "command": "chromiumide.deviceManagement.remoteDebug",
+          "when": "view == devices && viewItem =~ /^device-/ && config.chromiumide.underDevelopment.remoteDebug",
+          "group": "inline@3"
+        },
+        {
+          "command": "chromiumide.deviceManagement.remoteDebug",
+          "when": "view == devices && viewItem =~ /^device-/ && config.chromiumide.underDevelopment.remoteDebug",
+          "group": "3_run"
         },
         {
           "command": "chromiumide.deviceManagement.copyHostname",
@@ -884,6 +900,10 @@
         },
         {
           "command": "chromiumide.deviceManagement.deployPackage",
+          "when": "false"
+        },
+        {
+          "command": "chromiumide.deviceManagement.remoteDebug",
           "when": "false"
         },
         {
@@ -1216,6 +1236,11 @@
         "chromiumide.underDevelopment.relatedFiles": {
           "type": "boolean",
           "description": "Enable buttons at the top of each C++ file to create/open related files, such as test and header files (under development, and Chromium-only for now)",
+          "default": false
+        },
+        "chromiumide.underDevelopment.remoteDebug": {
+          "type": "boolean",
+          "description": "Enable remote debugging with gdb",
           "default": false
         },
         "chromiumide.underDevelopment.systemLogViewer": {

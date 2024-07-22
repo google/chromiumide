@@ -34,6 +34,7 @@ import {flashPrebuiltImage} from './flash_prebuilt_image';
 import {abandonLease} from './lease_abandon';
 import {addLease} from './lease_add';
 import {refreshLeases} from './lease_refresh';
+import {remoteDebug} from './remote_debug';
 import {openSystemLogViewer} from './syslog_viewer';
 import {debugTastTests, runTastTests} from './tast';
 
@@ -147,6 +148,10 @@ export function registerCommands(
     vscodeRegisterCommand('chromiumide.deviceManagement.openLogs', () => {
       output.show();
     }),
+    vscodeRegisterCommand(
+      'chromiumide.deviceManagement.remoteDebug',
+      (item: provider.DeviceItem) => remoteDebug(context, item)
+    ),
     registerChromiumosCommands(context, chromiumosServices)
   );
 }
