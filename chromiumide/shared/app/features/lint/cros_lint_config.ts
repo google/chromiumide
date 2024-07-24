@@ -332,7 +332,7 @@ function replaceArg(
   transform: (v: string) => string
 ) {
   let i = 0;
-  while (i <= command.length) {
+  while (i < command.length - 1) {
     if (command[i] === arg) {
       command[i + 1] = transform(command[i + 1]);
       i += 1;
