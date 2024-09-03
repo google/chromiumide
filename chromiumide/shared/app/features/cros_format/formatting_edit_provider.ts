@@ -199,7 +199,7 @@ export class CrosFormatEditProvider
       return defaultCommand;
     }
 
-    const cfg = await PresubmitCfg.forDocument(document, crosRoot);
+    const cfg = await PresubmitCfg.forDocument(document, crosRoot, this.output);
     // Don't format if PRESUBMIT.cfg doesn't exist.
     if (!cfg) {
       this.output.appendLine(

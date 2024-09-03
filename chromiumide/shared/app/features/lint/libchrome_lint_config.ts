@@ -15,15 +15,22 @@ export class LibchromeLintConfig implements LintConfig {
   readonly languageId = 'cpp';
 
   async command(
-    document: vscode.TextDocument
+    document: vscode.TextDocument,
+    output: vscode.OutputChannel
   ): Promise<LintCommand | undefined> {
     // For cider ChromeOS extension, libchrome check is not in scope.
     if (driver.platform() === Platform.CIDER) {
+      output.appendLine(
+        `Not applying ${this.name} to ${document.fileName}: not applicable on cider`
+      );
       return undefined;
     }
 
     const chromiumosRoot = await driver.cros.findSourceDir(document.fileName);
     if (chromiumosRoot === undefined) {
+      output.appendLine(
+        `Not applying ${this.name} to ${document.fileName}: CrOS source directory not found`
+      );
       return undefined;
     }
     const filepath = document.fileName.slice(chromiumosRoot.length + 1); // To trim / of source dir

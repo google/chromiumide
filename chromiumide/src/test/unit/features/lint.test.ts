@@ -6,7 +6,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import {CrosLintConfig} from '../../../../shared/app/features/lint/cros_lint_config';
 import * as testing from '../../testing';
-import {FakeTextDocument} from '../../testing/fakes';
+import {FakeTextDocument, VoidOutputChannel} from '../../testing/fakes';
 
 describe('Linter integration', () => {
   const tempDir = testing.tempDir();
@@ -48,7 +48,8 @@ no cros lint = echo hello
 
     expect(
       await pythonLint.command(
-        state.chromeosDocument('infra/recipes/recipes.py')
+        state.chromeosDocument('infra/recipes/recipes.py'),
+        new VoidOutputChannel()
       )
     ).toEqual({
       name: state.cros,
@@ -71,7 +72,8 @@ no cros lint = echo hello
 
     expect(
       await pythonLint.command(
-        state.chromeosDocument('infra/recipes/recipes/test_plan_filtering.py')
+        state.chromeosDocument('infra/recipes/recipes/test_plan_filtering.py'),
+        new VoidOutputChannel()
       )
     ).toEqual({
       name: state.cros,
@@ -97,11 +99,17 @@ no cros lint = echo hello
     });
 
     expect(
-      await pythonLint.command(state.chromeosDocument('foo/bar.py'))
+      await pythonLint.command(
+        state.chromeosDocument('foo/bar.py'),
+        new VoidOutputChannel()
+      )
     ).toBeUndefined();
 
     expect(
-      await pythonLint.command(state.chromeosDocument('foo.py'))
+      await pythonLint.command(
+        state.chromeosDocument('foo.py'),
+        new VoidOutputChannel()
+      )
     ).toBeUndefined();
   });
 });

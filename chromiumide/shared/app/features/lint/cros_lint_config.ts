@@ -24,17 +24,37 @@ export class CrosLintConfig implements LintConfig {
   ) {}
 
   async command(
-    document: vscode.TextDocument
+    document: vscode.TextDocument,
+    output: vscode.OutputChannel
   ): Promise<LintCommand | undefined> {
     const crosRoot = await driver.cros.findSourceDir(document.fileName);
-    if (crosRoot === undefined) return;
+    if (crosRoot === undefined) {
+      output.appendLine(
+        `Not applying ${this.name} to ${document.fileName}: CrOS source directory not found`
+      );
+      return;
+    }
 
     const crosExe = await crosExeFor(document.fileName);
-    if (!crosExe) return;
+    if (!crosExe) {
+      output.appendLine(
+        `Not applying ${this.name} to ${document.fileName}: cros exe not found`
+      );
+      return;
+    }
 
-    const presubmitCfg = await PresubmitCfg.forDocument(document, crosRoot);
+    const presubmitCfg = await PresubmitCfg.forDocument(
+      document,
+      crosRoot,
+      output
+    );
     // Don't lint if PRESUBMIT.cfg doesn't exist.
-    if (!presubmitCfg) return;
+    if (!presubmitCfg) {
+      output.appendLine(
+        `Not applying ${this.name} to ${document.fileName}: PRESUBMIT.cfg not found`
+      );
+      return;
+    }
 
     // Somewhat similar logic to what follows exists in formatting_edit_provider.ts for cros format,
     // but there are subtle differences and as the proverb [1] goes, a little copying is better than
@@ -42,7 +62,12 @@ export class CrosLintConfig implements LintConfig {
 
     // As of its writing no PRESUBMIT.cfg has more than one cros lint entries.
     const rawCommand = presubmitCfg.crosLintRunAsHookScript()?.[0];
-    if (!rawCommand) return; // don't lint
+    if (!rawCommand) {
+      output.appendLine(
+        `Not applying ${this.name} to ${document.fileName}: its PRESUBMIT.cfg does not contain cros lint`
+      );
+      return; // don't lint
+    }
 
     const parser = new OptionsParser(rawCommand, {
       allowArgs: true,
@@ -59,6 +84,9 @@ export class CrosLintConfig implements LintConfig {
           `Failed to parse cros lint command in PRESUBMIT.cfg for ${document.fileName}: ${e}`
         );
       }
+      output.appendLine(
+        `Not applying ${this.name} to ${document.fileName}: failed to parse cros lint command in PRESUBMIT.cfg: ${e}`
+      );
       return;
     }
 

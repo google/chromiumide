@@ -16,16 +16,32 @@ export class TastLintConfig implements LintConfig {
   readonly name = 'tast lint';
 
   async command(
-    document: vscode.TextDocument
+    document: vscode.TextDocument,
+    output: vscode.OutputChannel
   ): Promise<LintCommand | undefined> {
     const linterSubpath = tastLintPath(document.fileName);
-    if (!linterSubpath) return;
+    if (!linterSubpath) {
+      output.appendLine(
+        `Not applying ${this.name} to ${document.fileName}: not a tast file`
+      );
+      return;
+    }
 
     const goFound = await checkForGo();
-    if (!goFound) return;
+    if (!goFound) {
+      output.appendLine(
+        `Not applying ${this.name} to ${document.fileName}: go not found`
+      );
+      return;
+    }
 
     const chromiumosRoot = await driver.cros.findSourceDir(document.fileName);
-    if (chromiumosRoot === undefined) return;
+    if (chromiumosRoot === undefined) {
+      output.appendLine(
+        `Not applying ${this.name} to ${document.fileName}: CrOS source directory not found`
+      );
+      return;
+    }
 
     const name = driver.path.join(chromiumosRoot, linterSubpath);
     const args = [document.fileName];

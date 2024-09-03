@@ -18,7 +18,10 @@ export interface LintConfig {
    * Returns the command to run to lint the document. It returns undefined in case linter should not
    * be applied.
    */
-  command(document: vscode.TextDocument): Promise<LintCommand | undefined>;
+  command(
+    document: vscode.TextDocument,
+    output: vscode.OutputChannel
+  ): Promise<LintCommand | undefined>;
 
   parse(
     stdout: string,

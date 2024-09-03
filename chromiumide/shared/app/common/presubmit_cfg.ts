@@ -47,6 +47,7 @@ export class PresubmitCfg {
   static async forDocument(
     document: vscode.TextDocument,
     crosRoot: string,
+    output: vscode.OutputChannel,
     cache: typeof GLOBAL_CACHE | undefined = GLOBAL_CACHE
   ): Promise<PresubmitCfg | undefined> {
     if (crosRoot === '/') {
@@ -56,6 +57,11 @@ export class PresubmitCfg {
 
     const cached = cache?.get(document.fileName);
     if (cached) {
+      output.appendLine(
+        `PRESUBMIT.cfg for ${document.fileName} has been cached: ${
+          cached === 'undefined' ? cached : cached.root
+        }`
+      );
       return cached === 'undefined' ? undefined : cached;
     }
 
@@ -63,6 +69,9 @@ export class PresubmitCfg {
     if (gitRepoRoot) {
       const cand = driver.path.join(gitRepoRoot, PRESUBMIT_CFG);
       if (await driver.fs.exists(cand)) {
+        output.appendLine(
+          `Found PRESUBMIT.cfg in ${gitRepoRoot} for ${document.fileName}`
+        );
         const cfg = new PresubmitCfg(
           await driver.fs.readFile(cand),
           gitRepoRoot
@@ -70,6 +79,13 @@ export class PresubmitCfg {
         cache?.set(document.fileName, cfg);
         return cfg;
       }
+      output.appendLine(
+        `PRESUBMIT.cfg not found in ${gitRepoRoot} for ${document.fileName}`
+      );
+    } else {
+      output.appendLine(
+        `PRESUBMIT.cfg not found: ${document.fileName} is not in a git repo`
+      );
     }
 
     cache?.set(document.fileName, 'undefined');
