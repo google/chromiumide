@@ -15,7 +15,9 @@ RUN apt update && apt upgrade -y
 RUN apt install -y \
     curl \
     git \
+    maven \
     netcat \
+    openjdk-21-jdk \
     python3 \
     rsync \
     software-properties-common \

@@ -1474,6 +1474,7 @@
   "scripts": {
     "build": "wireit",
     "build-release": "wireit",
+    "build-java": "wireit",
     "build-tests": "wireit",
     "build-all": "wireit",
     "check": "wireit",
@@ -1499,6 +1500,9 @@
       "command": "ts-node --swc tools/build.ts -p tools",
       "output": [
         "dist"
+      ],
+      "dependencies": [
+        "build-java"
       ]
     },
     "build-release": {
@@ -1508,6 +1512,15 @@
       },
       "output": [
         "dist"
+      ],
+      "dependencies": [
+        "build-java"
+      ]
+    },
+    "build-java": {
+      "command": "cd third_party/java-language-server && mvn package -DskipTests",
+      "output": [
+        "third_party/java-language-server/dist"
       ]
     },
     "build-tests": {

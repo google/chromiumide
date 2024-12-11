@@ -7,5 +7,11 @@ package-lock.json
 tsconfig.json
 webpack.config.js
 
+third_party/java-language-server/.gitignore
+third_party/java-language-server/README.md
+third_party/java-language-server/pom.xml
+third_party/java-language-server/src
+third_party/java-language-server/target
+
 .*
 *.sh

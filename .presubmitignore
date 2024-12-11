@@ -1,3 +1,6 @@
 # In our repository, VSCode and our presubmit hook are configured to run prettier (not cros format)
 # to format JSON files.
 **/*.json
+
+# Contains third-party code.
+chromiumide/third_party/**
