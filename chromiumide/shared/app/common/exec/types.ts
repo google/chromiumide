@@ -115,11 +115,13 @@ export class ProcessError extends Error {
  * Command execution was interrupted with vscode.CancellationToken.
  */
 export class CancelledError extends vscode.CancellationError {
-  override readonly message = `"${shutil.escapeArray([
-    this.cmd,
-    ...this.args,
-  ])}" cancelled`;
+  override readonly message;
+
   constructor(private readonly cmd: string, private readonly args: string[]) {
     super();
+    this.message = `"${shutil.escapeArray([
+      this.cmd,
+      ...this.args,
+    ])}" cancelled`;
   }
 }
