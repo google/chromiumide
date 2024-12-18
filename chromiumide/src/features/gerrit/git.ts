@@ -53,18 +53,21 @@ export async function getRepoId(
     }
     if (
       (remoteName === 'cros' &&
-        repoUrl.startsWith('https://chromium.googlesource.com/')) ||
+        (repoUrl.startsWith('https://chromium.googlesource.com/') ||
+          repoUrl.startsWith('sso://chromium/'))) ||
       (remoteName === 'cros-internal' &&
-        repoUrl.startsWith('https://chrome-internal.googlesource.com/'))
+        (repoUrl.startsWith('https://chrome-internal.googlesource.com/') ||
+          repoUrl.startsWith('sso://chrome-internal/')))
     ) {
       const repoKind = remoteName === 'cros' ? 'Public' : 'Internal';
       sink.appendLine(`${repoKind} ChromeOS remote repo detected at ${gitDir}`);
-
       return remoteName;
     }
     if (
       repoUrl.startsWith('https://chromium.googlesource.com/chromium/') ||
-      repoUrl.startsWith('https://chromium.googlesource.com/a/chromium/')
+      repoUrl.startsWith('https://chromium.googlesource.com/a/chromium/') ||
+      repoUrl.startsWith('sso://chromium/chromium/') ||
+      repoUrl.startsWith('sso://chromium/a/chromium/')
     ) {
       sink.appendLine(`Public Chromium remote repo detected at ${gitDir}`);
       return 'chromium';

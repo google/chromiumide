@@ -184,6 +184,16 @@ describe('RepoId calculation', () => {
         wantRepoId: 'chromium',
       },
       {
+        name: 'chromium remote with sso://',
+        remotes: [
+          {
+            name: 'origin',
+            url: 'sso://chromium/chromium/src',
+          },
+        ],
+        wantRepoId: 'chromium',
+      },
+      {
         name: 'unknown remote',
         remotes: [
           {
@@ -209,6 +219,26 @@ describe('RepoId calculation', () => {
           {
             name: 'cros-internal',
             url: 'https://chrome-internal.googlesource.com/chromiumos/chromite.git',
+          },
+        ],
+        wantRepoId: 'cros-internal',
+      },
+      {
+        name: 'cros remote with sso://',
+        remotes: [
+          {
+            name: 'cros',
+            url: 'sso://chromium/chromiumos/chromite',
+          },
+        ],
+        wantRepoId: 'cros',
+      },
+      {
+        name: 'cros-internal remote with sso://',
+        remotes: [
+          {
+            name: 'cros-internal',
+            url: 'sso://chrome-internal/chromiumos/chromite',
           },
         ],
         wantRepoId: 'cros-internal',
