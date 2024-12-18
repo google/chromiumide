@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import {
   DidChangeConfigurationNotification,
   DocumentSelector,
+  HandleDiagnosticsSignature,
   LanguageClient,
   LanguageClientOptions,
   MessageSignature,
@@ -15,9 +16,12 @@ import {
   TransportKind,
 } from 'vscode-languageclient/node';
 import {exec} from '../../../../shared/app/common/common_util';
+import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {CompilerConfig, computeCompilerConfig} from './chromium';
 import {StatusBar} from './ui';
 import {FilePathWatcher, statNoThrow, withPseudoCancel} from './utils';
+
+const driver = getDriver();
 
 // A selector expression that matches local Java source files that are
 // supported by the language server.
@@ -129,6 +133,20 @@ class LanguageServerConnection implements vscode.Disposable {
             );
           }
           return await next(type, param, token);
+        },
+        handleDiagnostics: (
+          uri: vscode.Uri,
+          diagnostics: vscode.Diagnostic[],
+          next: HandleDiagnosticsSignature
+        ): void => {
+          driver.metrics.send({
+            category: 'background',
+            group: 'chromium.java',
+            name: 'chromium_java_lint',
+            description: 'chromium java: lint',
+            length: diagnostics.length,
+          });
+          next(uri, diagnostics);
         },
       },
       initializationOptions: {
@@ -418,6 +436,12 @@ export class LanguageServerManager implements vscode.Disposable {
     this.session = session;
     if (session) {
       this.statusBar.show();
+      driver.metrics.send({
+        category: 'background',
+        group: 'chromium.java',
+        name: 'chromium_java_server_start',
+        description: 'chromium java: start',
+      });
     } else {
       this.statusBar.hide();
     }

@@ -62,6 +62,7 @@ type Category =
 type FeatureGroup =
   | 'boards_and_packages'
   | 'chromium.gtest'
+  | 'chromium.java'
   | 'chromium.outputDirectories'
   | 'codesearch'
   | 'code_server'
@@ -170,6 +171,20 @@ type ChromiumIdeExtensionEvent = EventBase & {
     | {
         category: 'error';
         name: 'extension_activation_failed';
+      }
+  );
+
+type ChromiumJavaLanguageEvent = EventBase & {
+  group: 'chromium.java';
+} & (
+    | {
+        category: 'background';
+        name: 'chromium_java_server_start';
+      }
+    | {
+        category: 'background';
+        name: 'chromium_java_lint';
+        length: number;
       }
   );
 
@@ -570,6 +585,7 @@ export type Event =
   | BoardsAndPackagesEvent
   | ChromiumGtestEvent
   | ChromiumIdeExtensionEvent
+  | ChromiumJavaLanguageEvent
   | ChromiumOutputDirectoriesEvent
   | CipdEvent
   | CodesearchEvent
