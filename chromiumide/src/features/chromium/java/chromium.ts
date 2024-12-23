@@ -61,18 +61,50 @@ interface SourceJarExtractTask {
  * Determines if a source jar file is useful and should be included in the
  * source path.
  */
-function isUsefulSourceJar(jarPath: string): boolean {
+async function isUsefulSourceJar(
+  jarPath: string,
+  outDir: string
+): Promise<boolean> {
   // JNI placeholder srcjars contain random stubs.
   if (jarPath.endsWith('_placeholder.srcjar')) {
     return false;
   }
-  // *__compile_resources.srcjar contains R.java. There are duplicated R.java
-  // for production and tests, so try to pick the production one.
-  if (
-    jarPath.endsWith('__compile_resources.srcjar') &&
-    path.basename(jarPath).includes('test')
-  ) {
-    return false;
+
+  // When building a java_library target (e.g. //chrome/android:chrome_java), a srcjar containing
+  // relevant resource definitions are generated first
+  // (e.g. gen/chrome/android/chrome_java__assetres.srcjar), and it's included in the source path
+  // when building the java_library target. This is how R references are resolved when *.java are
+  // compiled with javac.
+  //
+  // When multiple java libraries are linked into an APK (e.g. //clank/java:chrome_apk), another
+  // srcjar containing all relevant resource definitions is generated
+  // (e.g. gen/clank/java/chrome_apk__compile_resources.srcjar). Note that *__assetres.srcjar used
+  // on compiling java libraries are NOT linked to final APKs. This is how R definitions looked up
+  // in the run time are linked to an APK.
+  //
+  // Then let's talk about IDE's business. We cannot add *__assetres.srcjar to the source path of
+  // the language server because many of those srcjars contain identically named R classes
+  // (e.g. org.chromium.chrome.R) with different sets of resource names. (Note that we don't
+  // explicitly exclude them here, but actually they don't appear in *.build_config.json at all.)
+  // Therefore we want to pick a single resource jar that covers all resource definitions in the
+  // whole Chromium tree and add it to the source path. An approximation used here is to pick the
+  // __compile_resources.srcjar for the main browser binary. This is not perfect though, because
+  // there can be some resources not linked into the main browser binary. Ideally we should
+  // introduce a GN target producing a resource jar covering all resources across the repository.
+  if (jarPath.endsWith('__compile_resources.srcjar')) {
+    const privateResourcesJarPath = path.join(
+      outDir,
+      'gen/clank/java/chrome_apk__compile_resources.srcjar'
+    );
+    if (await statNoThrow(privateResourcesJarPath)) {
+      return jarPath === privateResourcesJarPath;
+    }
+
+    const publicResourcesJarPath = path.join(
+      outDir,
+      'gen/chrome/android/chrome_public_apk__compile_resources.srcjar'
+    );
+    return jarPath === publicResourcesJarPath;
   }
   return true;
 }
@@ -155,7 +187,7 @@ async function processConfigJson(
   if (config.deps_info.bundled_srcjars) {
     for (const sourceJarRelPath of config.deps_info.bundled_srcjars) {
       const sourceJarPath = path.join(outDir, sourceJarRelPath);
-      if (!isUsefulSourceJar(sourceJarPath)) {
+      if (!(await isUsefulSourceJar(sourceJarPath, outDir))) {
         continue;
       }
       const sourceJarStat = await statNoThrow(sourceJarPath);
