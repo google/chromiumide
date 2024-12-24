@@ -7,7 +7,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import pLimit from 'p-limit';
-import {exec} from '../../../../shared/app/common/common_util';
+import {exec, execOrThrow} from '../../../../shared/app/common/common_util';
 import {statNoThrow} from './utils';
 
 // A pattern matching a package name declaration in Java source files.
@@ -50,19 +50,12 @@ interface BuildConfigDepsInfo {
 }
 
 /**
- * Represents a task to extract a source jar.
- */
-interface SourceJarExtractTask {
-  sourceJar: string;
-  extractDir: string;
-}
-
-/**
  * Determines if a source jar file is useful and should be included in the
  * source path.
  */
 async function isUsefulSourceJar(
   jarPath: string,
+  srcDir: string,
   outDir: string
 ): Promise<boolean> {
   // JNI placeholder srcjars contain random stubs.
@@ -92,11 +85,11 @@ async function isUsefulSourceJar(
   // there can be some resources not linked into the main browser binary. Ideally we should
   // introduce a GN target producing a resource jar covering all resources across the repository.
   if (jarPath.endsWith('__compile_resources.srcjar')) {
-    const privateResourcesJarPath = path.join(
-      outDir,
-      'gen/clank/java/chrome_apk__compile_resources.srcjar'
-    );
-    if (await statNoThrow(privateResourcesJarPath)) {
+    if (await statNoThrow(path.join(srcDir, 'clank'))) {
+      const privateResourcesJarPath = path.join(
+        outDir,
+        'gen/clank/java/chrome_apk__compile_resources.srcjar'
+      );
       return jarPath === privateResourcesJarPath;
     }
 
@@ -144,8 +137,8 @@ async function processConfigJson(
   // Following arguments will be mutated as we process JSON files.
   classJarSet: Set<string>,
   sourceRootSet: Set<string>,
-  sourceDirSet: Set<string>,
-  extractTasks: SourceJarExtractTask[]
+  sourceJarSet: Set<string>,
+  processedSourceDirSet: Set<string>
 ): Promise<void> {
   const config = JSON.parse(
     await fsPromises.readFile(jsonPath, {encoding: 'utf8'})
@@ -160,8 +153,8 @@ async function processConfigJson(
     for (const sourceFile of sourcesContent.trimEnd().split('\n')) {
       const sourcePath = path.resolve(outDir, sourceFile);
       const sourceDir = path.dirname(sourcePath);
-      if (!sourceDirSet.has(sourceDir)) {
-        sourceDirSet.add(sourceDir);
+      if (!processedSourceDirSet.has(sourceDir)) {
+        processedSourceDirSet.add(sourceDir);
         const sourceRoot = await findSourceRoot(sourcePath);
         if (sourceRoot && sourceRoot !== srcDir) {
           sourceRootSet.add(sourceRoot);
@@ -182,54 +175,65 @@ async function processConfigJson(
     );
   }
 
-  // Add source jars to the source roots. Since our language server does not
-  // support source jars directly, we extract them to sibling directories.
   if (config.deps_info.bundled_srcjars) {
     for (const sourceJarRelPath of config.deps_info.bundled_srcjars) {
       const sourceJarPath = path.join(outDir, sourceJarRelPath);
-      if (!(await isUsefulSourceJar(sourceJarPath, outDir))) {
+      if (await isUsefulSourceJar(sourceJarPath, srcDir, outDir)) {
+        sourceJarSet.add(sourceJarPath);
         continue;
       }
-      const sourceJarStat = await statNoThrow(sourceJarPath);
-      if (!sourceJarStat) {
-        continue;
-      }
-      const extractDirPath = sourceJarPath + '.extracted-for-vscode';
-      if (sourceRootSet.has(extractDirPath)) {
-        continue;
-      }
-
-      sourceRootSet.add(extractDirPath);
-
-      // Compare timestamps to avoid extracting source jars on every startup.
-      const extractDirStat = await statNoThrow(extractDirPath);
-      if (extractDirStat && extractDirStat.ctimeMs >= sourceJarStat.mtimeMs) {
-        continue;
-      }
-
-      // Schedule a task to extract the source jar.
-      extractTasks.push({
-        sourceJar: sourceJarPath,
-        extractDir: extractDirPath,
-      });
     }
   }
 }
 
-async function runSourceJarExtractTasks(
-  tasks: SourceJarExtractTask[],
+async function buildSourceJars(
+  sourceJarSet: Set<string>,
   srcDir: string,
+  outDir: string,
   output: vscode.OutputChannel,
   token: vscode.CancellationToken
 ): Promise<void> {
+  const sourceJarRelPaths = [];
+  const prefix = outDir + '/';
+  for (const p of sourceJarSet.values()) {
+    if (p.startsWith(prefix)) {
+      sourceJarRelPaths.push(p.substring(prefix.length));
+    }
+  }
+  sourceJarRelPaths.sort();
+
+  await execOrThrow(
+    path.join(srcDir, 'third_party/depot_tools/autoninja'),
+    ['-C', outDir, ...sourceJarRelPaths],
+    {cwd: srcDir, logger: output, logStdout: true, cancellationToken: token}
+  );
+}
+
+async function extractSourceJars(
+  sourceJarSet: Set<string>,
+  srcDir: string,
+  output: vscode.OutputChannel,
+  token: vscode.CancellationToken
+): Promise<string[]> {
   // Limit the concurrency to the number of available cores.
   const limit = pLimit(os.cpus().length);
 
-  const jobs = [];
-  for (const {sourceJar, extractDir} of tasks) {
-    jobs.push(
+  const extractDirPromises: Promise<string>[] = [];
+
+  for (const sourceJar of sourceJarSet.values()) {
+    extractDirPromises.push(
       limit(async () => {
+        const extractDir = sourceJar + '.extracted-for-vscode';
+
+        // Compare timestamps to avoid extracting source jars on every startup.
+        const sourceJarStat = await fsPromises.stat(sourceJar); // must exist
+        const extractDirStat = await statNoThrow(extractDir);
+        if (extractDirStat && extractDirStat.ctimeMs >= sourceJarStat.mtimeMs) {
+          return extractDir;
+        }
+
         output.appendLine(`Extracting ${sourceJar}`);
+
         await fsPromises.rm(extractDir, {
           force: true,
           recursive: true,
@@ -249,11 +253,12 @@ async function runSourceJarExtractTasks(
           force: true,
           recursive: true,
         });
+        return extractDir;
       })
     );
   }
 
-  await Promise.all(jobs);
+  return await Promise.all(extractDirPromises);
 }
 
 /**
@@ -266,23 +271,19 @@ async function processConfigJsons(
   output: vscode.OutputChannel,
   token: vscode.CancellationToken
 ): Promise<CompilerConfig> {
+  // A set of *.jar paths to be added to the compiler's class paths.
   const classJarSet = new Set<string>();
+  // A set of source root directory paths to be added to the compiler's source paths.
   const sourceRootSet = new Set<string>();
-  const sourceDirSet = new Set<string>();
-  const sourceJarExtractTasks: SourceJarExtractTask[] = [];
+  // A set of source jar paths to be added to the compiler's source paths after extracting them.
+  const sourceJarSet = new Set<string>();
 
-  // Add the Android source stub jar. It contains function argument names.
-  const platformsDir = path.join(
-    srcDir,
-    'third_party/android_sdk/public/platforms'
-  );
-  for (const versionDir of await fsPromises.readdir(platformsDir)) {
-    const srcJar = path.join(platformsDir, versionDir, 'android-stubs-src.jar');
-    if (await statNoThrow(srcJar)) {
-      sourceDirSet.add(srcJar);
-    }
-  }
-
+  // A set of source directory paths we've processed. This is used to process exactly one *.java
+  // file within a directory during processConfigJson. Note that this is different from
+  // sourceRootSet; processedSourceDirSet contains all source directories
+  // (e.g. ../chrome/android/java/src/org/chromium/chrome) while sourceRootSet contains source root
+  // directories only (e.g. ../chrome/android/java/src).
+  const processedSourceDirSet = new Set<string>();
   for (const jsonPath of jsonPaths) {
     await processConfigJson(
       jsonPath,
@@ -290,16 +291,25 @@ async function processConfigJsons(
       outDir,
       classJarSet,
       sourceRootSet,
-      sourceDirSet,
-      sourceJarExtractTasks
+      sourceJarSet,
+      processedSourceDirSet
     );
   }
 
-  await runSourceJarExtractTasks(sourceJarExtractTasks, srcDir, output, token);
+  // Source jars are not built by list_java_targets.py. Build them by ourselves.
+  await buildSourceJars(sourceJarSet, srcDir, outDir, output, token);
+
+  // The language server cannot read source jars directly. Extract them to temporary directories.
+  const sourceJarExtractDirs = await extractSourceJars(
+    sourceJarSet,
+    srcDir,
+    output,
+    token
+  );
 
   const classPaths = [...classJarSet];
   classPaths.sort();
-  const sourcePaths = [...sourceRootSet];
+  const sourcePaths = [...sourceRootSet, ...sourceJarExtractDirs];
   sourcePaths.sort();
   return {classPaths, sourcePaths};
 }
@@ -310,7 +320,21 @@ async function buildConfigJsons(
   output: vscode.OutputChannel,
   token: vscode.CancellationToken
 ): Promise<string[]> {
-  const result = await exec(
+  // list_java_targets.py has a bug where it reports no target when build.ninja is empty and
+  // should be generated. Here we build it explicitly to workaround the issue.
+  // TODO(crbug.com/385968364): Fix this bug in list_java_targets.py.
+  await execOrThrow(
+    path.join(srcDir, 'third_party/depot_tools/autoninja'),
+    ['-C', outDir, 'build.ninja'],
+    {
+      cwd: srcDir,
+      logger: output,
+      logStdout: true,
+      cancellationToken: token,
+    }
+  );
+
+  const result = await execOrThrow(
     path.join(srcDir, 'build/android/list_java_targets.py'),
     [
       '--print-build-config-paths',
@@ -325,9 +349,6 @@ async function buildConfigJsons(
       cancellationToken: token,
     }
   );
-  if (result instanceof Error) {
-    throw new Error(`list_java_targets.py failed: ${result.message}`);
-  }
 
   const jsonPaths = [];
   for (const line of result.stdout.split('\n')) {
