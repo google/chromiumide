@@ -13,11 +13,11 @@ import {checkConflictingExtensions} from './conflicts';
 import {LanguageServerManager} from './language';
 import {StatusBar} from './ui';
 
-export async function activate(
+export function activate(
   context: vscode.ExtensionContext,
   chromiumDir: string,
   statusManager: StatusManager
-): Promise<void> {
+): void {
   const output = vscode.window.createOutputChannel(
     'ChromiumIDE: Chromium Java support'
   );

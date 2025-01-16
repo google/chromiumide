@@ -80,9 +80,9 @@ export class Chromium implements vscode.Disposable {
       this.featureName = 'chromiumBuild';
       chromiumBuild.activate(ephemeralContext, this.statusManager);
     }
-    if (config.underDevelopment.chromiumJavaSupport.get()) {
+    if (config.chromium.java.enabled.get()) {
       this.featureName = 'chromiumJavaSupport';
-      await java.activate(ephemeralContext, this.root, this.statusManager);
+      java.activate(ephemeralContext, this.root, this.statusManager);
     }
     if (config.chrome.outputDirectories.get()) {
       this.featureName = 'chromiumOutputDirectories';

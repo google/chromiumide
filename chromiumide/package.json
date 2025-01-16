@@ -1074,6 +1074,11 @@
           "default": true,
           "description": "Control whether tests should be run in parallel and be retried once on failure. This uses the `--test-launcher-bot-mode` flag."
         },
+        "chromiumide.chromium.java.enabled": {
+          "type": "boolean",
+          "description": "Enable Chromium Java support",
+          "default": true
+        },
         "chromiumide.chromium.java.trace.server": {
           "type": "string",
           "enum": [
@@ -1232,11 +1237,6 @@
         "chromiumide.underDevelopment.chromiumBuild": {
           "type": "boolean",
           "description": "Enable build + deploy for chromium code (incomplete)",
-          "default": false
-        },
-        "chromiumide.underDevelopment.chromiumJavaSupport": {
-          "type": "boolean",
-          "description": "Enable Chromium Java support",
           "default": false
         },
         "chromiumide.underDevelopment.platform2GtestDebugging": {

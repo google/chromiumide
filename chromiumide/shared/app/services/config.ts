@@ -193,9 +193,6 @@ export const underDevelopment = {
     'underDevelopment.autoninjaImprovements'
   ),
   chromiumBuild: new ConfigValue<boolean>('underDevelopment.chromiumBuild'),
-  chromiumJavaSupport: new ConfigValue<boolean>(
-    'underDevelopment.chromiumJavaSupport'
-  ),
   platform2GtestDebugging: new ConfigValue<boolean>(
     'underDevelopment.platform2GtestDebugging'
   ),
@@ -275,6 +272,12 @@ export const chrome = {
   dutName: new ConfigValue<string>('chrome.dutName'),
   outputDirectories: new ConfigValue<boolean>('chrome.outputDirectories'),
   gtest: chromeGtest,
+};
+
+export const chromium = {
+  java: {
+    enabled: new ConfigValue<boolean>('chromium.java.enabled'),
+  },
 };
 
 export const spellchecker = new ConfigValue<boolean>('spellchecker');
