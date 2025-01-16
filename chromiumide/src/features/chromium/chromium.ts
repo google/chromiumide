@@ -16,6 +16,7 @@ import * as gtest from './gtest';
 import * as java from './java';
 import * as outputDirectories from './output_directories';
 import * as relatedFiles from './related_files';
+import * as terminalLinks from './terminal_links';
 
 const driver = getDriver();
 
@@ -124,6 +125,9 @@ export class Chromium implements vscode.Disposable {
 
     this.featureName = 'chromiumCppXrefs';
     new ChromiumCppXrefs(this.root, this.cppXrefs);
+
+    this.featureName = 'chromiumTerminalLinks';
+    terminalLinks.activate(ephemeralContext, path.join(this.root, 'src'));
   }
 }
 
