@@ -1668,6 +1668,7 @@
     }
   },
   "dependencies": {
+    "@clangd/vscode-clangd": "^0.0.0",
     "@mui/icons-material": "^5.14.19",
     "@mui/material": "^5.10.9",
     "@novnc/novnc": "^1.4.0",
