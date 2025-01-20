@@ -30,6 +30,7 @@ describe('Chromium terminal link provider', () => {
 
     expect(provideTerminalLinks('')).toEqual([]);
     expect(provideTerminalLinks('foo/bar.cc')).toEqual([]);
+    expect(provideTerminalLinks('https://example.com')).toEqual([]);
     expect(provideTerminalLinks('../../foo/bar.cc')).toEqual([
       new ChromiumTerminalLink(
         6,
@@ -88,6 +89,16 @@ describe('Chromium terminal link provider', () => {
         16,
         vscode.Uri.file(path.join(srcDir, 'foo/bar.cc')),
         new vscode.Position(9, 19)
+      ),
+    ]);
+    expect(
+      provideTerminalLinks('ERROR at //foo/BUILD.gn:7:1: Assertion failed.')
+    ).toEqual([
+      new ChromiumTerminalLink(
+        11,
+        16,
+        vscode.Uri.file(path.join(srcDir, 'foo/BUILD.gn')),
+        new vscode.Position(6, 0)
       ),
     ]);
   });

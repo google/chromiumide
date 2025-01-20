@@ -6,9 +6,10 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 // Matches with file paths relative to the output directory.
-// - It should start with one or more "../" without a leading slash.
+// - It should start with one or more "../" without a leading slash or two slashes.
 // - It can be optionally followed by a line number and a column number (1-based).
-const LINK_RE = /((?:^|[^/])(?:\.\.\/)+)(([^ \t:]+)(?::(\d+))?(?::(\d+))?)/g;
+const LINK_RE =
+  /((?:^|[^/])(?:\.\.\/)+|(?:^|[^:])\/\/)(([^ \t:]+)(?::(\d+))?(?::(\d+))?)/g;
 
 export class ChromiumTerminalLink implements vscode.TerminalLink {
   constructor(
