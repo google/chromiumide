@@ -4,12 +4,14 @@
 
 import path from 'path';
 import * as vscode from 'vscode';
+import * as config from '../../../../shared/app/services/config';
 import {
   StatusManager,
   TaskStatus,
 } from '../../../../shared/app/ui/bg_task_status';
 import {registerCommands} from './commands';
 import {checkConflictingExtensions} from './conflicts';
+import {activateDebugger} from './debugger';
 import {JniZeroCodeLensProvider} from './jni_zero';
 import {LanguageServerManager} from './language';
 import {StatusBar} from './ui';
@@ -48,6 +50,10 @@ export function activate(
       new JniZeroCodeLensProvider()
     )
   );
+
+  if (config.underDevelopment.chromiumJavaDebugger.get()) {
+    activateDebugger(context, srcDir, manager, output);
+  }
 
   registerCommands(context, srcDir, output);
 

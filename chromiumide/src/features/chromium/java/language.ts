@@ -81,7 +81,7 @@ class LanguageServerConnection implements vscode.Disposable {
   constructor(
     extensionPath: string,
     srcDir: string,
-    config: CompilerConfig,
+    readonly config: CompilerConfig,
     output: vscode.OutputChannel,
     statusBar: StatusBar
   ) {
@@ -370,6 +370,18 @@ export class LanguageServerManager implements vscode.Disposable {
     this.outDirWatcher.dispose();
     for (const subscription of this.subscriptions) {
       subscription.dispose();
+    }
+  }
+
+  async getCompilerConfig(): Promise<CompilerConfig | undefined> {
+    if (!this.session) {
+      return undefined;
+    }
+    try {
+      const connection = await this.session.connection;
+      return connection.config;
+    } catch {
+      return undefined;
     }
   }
 

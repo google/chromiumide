@@ -1239,6 +1239,11 @@
           "description": "Enable build + deploy for chromium code (incomplete)",
           "default": false
         },
+        "chromiumide.underDevelopment.chromiumJavaDebugger": {
+          "type": "boolean",
+          "description": "Enable Chromium Java debugger (incomplete)",
+          "default": false
+        },
         "chromiumide.underDevelopment.platform2GtestDebugging": {
           "type": "boolean",
           "description": "Enable platform2 gtest debugging support",
@@ -1479,6 +1484,49 @@
           "beginsPattern": ".*",
           "endsPattern": ".*Waiting for debugger on port.*"
         }
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "java"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "android.chromium",
+        "label": "Chromium: Android app process",
+        "languages": [
+          "java"
+        ],
+        "when": "config.chromiumide.underDevelopment.chromiumJavaDebugger",
+        "configurationAttributes": {
+          "attach": {
+            "properties": {
+              "port": {
+                "type": "integer",
+                "description": "JDWP port on localhost to connect to. Leave it empty to set up JDWP forwarding interactively (recommended)."
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "android.chromium",
+            "request": "attach",
+            "name": "Chromium: Attach to Android app process"
+          }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "Chromium: Attach to Android app process",
+            "description": "A new configuration for attaching to an Android app for Chromium",
+            "body": {
+              "type": "android.chromium",
+              "request": "attach",
+              "name": "Chromium: Attach to Android app process"
+            }
+          }
+        ]
       }
     ]
   },
