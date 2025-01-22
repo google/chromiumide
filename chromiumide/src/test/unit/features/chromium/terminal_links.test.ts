@@ -16,22 +16,26 @@ describe('Chromium terminal link provider', () => {
 
   it('finds links correctly', async () => {
     const srcDir = tempDir.path;
+    await testing.putFiles(srcDir, {
+      'foo/bar.ts': '',
+    });
+
     const provider = new ChromiumTerminalLinkProvider(srcDir);
 
-    function provideTerminalLinks(line: string): ChromiumTerminalLink[] {
-      return provider.provideTerminalLinks(
+    const provideTerminalLinks = (line: string) =>
+      provider.provideTerminalLinks(
         {
           terminal: undefined as unknown as vscode.Terminal, // not used
           line,
         },
         new fakes.FakeCancellationToken()
       );
-    }
 
-    expect(provideTerminalLinks('')).toEqual([]);
-    expect(provideTerminalLinks('foo/bar.cc')).toEqual([]);
-    expect(provideTerminalLinks('https://example.com')).toEqual([]);
-    expect(provideTerminalLinks('../../foo/bar.cc')).toEqual([
+    expect(await provideTerminalLinks('')).toEqual([]);
+    expect(await provideTerminalLinks('foo/bar.cc')).toEqual([]);
+    expect(await provideTerminalLinks('foo/gen/bar.cc')).toEqual([]);
+    expect(await provideTerminalLinks('https://example.com')).toEqual([]);
+    expect(await provideTerminalLinks('../../foo/bar.cc')).toEqual([
       new ChromiumTerminalLink(
         6,
         10,
@@ -39,7 +43,7 @@ describe('Chromium terminal link provider', () => {
         undefined
       ),
     ]);
-    expect(provideTerminalLinks('../../foo/bar.cc:10')).toEqual([
+    expect(await provideTerminalLinks('../../foo/bar.cc:10')).toEqual([
       new ChromiumTerminalLink(
         6,
         13,
@@ -47,7 +51,7 @@ describe('Chromium terminal link provider', () => {
         new vscode.Position(9, 0)
       ),
     ]);
-    expect(provideTerminalLinks('../../foo/bar.cc:10:20')).toEqual([
+    expect(await provideTerminalLinks('../../foo/bar.cc:10:20')).toEqual([
       new ChromiumTerminalLink(
         6,
         16,
@@ -55,7 +59,9 @@ describe('Chromium terminal link provider', () => {
         new vscode.Position(9, 19)
       ),
     ]);
-    expect(provideTerminalLinks('../../foo/bar.cc: file not found')).toEqual([
+    expect(
+      await provideTerminalLinks('../../foo/bar.cc: file not found')
+    ).toEqual([
       new ChromiumTerminalLink(
         6,
         10,
@@ -63,7 +69,9 @@ describe('Chromium terminal link provider', () => {
         undefined
       ),
     ]);
-    expect(provideTerminalLinks('../../foo/bar.cc:10: EOF reached')).toEqual([
+    expect(
+      await provideTerminalLinks('../../foo/bar.cc:10: EOF reached')
+    ).toEqual([
       new ChromiumTerminalLink(
         6,
         13,
@@ -72,7 +80,7 @@ describe('Chromium terminal link provider', () => {
       ),
     ]);
     expect(
-      provideTerminalLinks('../../foo/bar.cc:10:20: syntax error')
+      await provideTerminalLinks('../../foo/bar.cc:10:20: syntax error')
     ).toEqual([
       new ChromiumTerminalLink(
         6,
@@ -82,7 +90,7 @@ describe('Chromium terminal link provider', () => {
       ),
     ]);
     expect(
-      provideTerminalLinks('ERROR: ../../foo/bar.cc:10:20: syntax error')
+      await provideTerminalLinks('ERROR: ../../foo/bar.cc:10:20: syntax error')
     ).toEqual([
       new ChromiumTerminalLink(
         13,
@@ -92,13 +100,42 @@ describe('Chromium terminal link provider', () => {
       ),
     ]);
     expect(
-      provideTerminalLinks('ERROR at //foo/BUILD.gn:7:1: Assertion failed.')
+      await provideTerminalLinks(
+        'ERROR at //foo/BUILD.gn:7:1: Assertion failed.'
+      )
     ).toEqual([
       new ChromiumTerminalLink(
         11,
         16,
         vscode.Uri.file(path.join(srcDir, 'foo/BUILD.gn')),
         new vscode.Position(6, 0)
+      ),
+    ]);
+    expect(
+      await provideTerminalLinks('gen/foo/bar.ts:117:11 - error TS2322: ...')
+    ).toEqual([
+      new ChromiumTerminalLink(
+        4, // exclude "gen/"
+        17,
+        vscode.Uri.file(path.join(srcDir, 'foo/bar.ts')),
+        new vscode.Position(116, 10)
+      ),
+    ]);
+    expect(
+      await provideTerminalLinks(
+        'Building last failed targets: [gen/chrome/browser/resources/extensions/tsconfig_build_ts.json]...'
+      )
+    ).toEqual([
+      new ChromiumTerminalLink(
+        31, // include "gen/"
+        62,
+        vscode.Uri.file(
+          path.join(
+            srcDir,
+            'out/current_link/gen/chrome/browser/resources/extensions/tsconfig_build_ts.json'
+          )
+        ),
+        undefined
       ),
     ]);
   });
