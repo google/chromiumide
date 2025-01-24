@@ -392,8 +392,7 @@
       },
       {
         "command": "chromiumide.relatedFiles.create",
-        "title": "Create related file",
-        "enablement": "config.chromiumide.underDevelopment.relatedFiles"
+        "title": "Create related file"
       },
       {
         "command": "chromiumide.showHelpForBoardsAndPackages",
@@ -1252,11 +1251,6 @@
         "chromiumide.underDevelopment.platformEC": {
           "type": "boolean",
           "description": "Enable Platform EC support (under development)",
-          "default": false
-        },
-        "chromiumide.underDevelopment.relatedFiles": {
-          "type": "boolean",
-          "description": "Enable buttons at the top of each C++ file to create/open related files, such as test and header files (under development, and Chromium-only for now)",
           "default": false
         },
         "chromiumide.underDevelopment.remoteDebug": {

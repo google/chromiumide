@@ -200,7 +200,6 @@ export const underDevelopment = {
     'underDevelopment.platform2GtestDebugging'
   ),
   platformEc: new ConfigValue<boolean>('underDevelopment.platformEC'),
-  relatedFiles: new ConfigValue<boolean>('underDevelopment.relatedFiles'),
   remoteDebug: new ConfigValue<boolean>('underDevelopment.remoteDebug'),
   tastDebugging: new ConfigValue<boolean>('underDevelopment.tastDebugging'),
   systemLogViewer: new ConfigValue<boolean>('underDevelopment.systemLogViewer'),

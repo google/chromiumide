@@ -109,12 +109,9 @@ export class Chromium implements vscode.Disposable {
 
     this.featureName = 'chromiumFormat';
     format.activate(ephemeralContext, this.root);
-    // TODO(cmfcmf): This is Chromium-only for now, but we should also consider enabling it for
-    // other repos once we understand their file structures better.
-    if (config.underDevelopment.relatedFiles.get()) {
-      this.featureName = 'relatedFiles';
-      relatedFiles.activate(ephemeralContext, path.join(this.root, 'src'));
-    }
+
+    this.featureName = 'relatedFiles';
+    relatedFiles.activate(ephemeralContext, path.join(this.root, 'src'));
 
     if (config.chrome.gtest.enabled.get()) {
       this.featureName = 'chromiumGtest';

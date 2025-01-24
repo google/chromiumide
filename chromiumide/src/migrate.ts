@@ -38,7 +38,6 @@ async function migrateConfiguration(): Promise<void> {
     config.underDevelopment.chromiumBuild,
     config.underDevelopment.platform2GtestDebugging,
     config.underDevelopment.platformEc,
-    config.underDevelopment.relatedFiles,
     config.underDevelopment.systemLogViewer,
     config.deviceManagement.devices,
     config.metrics.collectMetrics,
