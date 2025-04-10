@@ -117,4 +117,18 @@ public class ChromiumAutoImportProviderTest {
         var edits = addImport("SingleSection.java", "com.example.AutoImportTest4");
         assertThat(edits, hasSize(0));
     }
+
+    @Test
+    public void samePackage() {
+        var edits = addImport("MultipleSections.java", "org.javacs.imports.SamePackage");
+        assertThat(edits, hasSize(0));
+    }
+
+    @Test
+    public void childPackage() {
+        var edits = addImport("MultipleSections.java", "org.javacs.imports.child.ChildPackage");
+        assertThat(edits, hasSize(1));
+        var edit = edits.get(0);
+        assertThat(edit, equalTo("7,0-7,0/import org.javacs.imports.child.ChildPackage;\n\n"));
+    }
 }

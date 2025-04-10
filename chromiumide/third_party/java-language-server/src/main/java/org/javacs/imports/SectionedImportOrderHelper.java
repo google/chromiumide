@@ -39,6 +39,15 @@ class SectionedImportOrderHelper {
             return List.of();
         }
 
+        // No need to import classes in the same package.
+        var packageTree = root.getPackage();
+        if (packageTree != null) {
+            String packageName = packageTree.getPackageName().toString();
+            if (className.startsWith(packageName + ".") && !className.substring(packageName.length() + 1).contains(".")) {
+                return List.of();
+            }
+        }
+
         // If there is already an import, do not insert one.
         for (var i : imports) {
             String importedClassName = i.getQualifiedIdentifier().toString();
@@ -55,7 +64,6 @@ class SectionedImportOrderHelper {
 
         // Special logic to handle the case of no imports yet.
         if (imports.isEmpty()) {
-            var packageTree = root.getPackage();
             if (packageTree == null) {
                 // There is even no package declaration.
                 return List.of(new TextEdit(new Range(new Position(0, 0), new Position(0, 0)), importCode));
