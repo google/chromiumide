@@ -2,8 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as https from 'https';
-import {Https, HttpsError} from '../../../../common/https';
+import MockAdapter from 'axios-mock-adapter';
 import * as api from '../../../../features/gerrit/api';
 import * as git from '../../../../features/gerrit/git';
 import * as fakeData from './fake_data';
@@ -35,12 +34,8 @@ const CHROME_INTERNAL_GERRIT =
 
 /** Fluent helper for creating mocking `http.getOrThrow`. */
 export class FakeGerrit {
-  private readonly httpsGetSpy: jasmine.Spy<typeof Https.getOrThrow>;
-  private readonly httpsDeleteSpy: jasmine.Spy<typeof Https.deleteOrThrow>;
-  private readonly httpsPutSpy: jasmine.Spy<typeof Https.putJsonOrThrow>;
-
   private readonly baseUrl: string;
-  private readonly reqOpts: https.RequestOptions;
+  private readonly reqOpts: {headers: Record<string, string>};
 
   private readonly idToChangeInfo = new Map<
     string,
@@ -51,21 +46,23 @@ export class FakeGerrit {
     }
   >();
 
-  static initialize(opts: FakeGerritInitialOpts): FakeGerrit {
-    return new this(opts);
+  static initialize(
+    mock: MockAdapter,
+    opts: FakeGerritInitialOpts
+  ): FakeGerrit {
+    return new FakeGerrit(mock, opts);
   }
 
   /**
    * Processes `internal` option and sets up `/a/accounts/me`.
    */
-  private constructor(opts: FakeGerritInitialOpts) {
+  private constructor(
+    private readonly mock: MockAdapter,
+    opts: FakeGerritInitialOpts
+  ) {
     this.baseUrl = opts?.internal ? CHROME_INTERNAL_GERRIT : CHROMIUM_GERRIT;
 
     this.reqOpts = opts?.internal ? CHROME_INTERNAL_OPTIONS : CHROMIUM_OPTIONS;
-
-    this.httpsGetSpy = spyOn(Https, 'getOrThrow');
-    this.httpsDeleteSpy = spyOn(Https, 'deleteOrThrow');
-    this.httpsPutSpy = spyOn(Https, 'putJsonOrThrow');
 
     this.registerFakeGet(opts.accountsMe);
     this.registerFakeDelete();
@@ -87,49 +84,47 @@ export class FakeGerrit {
   }
 
   private registerFakeGet(accountsMe: api.AccountInfo): void {
-    this.httpsGetSpy
-      .withArgs(`${this.baseUrl}/a/accounts/me`, this.reqOpts)
-      .and.resolveTo(apiString(accountsMe));
+    this.mock
+      .onGet(`${this.baseUrl}/a/accounts/me`, this.reqOpts)
+      .reply(200, apiString(accountsMe));
 
     const urlRe = new RegExp(`${this.baseUrl}/((a/)?changes/(\\w*)[\\?/](.*))`);
-    this.httpsGetSpy
-      .withArgs(jasmine.stringMatching(urlRe), this.reqOpts)
-      .and.callFake(async (url, _opts) => {
-        const match = urlRe.exec(url);
-        if (!match)
-          return Promise.reject(
-            `Unexpected call to Https.getOrThrow, url: ${url}`
-          );
-        const id = match[3];
-        const changeInfo = this.idToChangeInfo.get(id);
-        if (!changeInfo) {
-          return Promise.reject(new HttpsError('GET', url, '', 404));
-        }
-        const path = match[1];
-        switch (path) {
-          case `changes/${id}?o=ALL_REVISIONS`:
-            return apiString(changeInfo.info);
-          case `changes/${id}/comments`:
-            return apiString(changeInfo.comments);
-          case `a/changes/${id}/drafts`:
-            return apiString(changeInfo.drafts);
-          default:
-            return Promise.reject(
-              `Unexpected call to Https.getOrThrow, url: ${url}`
-            );
-        }
-      });
+    this.mock.onGet(urlRe, this.reqOpts).reply(async config => {
+      const match = urlRe.exec(config.url!);
+      if (!match) {
+        return Promise.reject(`Unexpected call: ${config.url}`);
+      }
+
+      const id = match[3];
+      const changeInfo = this.idToChangeInfo.get(id);
+      if (!changeInfo) {
+        return [404];
+      }
+      const path = match[1];
+      switch (path) {
+        case `changes/${id}?o=ALL_REVISIONS`:
+          return [200, apiString(changeInfo.info)];
+        case `changes/${id}/comments`:
+          return [200, apiString(changeInfo.comments)];
+        case `a/changes/${id}/drafts`:
+          return [200, apiString(changeInfo.drafts)];
+        default:
+          return Promise.reject(`Unexpected call: ${config.url}`);
+      }
+    });
   }
 
   private registerFakeDelete(): void {
-    this.httpsDeleteSpy.and.callFake(async (url, options): Promise<void> => {
-      expect(options).toEqual(this.reqOpts);
+    this.mock.onDelete().reply(async config => {
+      expect(config.headers).toEqual(
+        jasmine.objectContaining(this.reqOpts.headers)
+      );
 
       const deleteDraftRegex = new RegExp(
         `${this.baseUrl}/a/changes/([^/]+)/revisions/([^/]+)/drafts/([^/]+)`
       );
-      const m = deleteDraftRegex.exec(url);
-      if (!m) throw new Error(`unexpected URL: ${url}`);
+      const m = deleteDraftRegex.exec(config.url!);
+      if (!m) throw new Error(`unexpected URL: ${config.url}`);
 
       const changeId = m[1];
       const revisionId = m[2];
@@ -162,7 +157,7 @@ export class FakeGerrit {
         };
         this.idToChangeInfo.set(changeId, newChangeInfo);
 
-        return;
+        return [200];
       }
 
       throw new Error(`draft comment with id ${commentId} not found`);
@@ -170,20 +165,22 @@ export class FakeGerrit {
   }
 
   private registerFakePut(): void {
-    this.httpsPutSpy.and.callFake(async (url, postData, options) => {
-      expect(options).toEqual(this.reqOpts);
+    this.mock.onPut().reply(async config => {
+      expect(config.headers).toEqual(
+        jasmine.objectContaining(this.reqOpts.headers)
+      );
 
       const createOrUpdateDraftRegex = new RegExp(
         `^${this.baseUrl}/a/changes/([^/]+)/revisions/([^/]+)/drafts(?:/([^/]+))?$`
       );
-      const m = createOrUpdateDraftRegex.exec(url);
-      if (!m) throw new Error(`Unexpected URL: ${url}`);
+      const m = createOrUpdateDraftRegex.exec(config.url!);
+      if (!m) throw new Error(`Unexpected URL: ${config.url}`);
 
       const changeId = m[1];
       const revisionId = m[2];
       const draftIdToUpdate = m[3];
 
-      const req = postData as api.CommentInput;
+      const req = JSON.parse(config.data) as api.CommentInput;
 
       const changeInfo = this.idToChangeInfo.get(changeId);
       if (!changeInfo) throw new Error(`Unknown change id: ${changeId}`);
@@ -235,7 +232,7 @@ export class FakeGerrit {
         [req.path]: newDraftComments,
       };
 
-      return apiString(commentInfo)!;
+      return [200, apiString(commentInfo)!];
     });
   }
 }

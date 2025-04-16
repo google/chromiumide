@@ -5,9 +5,9 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import * as commonUtil from '../../../shared/app/common/common_util';
-import * as git from './git';
-import {Sink} from './sink';
+import * as commonUtil from '../../../../shared/app/common/common_util';
+import * as git from '../git';
+import {Sink} from '../sink';
 
 // The implementation here is largely based on depot_tools/gerrit_util.py
 

@@ -5,6 +5,8 @@
 import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 import {getDriver} from '../../../../../shared/app/common/driver_repository';
 import {TaskStatus} from '../../../../../shared/app/ui/bg_task_status';
 import * as api from '../../../../features/gerrit/api';
@@ -26,6 +28,8 @@ import {FakeGerrit} from './fake_env';
 const driver = getDriver();
 
 const GITCOOKIES_PATH = testing.testdataUri('gerrit/gitcookies').fsPath;
+
+const mock = new MockAdapter(axios);
 
 describe('Gerrit', () => {
   const tempDir = testing.tempDir();
@@ -50,6 +54,8 @@ describe('Gerrit', () => {
 
     vscode.Disposable.from(...subscriptions.reverse()).dispose();
     subscriptions.length = 0;
+
+    mock.reset();
   });
 
   const {vscodeEmitters, vscodeSpy} = testing.installVscodeDouble();
@@ -105,7 +111,7 @@ describe('Gerrit', () => {
 
     const commitId = await git.getCommitId();
 
-    FakeGerrit.initialize({accountsMe: AUTHOR}).setChange(
+    FakeGerrit.initialize(mock, {accountsMe: AUTHOR}).setChange(
       changeId,
       changeInfo(changeId, [commitId]),
       {
@@ -203,7 +209,7 @@ describe('Gerrit', () => {
       updated: '2022-10-13 05:43:50.000000000',
     });
 
-    FakeGerrit.initialize({accountsMe: AUTHOR}).setChange(
+    FakeGerrit.initialize(mock, {accountsMe: AUTHOR}).setChange(
       changeId,
       changeInfo(changeId, [commitId]),
       {
@@ -292,7 +298,7 @@ describe('Gerrit', () => {
     const reviewCommitId = await git.getCommitId('HEAD@{1}');
     const amendedCommitId = await git.getCommitId();
 
-    FakeGerrit.initialize({accountsMe: AUTHOR}).setChange(
+    FakeGerrit.initialize(mock, {accountsMe: AUTHOR}).setChange(
       changeId,
       changeInfo(changeId, [reviewCommitId]),
       // Based on crrev.com/c/3980425
@@ -456,7 +462,7 @@ describe('Gerrit', () => {
     const commitId1 = await git.getCommitId('HEAD@{1}');
     const commitId2 = await git.getCommitId();
 
-    FakeGerrit.initialize({accountsMe: AUTHOR}).setChange(
+    FakeGerrit.initialize(mock, {accountsMe: AUTHOR}).setChange(
       changeId,
       changeInfo(changeId, [commitId1, commitId2]),
       {
@@ -548,7 +554,7 @@ describe('Gerrit', () => {
 
     const commitId = await git.getCommitId();
 
-    FakeGerrit.initialize({accountsMe: AUTHOR}).setChange(
+    FakeGerrit.initialize(mock, {accountsMe: AUTHOR}).setChange(
       changeId,
       changeInfo(changeId, [commitId]),
       {
@@ -624,10 +630,9 @@ describe('Gerrit', () => {
 
     const commitId = await git.getCommitId();
 
-    const fakeGerrit = FakeGerrit.initialize({accountsMe: AUTHOR}).setChange(
-      changeId,
-      changeInfo(changeId, [commitId])
-    );
+    const fakeGerrit = FakeGerrit.initialize(mock, {
+      accountsMe: AUTHOR,
+    }).setChange(changeId, changeInfo(changeId, [commitId]));
 
     gerrit.activate(
       state.statusManager,
@@ -722,7 +727,7 @@ describe('Gerrit', () => {
     const commitId1 = await git.getCommitId('HEAD@{1}');
     const commitId2 = await git.getCommitId();
 
-    FakeGerrit.initialize({accountsMe: AUTHOR})
+    FakeGerrit.initialize(mock, {accountsMe: AUTHOR})
       .setChange(changeId1, changeInfo(changeId1, [commitId1]), {
         'cryptohome/cryptohome.cc': [
           unresolvedCommentInfo({
@@ -821,7 +826,7 @@ describe('Gerrit', () => {
 
     const commitId = await git.getCommitId();
 
-    FakeGerrit.initialize({accountsMe: AUTHOR}).setChange(
+    FakeGerrit.initialize(mock, {accountsMe: AUTHOR}).setChange(
       changeId,
       changeInfo(changeId, [commitId]),
       {
@@ -881,7 +886,7 @@ describe('Gerrit', () => {
       'gerrit_does_not_throw_errors_when_the_change_is_not_in_Gerrit'
     );
 
-    FakeGerrit.initialize({accountsMe: AUTHOR});
+    FakeGerrit.initialize(mock, {accountsMe: AUTHOR});
 
     gerrit.activate(
       state.statusManager,
@@ -936,7 +941,7 @@ describe('Gerrit', () => {
 
     const commitId = await git.getCommitId();
 
-    FakeGerrit.initialize({accountsMe: AUTHOR, internal: true}).setChange(
+    FakeGerrit.initialize(mock, {accountsMe: AUTHOR, internal: true}).setChange(
       changeId,
       changeInfo(changeId, [commitId]),
       {
@@ -1033,7 +1038,7 @@ describe('Gerrit', () => {
     const commitId1 = await git.getCommitId();
     const commitId2 = '1111111111111111111111111111111111111111';
 
-    FakeGerrit.initialize({accountsMe: AUTHOR}).setChange(
+    FakeGerrit.initialize(mock, {accountsMe: AUTHOR}).setChange(
       changeId,
       changeInfo(changeId, [commitId1, commitId2]),
       {
@@ -1284,7 +1289,7 @@ ADD
       };
     };
 
-    FakeGerrit.initialize({accountsMe: AUTHOR}).setChange(
+    FakeGerrit.initialize(mock, {accountsMe: AUTHOR}).setChange(
       changeId,
       changeInfo(changeId, [commitId]),
       {
@@ -1422,7 +1427,7 @@ ADD
 
     const commitId = await git.getCommitId();
 
-    FakeGerrit.initialize({accountsMe: AUTHOR}).setChange(
+    FakeGerrit.initialize(mock, {accountsMe: AUTHOR}).setChange(
       changeId,
       changeInfo(changeId, [commitId]),
       {

@@ -7,7 +7,7 @@ import {JobManager} from '../../../../shared/app/common/common_util';
 import {vscodeRegisterCommand} from '../../../../shared/app/common/vscode/commands';
 import {GitDirsWatcher} from '../../../services';
 import * as api from '../api';
-import * as auth from '../auth';
+import {createAuthClient} from '../auth';
 import {Change} from '../data';
 import * as git from '../git';
 import {Sink} from '../sink';
@@ -132,7 +132,7 @@ export class GerritComments implements vscode.Disposable {
   ): Promise<Change[] | undefined> {
     const repoId = await git.getRepoId(gitDir, sink);
     if (repoId === undefined) return;
-    const authCookie = await auth.readAuthCookie(repoId, sink);
+    const authClient = await createAuthClient(repoId, sink);
     let gitLogInfos: git.GitLogInfo[] = [];
     if (repoId === 'chromium') {
       gitLogInfos = await git.readChangeIdsUsingGitCl(gitDir, sink);
@@ -150,7 +150,7 @@ export class GerritComments implements vscode.Disposable {
     try {
       myAccountInfo = await this.client.fetchMyAccountInfoOrThrow(
         repoId,
-        authCookie
+        authClient
       );
       if (!myAccountInfo) {
         sink.appendLine('User account info is missing in Gerrit; continuing');
@@ -165,7 +165,7 @@ export class GerritComments implements vscode.Disposable {
       const changeInfo = await this.client.fetchChangeOrThrow(
         repoId,
         changeId,
-        authCookie
+        authClient
       );
       if (!changeInfo) {
         sink.appendLine(`Not found on Gerrit: Change ${changeId}`);
@@ -178,7 +178,7 @@ export class GerritComments implements vscode.Disposable {
         await this.client.fetchPublicCommentsOrThrow(
           repoId,
           changeId,
-          authCookie
+          authClient
         );
       if (!publicCommentInfosMap) {
         sink.appendLine(
@@ -194,7 +194,7 @@ export class GerritComments implements vscode.Disposable {
           repoId,
           changeId,
           myAccountInfo,
-          authCookie
+          authClient
         );
         if (!draftCommentInfosMap) {
           sink.appendLine(

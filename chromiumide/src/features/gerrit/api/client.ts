@@ -2,7 +2,9 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import {AxiosError} from 'axios';
 import {Https, HttpsError} from '../../../common/https';
+import {AuthClient} from '../auth';
 import * as git from '../git';
 import type * as api from '.';
 
@@ -19,19 +21,33 @@ export class RawGerritClient {
   async fetchOrThrow<T>(
     repoId: git.RepoId,
     path: string,
-    authCookie?: string
+    authClient?: AuthClient
   ): Promise<T | undefined> {
     const url = `${git.gerritUrl(repoId)}/${path}`;
-    const options =
-      authCookie !== undefined ? {headers: {cookie: authCookie}} : undefined;
-    const str = await Https.getOrThrow(url, options).catch(
-      (error: HttpsError) => {
+
+    let str;
+    if (authClient) {
+      str = await authClient
+        .request({
+          method: 'GET',
+          url,
+        })
+        .catch((e: AxiosError) => {
+          if (e.status === 404) {
+            return undefined;
+          } else {
+            throw e;
+          }
+        });
+    } else {
+      str = await Https.getOrThrow(url).catch((error: HttpsError) => {
         if (error.statusCode === 404) {
           return undefined;
         }
         throw error;
-      }
-    );
+      });
+    }
+
     return str === undefined ? undefined : parseResponse(str);
   }
 }
@@ -47,21 +63,21 @@ export class GerritClient {
   /** Fetches the user's account info */
   async fetchMyAccountInfoOrThrow(
     repoId: git.RepoId,
-    authCookie?: string
+    authClient?: AuthClient
   ): Promise<api.AccountInfo | undefined> {
-    return this.client.fetchOrThrow(repoId, 'a/accounts/me', authCookie);
+    return this.client.fetchOrThrow(repoId, 'a/accounts/me', authClient);
   }
 
   /** Fetches the change with all revisions */
   async fetchChangeOrThrow(
     repoId: git.RepoId,
     changeId: string,
-    authCookie?: string
+    authClient?: AuthClient
   ): Promise<api.ChangeInfo | undefined> {
     return await this.client.fetchOrThrow(
       repoId,
       `changes/${encodeURIComponent(changeId)}?o=ALL_REVISIONS`,
-      authCookie
+      authClient
     );
   }
 
@@ -69,13 +85,13 @@ export class GerritClient {
   async fetchPublicCommentsOrThrow(
     repoId: git.RepoId,
     changeId: string,
-    authCookie?: string
+    authClient?: AuthClient
   ): Promise<api.FilePathToCommentInfos | undefined> {
     const baseCommentInfosMap: api.FilePathToBaseCommentInfos | undefined =
       await this.client.fetchOrThrow(
         repoId,
         `changes/${encodeURIComponent(changeId)}/comments`,
-        authCookie
+        authClient
       );
     if (!baseCommentInfosMap) return undefined;
 
@@ -97,13 +113,13 @@ export class GerritClient {
     repoId: git.RepoId,
     changeId: string,
     myAccountInfo: api.AccountInfo,
-    authCookie?: string
+    authClient?: AuthClient
   ): Promise<api.FilePathToCommentInfos | undefined> {
     const baseCommentInfosMap: api.FilePathToBaseCommentInfos | undefined =
       await this.client.fetchOrThrow(
         repoId,
         `a/changes/${encodeURIComponent(changeId)}/drafts`,
-        authCookie
+        authClient
       );
     if (!baseCommentInfosMap) return undefined;
 

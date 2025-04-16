@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as auth from '../../../../features/gerrit/auth';
+import * as auth from '../../../../features/gerrit/auth/auth';
 import {RepoId} from '../../../../features/gerrit/git';
 
 describe('parseAuthGitcookies', () => {

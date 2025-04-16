@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import * as api from '../api';
-import * as auth from '../auth';
+import {createAuthClient, AuthClient} from '../auth';
 import {Comment, VscodeComment, VscodeCommentThread} from '../data';
 import {RepoId} from '../git';
 import {CommandContext} from './context';
@@ -24,8 +24,8 @@ export async function reply(
     revisionNumber,
     filePath,
   } = thread.gerritCommentThread;
-  const authCookie = await getAuthCookie(ctx, repoId);
-  if (!authCookie) return;
+  const authClient = await createAuthClientOrShowError(ctx, repoId);
+  if (!authClient) return;
 
   // Comment shown until real draft is fetched from Gerrit.
   const tentativeComment: VscodeComment = {
@@ -50,7 +50,7 @@ export async function reply(
   try {
     await api.createDraftOrThrow(
       repoId,
-      authCookie,
+      authClient,
       changeId,
       revisionNumber.toString(),
       {
@@ -88,13 +88,13 @@ export async function discardDraft(
     revisionNumber,
   } = thread.gerritCommentThread;
 
-  const authCookie = await getAuthCookie(ctx, repoId);
-  if (!authCookie) return;
+  const authClient = await createAuthClientOrShowError(ctx, repoId);
+  if (!authClient) return;
 
   try {
     await api.deleteDraftOrThrow(
       repoId,
-      authCookie,
+      authClient,
       changeId,
       revisionNumber.toString(),
       commentId,
@@ -142,8 +142,8 @@ export async function updateDraft(
     unresolved = currentUnresolved;
   }
 
-  const authCookie = await getAuthCookie(ctx, repoId);
-  if (!authCookie) return;
+  const authClient = await createAuthClientOrShowError(ctx, repoId);
+  if (!authClient) return;
 
   const message =
     typeof comment.body === 'string' ? comment.body : comment.body.value;
@@ -151,7 +151,7 @@ export async function updateDraft(
   try {
     await api.updateDraftOrThrow(
       repoId,
-      authCookie,
+      authClient,
       changeId,
       revisionNumber.toString(),
       commentId,
@@ -200,12 +200,12 @@ export async function updateDraft(
   ctx.editingStatus.delete(commentId, 'update-draft');
 }
 
-async function getAuthCookie(
+async function createAuthClientOrShowError(
   ctx: CommandContext,
   repoId: RepoId
-): Promise<string | undefined> {
-  const authCookie = await auth.readAuthCookie(repoId, ctx.sink);
-  if (!authCookie) {
+): Promise<AuthClient | undefined> {
+  const authClient = await createAuthClient(repoId, ctx.sink);
+  if (!authClient) {
     void (async () => {
       const choice = await vscode.window.showErrorMessage(
         'Failed to read auth cookie; confirm your .gitcookies is properly set up and you can run repo upload',
@@ -221,5 +221,5 @@ async function getAuthCookie(
     })();
     return undefined;
   }
-  return authCookie;
+  return authClient;
 }

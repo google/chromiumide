@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import {Https} from '../../../common/https';
+import {AuthClient} from '../auth';
 import * as git from '../git';
 import {Sink} from '../sink';
 import {parseResponse} from './client';
@@ -127,7 +127,7 @@ export type CommentInput = {
  */
 export async function createDraftOrThrow(
   repoId: git.RepoId,
-  authCookie: string | undefined,
+  authClient: AuthClient | undefined,
   changeId: string,
   revisionId: string,
   req: CommentInput,
@@ -138,14 +138,19 @@ export async function createDraftOrThrow(
     changeId
   )}/revisions/${encodeURIComponent(revisionId)}/drafts`;
 
-  const options =
-    authCookie !== undefined ? {headers: {cookie: authCookie}} : undefined;
+  sink.appendLine(`PUT ${url} ${JSON.stringify(req)}`);
 
-  sink.appendLine(
-    `PUT ${url} ${JSON.stringify(req)} ${JSON.stringify(options)}`
+  if (!authClient) {
+    throw new Error(`Auth client is not provided; fetching ${url} will fail`);
+  }
+
+  return parseResponse(
+    await authClient.request({
+      method: 'PUT',
+      url,
+      data: req,
+    })
   );
-  const res = await Https.putJsonOrThrow(url, req, options);
-  return parseResponse(res);
 }
 
 /**
@@ -153,7 +158,7 @@ export async function createDraftOrThrow(
  */
 export async function deleteDraftOrThrow(
   repoId: git.RepoId,
-  authCookie: string,
+  authClient: AuthClient,
   changeId: string,
   revisionId: string,
   commentId: string,
@@ -164,10 +169,14 @@ export async function deleteDraftOrThrow(
     changeId
   )}/revisions/${encodeURIComponent(revisionId)}/drafts/${commentId}`;
 
-  const options = {headers: {cookie: authCookie}};
-
   sink.appendLine(`DELETE ${url}`);
-  await Https.deleteOrThrow(url, options);
+
+  return parseResponse(
+    await authClient.request({
+      method: 'DELETE',
+      url,
+    })
+  );
 }
 
 /**
@@ -175,7 +184,7 @@ export async function deleteDraftOrThrow(
  */
 export async function updateDraftOrThrow(
   repoId: git.RepoId,
-  authCookie: string | undefined,
+  authClient: AuthClient | undefined,
   changeId: string,
   revisionId: string,
   draftId: string,
@@ -187,12 +196,16 @@ export async function updateDraftOrThrow(
     changeId
   )}/revisions/${encodeURIComponent(revisionId)}/drafts/${draftId}`;
 
-  const options =
-    authCookie !== undefined ? {headers: {cookie: authCookie}} : undefined;
+  sink.appendLine(`PUT ${url} ${JSON.stringify(req)}}`);
 
-  sink.appendLine(
-    `PUT ${url} ${JSON.stringify(req)} ${JSON.stringify(options)}`
+  if (!authClient) {
+    throw new Error(`Auth client is not provided; fetching ${url} will fail`);
+  }
+  return parseResponse(
+    await authClient.request({
+      method: 'PUT',
+      url,
+      data: req,
+    })
   );
-  const res = await Https.putJsonOrThrow(url, req, options);
-  return parseResponse(res);
 }
