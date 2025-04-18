@@ -15,9 +15,9 @@ import {
   ServerOptions,
   TransportKind,
 } from 'vscode-languageclient/node';
-import {exec} from '../../../../shared/app/common/common_util';
 import {getDriver} from '../../../../shared/app/common/driver_repository';
 import {statNoThrow} from '../../../common/fs_util';
+import {ensureOrRunGcert} from '../../../common/gcert';
 import {CompilerConfig, computeCompilerConfig} from './chromium';
 import {StatusBar} from './ui';
 import {FilePathWatcher, withPseudoCancel} from './utils';
@@ -34,30 +34,10 @@ const JAVA_DOCUMENT_SELECTOR: DocumentSelector = [
 ];
 
 async function ensureCert(): Promise<void> {
-  const result = await exec('gcertstatus', ['-check_ssh=false'], {
-    logStdout: true,
-    ignoreNonZeroExit: true,
+  await ensureOrRunGcert({
+    noCheckSsh: true,
+    gcertReason: 'to start Chromium Java language server',
   });
-  if (result instanceof Error) {
-    // exec will return an error despite ignoreNonZeroExit=true when it cannot
-    // find gcertstatus in $PATH. This is normal, so ignore it.
-    return;
-  }
-  if (result.exitStatus === 0) {
-    return;
-  }
-
-  const RUN_GCERT = 'Run gcert';
-  const CONTINUE_ANYWAY = 'Continue anyway';
-  const choice = await vscode.window.showInformationMessage(
-    'Need to refresh gcert to start Chromium Java language server.',
-    RUN_GCERT,
-    CONTINUE_ANYWAY
-  );
-
-  if (choice === RUN_GCERT) {
-    await vscode.commands.executeCommand('chromiumide.gcert.run');
-  }
 }
 
 interface ChromiumIdeStartProgressParams {
