@@ -1,5 +1,15 @@
 # Change Log
 
+## 0.38.0 (April 2025)
+
+- Chromium Java
+  - Fix auto-import order for static imports
+  - Fix incorrect auto-importing classes in the same package
+- Gerrit
+  - Support SSO authentication
+- Boards and packages
+  - Use "cros workon" instead of "cros\_workon"
+
 ## 0.36.0 (March 2025)
 
 - Chromium Java support
