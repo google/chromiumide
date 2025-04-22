@@ -34,7 +34,7 @@ export async function ensureOrRunGcert(
   tempDir = '/tmp',
   syslogPath = '/var/log/messages'
 ): Promise<boolean> {
-  let mustAskSshAuthSock = false;
+  let mustUseSshAuthSock = false;
   const gcertStatus = await runGcertstatus(options);
   if (gcertStatus === GCERTSTATUS_NOT_FOUND) {
     // Returns true because certificates could exist.
@@ -56,7 +56,7 @@ export async function ensureOrRunGcert(
       );
       return false;
     case Gcertstatus.NotFound: {
-      mustAskSshAuthSock = true;
+      mustUseSshAuthSock = true;
       break;
     }
     default:
@@ -83,32 +83,41 @@ export async function ensureOrRunGcert(
   const syslog = new File(syslogPath);
 
   let lastSyslogError = '';
+  let exitCode;
 
-  let sshAuthSock = undefined;
-  if (mustAskSshAuthSock) {
-    sshAuthSock = await askSshAuthSock(tempDir);
-    if (!sshAuthSock) return false;
-  }
+  // On remote VSCode terminal, gcertstatus can return 9 (expired) even when
+  // gcert would fail to create SSO session due to missing SSH_AUTH_SOCK, and
+  // this is indistinguishable from the case where the auth sock is not needed.
+  // Thus we fallback to useSshAuthSock = true when gcert fails.
+  for (const useSshAuthSock of [false, true]) {
+    if (!useSshAuthSock && mustUseSshAuthSock) continue;
 
-  const syslogPrevSize = await syslog.size();
+    let sshAuthSock = undefined;
+    if (useSshAuthSock) {
+      sshAuthSock = await askSshAuthSock(tempDir);
+      if (!sshAuthSock) break;
+    }
 
-  const exitCode = await runGcert(sshAuthSock);
+    const syslogPrevSize = await syslog.size();
 
-  if (exitCode === 0) {
-    void vscode.window.showInformationMessage('gcert succeeded');
-    return true;
-  }
+    const exitCode = await runGcert(sshAuthSock);
 
-  const syslogCurSize = await syslog.size();
-  const gcertEntries = (await syslog.read(syslogPrevSize, syslogCurSize))
-    .toString('utf8')
-    .split('\n')
-    .map(parseLocalSyslogLine)
-    .filter(x => x?.process.startsWith('gcert['));
-  if (gcertEntries.length > 0) {
-    lastSyslogError = gcertEntries[gcertEntries.length - 1]!.message;
-  } else {
-    lastSyslogError = '';
+    if (exitCode === 0) {
+      void vscode.window.showInformationMessage('gcert succeeded');
+      return true;
+    }
+
+    const syslogCurSize = await syslog.size();
+    const gcertEntries = (await syslog.read(syslogPrevSize, syslogCurSize))
+      .toString('utf8')
+      .split('\n')
+      .map(parseLocalSyslogLine)
+      .filter(x => x?.process.startsWith('gcert['));
+    if (gcertEntries.length > 0) {
+      lastSyslogError = gcertEntries[gcertEntries.length - 1]!.message;
+    } else {
+      lastSyslogError = '';
+    }
   }
 
   void vscode.window.showErrorMessage(
