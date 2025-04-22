@@ -83,7 +83,7 @@ export async function ensureOrRunGcert(
   const syslog = new File(syslogPath);
 
   let lastSyslogError = '';
-  let exitCode;
+  let lastExitCode;
 
   // On remote VSCode terminal, gcertstatus can return 9 (expired) even when
   // gcert would fail to create SSO session due to missing SSH_AUTH_SOCK, and
@@ -100,9 +100,9 @@ export async function ensureOrRunGcert(
 
     const syslogPrevSize = await syslog.size();
 
-    const exitCode = await runGcert(sshAuthSock);
+    lastExitCode = await runGcert(sshAuthSock);
 
-    if (exitCode === 0) {
+    if (lastExitCode === 0) {
       void vscode.window.showInformationMessage('gcert succeeded');
       return true;
     }
@@ -130,7 +130,7 @@ export async function ensureOrRunGcert(
     description: 'gcert exit status (-1 if not available)',
     name: 'gcert_nonzero_exit_code',
     gcertstatus: gcertStatus,
-    exit_code: exitCode ?? -1,
+    exit_code: lastExitCode ?? -1,
   });
 
   return false;
