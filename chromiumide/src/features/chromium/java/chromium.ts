@@ -322,6 +322,19 @@ async function buildConfigJsons(
   output: vscode.OutputChannel,
   token: vscode.CancellationToken
 ): Promise<string[]> {
+  // Ensure to bootstrap depot_tools. Unfortunately this adds extra 2-3 seconds, but autoninja may
+  // fail to start without this. Hopefully we can speed this up later. See b/414231904 for details.
+  await execOrThrow(
+    path.join(srcDir, 'third_party/depot_tools/ensure_bootstrap'),
+    [],
+    {
+      cwd: path.join(srcDir, 'third_party/depot_tools'),
+      logger: output,
+      logStdout: true,
+      cancellationToken: token,
+    }
+  );
+
   // list_java_targets.py has a bug where it reports no target when build.ninja is empty and
   // should be generated. Here we build it explicitly to workaround the issue.
   // TODO(crbug.com/385968364): Fix this bug in list_java_targets.py.
