@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.40.1 (May 2025)
+
+- Chromium Java
+  - Fix startup issues on recent Chromium checkouts
+
 ## 0.40.0 (April 2025)
 
 - Chromium Java
