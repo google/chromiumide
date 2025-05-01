@@ -30,7 +30,7 @@ export interface CompilerConfig {
  * build/android/gyp/write_build_config.py.
  */
 interface BuildConfig {
-  deps_info: BuildConfigDepsInfo;
+  deps_info?: BuildConfigDepsInfo;
 }
 
 /**
@@ -145,7 +145,7 @@ async function processConfigJson(
     await fsPromises.readFile(jsonPath, {encoding: 'utf8'})
   ) as BuildConfig;
 
-  if (config.deps_info.target_sources_file) {
+  if (config.deps_info?.target_sources_file) {
     // If the target is built from source files, add their source roots.
     const sourcesContent = await fsPromises.readFile(
       path.resolve(outDir, config.deps_info.target_sources_file),
@@ -163,7 +163,7 @@ async function processConfigJson(
       }
     }
   } else if (
-    config.deps_info.unprocessed_jar_path &&
+    config.deps_info?.unprocessed_jar_path &&
     // If is_prebuilt is not set, we guess it from the jar path. The path is
     // relative to outDir, so it starts with ../ if it points to a prebuilt jar
     // in the chrome source tree.
@@ -176,7 +176,7 @@ async function processConfigJson(
     );
   }
 
-  if (config.deps_info.bundled_srcjars) {
+  if (config.deps_info?.bundled_srcjars) {
     for (const sourceJarRelPath of config.deps_info.bundled_srcjars) {
       const sourceJarPath = path.join(outDir, sourceJarRelPath);
       if (await isUsefulSourceJar(sourceJarPath, srcDir, outDir)) {
