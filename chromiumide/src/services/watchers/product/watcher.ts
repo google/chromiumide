@@ -82,11 +82,26 @@ export class ProductWatcher implements vscode.Disposable {
   }
 
   private async productRoot(uri: vscode.Uri): Promise<string | undefined> {
+    // The following logic prevents enabling both chromium and chromiumos features when a
+    // chromium-like directory contains a chromiumos-like directory and vice-versa.
+    // TODO(b/431649952): it's redundant to compute both chromiumRoot and chromiumosRoot for each
+    // product, computing the same things twice. Restructur this class to emit the {product, root}
+    // pair on a single instantiation to avoid the redundancy.
+    const crRoot = await chromiumRoot(uri.fsPath);
+    const crosRoot = await chromiumosRoot(uri.fsPath);
+    if (crRoot && crosRoot) {
+      if (crRoot.startsWith(crosRoot)) {
+        // If crRoot is inside crosRoot, we choose crRoot.
+        return this.product === 'chromium' ? crRoot : undefined;
+      } else {
+        return this.product === 'chromiumos' ? crosRoot : undefined;
+      }
+    }
     switch (this.product) {
       case 'chromium':
-        return await chromiumRoot(uri.fsPath);
+        return crRoot;
       case 'chromiumos':
-        return await chromiumosRoot(uri.fsPath);
+        return crosRoot;
       default:
         assertNever(this.product);
     }
