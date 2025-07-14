@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import {getDriver} from '../../../shared/app/common/driver_repository';
 import * as config from '../../../shared/app/services/config';
 import * as bgTaskStatus from '../../../shared/app/ui/bg_task_status';
+import {getUiLogger} from '../../../shared/app/ui/log';
 import {CppXrefs} from '../../common/cpp_xrefs/cpp_xrefs';
 import {CustomContext} from '../../common/when_clause_context';
 import * as boilerplate from '../boilerplate';
@@ -55,6 +56,7 @@ export class Chromium implements vscode.Disposable {
     private readonly boilerplateInserter: boilerplate.BoilerplateInserter,
     private readonly cppXrefs: CppXrefs
   ) {
+    getUiLogger().appendLine('Enabling chromium features: root = ' + root);
     void (async () => {
       try {
         // The method shouldn't throw an error as its API contract.

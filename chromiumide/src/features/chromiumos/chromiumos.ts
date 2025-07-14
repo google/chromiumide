@@ -8,6 +8,7 @@ import {activateCros as activateSharedCrosFeatures} from '../../../shared/app/ex
 import * as defaultBoard from '../../../shared/app/features/default_board';
 import * as config from '../../../shared/app/services/config';
 import * as bgTaskStatus from '../../../shared/app/ui/bg_task_status';
+import {getUiLogger} from '../../../shared/app/ui/log';
 import * as cipd from '../../common/cipd';
 import {CppXrefs} from '../../common/cpp_xrefs/cpp_xrefs';
 import * as services from '../../services';
@@ -60,6 +61,7 @@ export class Chromiumos implements vscode.Disposable {
     private readonly chromiumosServices: services.chromiumos.ChromiumosServiceModule,
     private readonly cppXrefs: CppXrefs
   ) {
+    getUiLogger().appendLine('Enabling chromiumos features: root = ' + root);
     void (async () => {
       try {
         // The method shouldn't throw an error as its API contract.
