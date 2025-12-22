@@ -4,7 +4,6 @@
 
 import path from 'path';
 import * as vscode from 'vscode';
-import * as config from '../../../../shared/app/services/config';
 import {
   StatusManager,
   TaskStatus,
@@ -51,9 +50,7 @@ export function activate(
     )
   );
 
-  if (config.underDevelopment.chromiumJavaDebugger.get()) {
-    activateDebugger(context, srcDir, manager, output);
-  }
+  activateDebugger(context, srcDir, manager, output);
 
   registerCommands(context, srcDir, output);
 

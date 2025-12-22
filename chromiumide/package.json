@@ -1240,11 +1240,6 @@
           "description": "Enable build + deploy for chromium code (incomplete)",
           "default": false
         },
-        "chromiumide.underDevelopment.chromiumJavaDebugger": {
-          "type": "boolean",
-          "description": "Enable Chromium Java debugger (incomplete)",
-          "default": false
-        },
         "chromiumide.underDevelopment.platform2GtestDebugging": {
           "type": "boolean",
           "description": "Enable platform2 gtest debugging support",
@@ -1487,7 +1482,7 @@
         "languages": [
           "java"
         ],
-        "when": "config.chromiumide.underDevelopment.chromiumJavaDebugger",
+        "when": "config.chromiumide.chromium.java.enabled",
         "configurationAttributes": {
           "attach": {
             "properties": {

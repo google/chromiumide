@@ -193,9 +193,6 @@ export const underDevelopment = {
     'underDevelopment.autoninjaImprovements'
   ),
   chromiumBuild: new ConfigValue<boolean>('underDevelopment.chromiumBuild'),
-  chromiumJavaDebugger: new ConfigValue<boolean>(
-    'underDevelopment.chromiumJavaDebugger'
-  ),
   platform2GtestDebugging: new ConfigValue<boolean>(
     'underDevelopment.platform2GtestDebugging'
   ),
