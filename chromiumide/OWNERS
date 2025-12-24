@@ -1,3 +1,0 @@
-# For automated prerelease uprev.
-per-file package.json=chromeos-ci-prod@chromeos-bot.iam.gserviceaccount.com
-per-file package-lock.json=chromeos-ci-prod@chromeos-bot.iam.gserviceaccount.com

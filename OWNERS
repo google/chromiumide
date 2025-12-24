@@ -1,6 +1,3 @@
-hscham@chromium.org
-lokeric@google.com
-nya@chromium.org
-oka@chromium.org
-ttylenda@chromium.org
-yoshiki@chromium.org
+# For automated prerelease uprev.
+per-file package.json=chromeos-ci-prod@chromeos-bot.iam.gserviceaccount.com
+per-file package-lock.json=chromeos-ci-prod@chromeos-bot.iam.gserviceaccount.com

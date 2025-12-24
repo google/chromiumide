@@ -1,2 +1,0 @@
-# Silence false positive for 'keymaster' in parse.test.ts.
-master
