@@ -4,8 +4,8 @@
 
 import * as vscode from 'vscode';
 import * as config from '../../../../shared/app/services/config';
-import {GtestWorkspace} from '../../gtest/gtest_workspace';
-import {TestControllerSingleton} from '../../gtest/test_controller_singleton';
+import {GtestWorkspace} from '../../testing/gtest/gtest_workspace';
+import {TestControllerSingleton} from '../../testing/test_controller_singleton';
 import * as gnUtil from '../gn_util';
 import * as outputDirectories from '../output_directories';
 import {AutotestRunner} from './autotest_runner';

@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import * as parser from '../../../../features/gtest/parser';
+import * as parser from '../../../../features/testing/gtest/parser';
 
 describe('gtest parser', () => {
   it('parses gtest cases', async () => {

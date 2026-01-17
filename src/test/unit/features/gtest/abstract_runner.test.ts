@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {AbstractRunner} from '../../../../features/gtest/abstract_runner';
-import {GtestWorkspace} from '../../../../features/gtest/gtest_workspace';
+import {AbstractRunner} from '../../../../features/testing/abstract_runner';
+import {GtestWorkspace} from '../../../../features/testing/gtest/gtest_workspace';
 
 class MyRunner extends AbstractRunner {
   getOutputForTesting(): AbstractRunner['output'] {

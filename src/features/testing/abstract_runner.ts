@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {GtestWorkspace} from './gtest_workspace';
+import {GtestWorkspace} from './gtest/gtest_workspace';
 
 /**
  * Base class for gtest test runners. Subclasses should implement `doRun`.

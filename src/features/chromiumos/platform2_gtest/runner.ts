@@ -16,10 +16,10 @@ import {
 import {MemoryOutputChannel} from '../../../common/memory_output_channel';
 import {TeeOutputChannel} from '../../../common/tee_output_channel';
 import * as services from '../../../services';
-import {AbstractRunner} from '../../gtest/abstract_runner';
-import {GtestCase} from '../../gtest/gtest_case';
-import * as gtestTestListParser from '../../gtest/gtest_test_list_parser';
-import {GtestWorkspace} from '../../gtest/gtest_workspace';
+import {AbstractRunner} from '../../testing/abstract_runner';
+import {GtestCase} from '../../testing/gtest/gtest_case';
+import * as gtestTestListParser from '../../testing/gtest/gtest_test_list_parser';
+import {GtestWorkspace} from '../../testing/gtest/gtest_workspace';
 // TODO(oka): Move ebuild under src/services/chromiumos.
 import * as ebuild from '../cpp_xrefs/compdb_service/ebuild';
 

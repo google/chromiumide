@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {GtestSuite} from '../../../../features/gtest/gtest_suite';
-import * as parser from '../../../../features/gtest/parser';
+import {GtestSuite} from '../../../../features/testing/gtest/gtest_suite';
+import * as parser from '../../../../features/testing/gtest/parser';
 import {cleanState} from '../../../testing';
 
 describe('GtestSuite', () => {

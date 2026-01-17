@@ -5,7 +5,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as services from '../../../services';
-import {TestControllerSingleton} from '../../gtest/test_controller_singleton';
+import {TestControllerSingleton} from '../../testing/test_controller_singleton';
 import {Config} from './config';
 import {RunProfile} from './run_profile';
 

@@ -6,8 +6,8 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as commonUtil from '../../../../shared/app/common/common_util';
 import {extraEnvForDepotTools} from '../../../../shared/app/common/depot_tools';
-import {AbstractRunner} from '../../gtest/abstract_runner';
-import {GtestWorkspace} from '../../gtest/gtest_workspace';
+import {AbstractRunner} from '../../testing/abstract_runner';
+import {GtestWorkspace} from '../../testing/gtest/gtest_workspace';
 import * as outputDirectories from '../output_directories';
 
 /**

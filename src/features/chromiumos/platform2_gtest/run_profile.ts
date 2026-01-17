@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import {getOrPromptToSelectDefaultBoard} from '../../../../shared/app/features/default_board';
-import {GtestWorkspace} from '../../gtest/gtest_workspace';
+import {GtestWorkspace} from '../../testing/gtest/gtest_workspace';
 import {Config} from './config';
 import {Runner} from './runner';
 

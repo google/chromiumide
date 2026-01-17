@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import * as gtestTestListParser from '../../../../features/gtest/gtest_test_list_parser';
+import * as gtestTestListParser from '../../../../features/testing/gtest/gtest_test_list_parser';
 
 describe('Gtest test list parser', () => {
   it('parses --gtest_list_tests output', () => {

@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as vscode from 'vscode';
-import {TestControllerSingleton} from '../../gtest/test_controller_singleton';
+import {TestControllerSingleton} from '../../testing/test_controller_singleton';
 import {RunProfile} from './run_profile';
 
 export class ChromiumGtest implements vscode.Disposable {

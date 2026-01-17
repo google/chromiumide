@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import * as services from '../../../services';
-import {TestControllerSingleton} from '../../gtest/test_controller_singleton';
+import {TestControllerSingleton} from '../../testing/test_controller_singleton';
 
 /**
  * Dependencies shared by multiple classes used to run platform2 GTests.
