@@ -28,6 +28,7 @@ public class AddSuppressWarningAnnotation implements Rewrite {
         try (var task = compiler.compile(file)) {
             var trees = Trees.instance(task.task);
             var methodElement = FindHelper.findMethod(task, className, methodName, erasedParameterTypes);
+            if (methodElement == null) return CANCELLED;
             var methodTree = trees.getTree(methodElement);
             var pos = trees.getSourcePositions();
             var startMethod = (int) pos.getStartPosition(task.root(), methodTree);

@@ -40,7 +40,11 @@ public class FindHelper {
         for (var member : classTree.getMembers()) {
             if (member.getKind() != Tree.Kind.METHOD) continue;
             var method = (MethodTree) member;
-            if (!method.getName().contentEquals(methodName)) continue;
+            if (methodName.equals("<init>")) {
+                if (!method.getName().contentEquals(classTree.getSimpleName())) continue;
+            } else {
+                if (!method.getName().contentEquals(methodName)) continue;
+            }
             if (!isSameMethodType(method, erasedParameterTypes)) continue;
             return method;
         }
@@ -91,7 +95,11 @@ public class FindHelper {
         var types = task.task.getTypes();
         var parent = (TypeElement) method.getEnclosingElement();
         if (!parent.getQualifiedName().contentEquals(className)) return false;
-        if (!method.getSimpleName().contentEquals(methodName)) return false;
+        if (methodName.equals("<init>")) {
+            if (!method.getSimpleName().contentEquals(parent.getSimpleName())) return false;
+        } else {
+            if (!method.getSimpleName().contentEquals(methodName)) return false;
+        }
         if (method.getParameters().size() != erasedParameterTypes.length) return false;
         for (var i = 0; i < erasedParameterTypes.length; i++) {
             var erasure = types.erasure(method.getParameters().get(i).asType());
