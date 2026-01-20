@@ -61,15 +61,16 @@ public class RewriteTest {
     }
 
     @Test
-    public void ignoreStaticImport() {
+    public void preserveStaticImport() {
         var file = file("StaticImport.java");
         var edits = new AutoFixImports(file).rewrite(compiler);
         assertThat(edits, hasKey(file));
         for (var edit : edits.get(file)) {
             if (edit.newText.contains("java.util.Arrays.asList")) {
-                fail();
+                return;
             }
         }
+        fail();
     }
 
     @Test
@@ -115,5 +116,39 @@ public class RewriteTest {
         var file = file("TestAddOverride.java");
         var edits = new AutoAddOverrides(file).rewrite(compiler);
         assertThat(edits, hasKey(file));
+    }
+
+    @Test
+    public void packageLessFileWithHeader() {
+        var file = file("NoPackageWithHeader.java");
+        var edits = new AutoFixImports(file).rewrite(compiler);
+        assertThat(edits, hasKey(file));
+        for (var edit : edits.get(file)) {
+            // It should insert imports after the comment block (License Header).
+            // The file starts with:
+            // /*
+            //  * License Header
+            //  */
+            //
+            // public class NoPackageWithHeader {
+            //
+            // Lines 1-3 are comments. Line 4 is empty. Line 5 is class decl.
+            // Insert should be at line 5 (after empty line, before class) or line 4.
+            // My logic inserts before the first type decl. The type decl "NoPackageWithHeader" starts at line 5.
+            // So it should insert at line 5.
+            // Original text: "public class ...".
+            // New text: "import java.util.List;\n\npublic class ..."
+
+            // Check that it contains the import
+            if (edit.newText.contains("import java.util.List;")) {
+                // Check that it preserves the header (implied by insertion point > 0)
+                // Range is (line-1, char-1).
+                // Line 5 is index 4.
+                if (edit.range.start.line >= 3) {
+                    return;
+                }
+            }
+        }
+        fail("Expected import insertion after header");
     }
 }

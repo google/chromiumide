@@ -358,7 +358,7 @@ class JavaLanguageServer extends LanguageServer {
     public List<TextEdit> formatting(DocumentFormattingParams params) {
         var edits = new ArrayList<TextEdit>();
         var file = Paths.get(params.textDocument.uri);
-        var fixImports = new AutoFixImports(file).rewrite(compiler()).get(file);
+        var fixImports = new AutoFixImports(file, autoImportProvider).rewrite(compiler()).get(file);
         Collections.addAll(edits, fixImports);
         var addOverrides = new AutoAddOverrides(file).rewrite(compiler()).get(file);
         Collections.addAll(edits, addOverrides);

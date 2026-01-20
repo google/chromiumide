@@ -4,6 +4,8 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import com.sun.source.util.Trees;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.javacs.CompilerProvider;
@@ -138,5 +140,51 @@ public class ChromiumAutoImportProviderTest {
         assertThat(edits, hasSize(1));
         var edit = edits.get(0);
         assertThat(edit, equalTo("5,0-5,0/import org.javacs.imports.child.ChildPackage;\n\n"));
+    }
+
+    @Test
+    public void chromiumStaticImportSeparation() {
+        var edits = addImport("ChromiumStaticImports.java", "static org.chromium.base.test.util.UrlUtils.getOriginalNonNativeNtpGurl");
+        assertThat(edits, hasSize(1));
+        var edit = edits.get(0);
+        // Expect insertion after existing imports with a newline (because it's a new section, 1 vs 0)
+        // Existing lines are 3 and 4. Package line is 1. Empty line 2.
+        // It should insert at line 5 (Import list end).
+        // Since existing imports are section 0, and new is section 1, it should PREPEND newline.
+        assertThat(edit, equalTo("4,0-4,0/\nimport static org.chromium.base.test.util.UrlUtils.getOriginalNonNativeNtpGurl;\n"));
+    }
+
+    @Test
+    public void chromiumImportOrdering() {
+        var imports = Arrays.asList(
+            "android.content.Context",
+            "androidx.test.filters.MediumTest",
+            "java.util.ArrayList",
+            "org.chromium.base.ThreadUtils",
+            "org.junit.After",
+            "static org.chromium.base.test.util.UrlUtils.getOriginalNonNativeNtpGurl",
+            "static org.junit.Assert.assertEquals"
+        );
+        var sorted = new ArrayList<>(imports);
+        sorted.sort(ChromiumAutoImportProvider.INSTANCE.importComparator());
+
+        // Expected order:
+        // 1. static org.junit (section 6)
+        // 2. static org.chromium (section 7)
+        // 3. android. (101)
+        // 4. androidx. (102)
+        // 5. org.junit. (106)
+        // 6. org.chromium. (108)
+        // 7. java. (109)
+        var expected = Arrays.asList(
+            "static org.junit.Assert.assertEquals",
+            "static org.chromium.base.test.util.UrlUtils.getOriginalNonNativeNtpGurl",
+            "android.content.Context",
+            "androidx.test.filters.MediumTest",
+            "org.junit.After",
+            "org.chromium.base.ThreadUtils",
+            "java.util.ArrayList"
+        );
+        assertThat(sorted, equalTo(expected));
     }
 }

@@ -75,13 +75,15 @@ class SectionedImportOrderHelper {
         }
 
         // Find the position to insert a new import.
-        int newImportSection = sectionFunction.sectionOf(className, false);
+        boolean isStatic = className.startsWith("static ");
+        String realClassName = isStatic ? className.substring(7) : className;
+        int newImportSection = sectionFunction.sectionOf(realClassName, isStatic);
         int insertPosition = imports.size();
         for (var i = 0; i < imports.size(); i++) {
             var currentImport = imports.get(i);
             String nextClassName = currentImport.getQualifiedIdentifier().toString();
             int nextImportSection = sectionFunction.sectionOf(nextClassName, currentImport.isStatic());
-            if (nextImportSection > newImportSection || (nextImportSection == newImportSection && nextClassName.compareTo(className) > 0)) {
+            if (nextImportSection > newImportSection || (nextImportSection == newImportSection && nextClassName.compareTo(realClassName) > 0)) {
                 insertPosition = i;
                 break;
             }
