@@ -90,7 +90,7 @@ describe('Chromium Java language server', () => {
         diagnostics.some(
           diagnostic =>
             diagnostic.code === 'compiler.warn.has.been.deprecated' &&
-            diagnostic.range.start.line === 9
+            diagnostic.range.start.line === 15
         )
       ).toBeTrue();
 

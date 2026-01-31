@@ -25,6 +25,7 @@ describe('Kernel C++ xrefs', () => {
       activate: () => Promise.resolve() as Thenable<void>,
     } as vscode.Extension<void>);
     vscodeSpy.commands.registerCommand('clangd.restart', () => {});
+    vscodeSpy.window.showErrorMessage.and.resolveTo(undefined);
   });
 
   const fakeExec = testing.installFakeExec();

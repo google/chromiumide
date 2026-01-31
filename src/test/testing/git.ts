@@ -24,6 +24,20 @@ export class Git {
     await commonUtil.execOrThrow('git', ['init', '--initial-branch=main'], {
       cwd: this.root,
     });
+    await commonUtil.execOrThrow(
+      'git',
+      ['config', '--local', 'user.email', 'me@example.com'],
+      {
+        cwd: this.root,
+      }
+    );
+    await commonUtil.execOrThrow(
+      'git',
+      ['config', '--local', 'user.name', 'My Name'],
+      {
+        cwd: this.root,
+      }
+    );
 
     if (opts?.repoId === null) {
       return;
