@@ -8,7 +8,7 @@ import {getDriver} from '../../../shared/app/common/driver_repository';
 
 const driver = getDriver();
 
-const WANT_NODE_VERSION = /v18\..*/;
+const WANT_NODE_VERSION = /v22\..*/;
 
 describe('Dev environment', () => {
   it('uses proper node version following go/chromiumide-dev-guide', async () => {
