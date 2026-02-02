@@ -1,10 +1,19 @@
+.github
 .vscode
+.wireit
 docs
+empty.js
+js-green-licenses.json
+LICENSE.header
 node_modules
 src
 out
 package-lock.json
+server
+shared
+tools
 tsconfig.json
+views
 webpack.config.js
 
 third_party/java-language-server/.gitignore
