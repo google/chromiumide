@@ -60,7 +60,7 @@ jobs:
         with:
           node-version: 22.x
       - run: npm ci
-      - run: npx vsce package
+      - run: npx vsce package $(node tools/release_flag.js)
       - uses: actions/upload-artifact@v4
         with:
           name: vsix
