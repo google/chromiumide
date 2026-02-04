@@ -60,7 +60,7 @@ jobs:
         with:
           node-version: 22.x
       - run: npm ci
-      - run: npx vsce package $(node tools/release_flag.js)
+      - run: SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) npx vsce package --allow-package-secrets=privatekey $(node tools/release_flag.js)
       - uses: actions/upload-artifact@v6
         with:
           name: vsix
