@@ -1,0 +1,50 @@
+# Copyright 2026 The ChromiumOS Authors
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+name: Automated Pre-release
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  prerelease:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.head_ref }}
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
+      - name: Set up Git
+        run: |
+          git config --global user.name 'auto-releaser[bot]'
+          git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
+      - name: Check new commits since the last version bump
+        id: check-commits
+        run: |
+          if [[ "$(git log -1 --pretty=format:%an)" == "$(git config user.name)" ]]; then
+            echo "has_commits=no" >> $GITHUB_OUTPUT
+          else
+            echo "has_commits=yes" >> $GITHUB_OUTPUT
+          fi
+      - name: Bump version
+        id: bump_version
+        if: steps.check-commits.outputs.has_commits == 'yes'
+        run: |
+          tag=$(./tools/bump_version.py --pre-release)
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+          git commit -a -m "Bump version to $tag"
+          git tag "$tag"
+          git push origin ${{ github.head_ref }} "$tag"
+      - name: Create a release
+        if: steps.check-commits.outputs.has_commits == 'yes'
+        run: |
+          gh release create "${{ steps.bump_version.outputs.tag }}" --prerelease --latest=false --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
