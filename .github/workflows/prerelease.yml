@@ -41,7 +41,8 @@ jobs:
           echo "tag=$tag" >> $GITHUB_OUTPUT
           git commit -a -m "Bump version to $tag"
           git tag "$tag"
-          git push origin ${{ github.head_ref }} "$tag"
+          git push origin ${{ github.head_ref }}
+          git push origin "$tag"
       - name: Create a release
         if: steps.check-commits.outputs.has_commits == 'yes'
         run: |
