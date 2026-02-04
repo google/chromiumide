@@ -13,4 +13,8 @@ class GotoImplementation {
         @Override
         public void virtualMethod() { }
     }
+
+    class Unrelated {
+        void virtualMethod() { }
+    }
 }

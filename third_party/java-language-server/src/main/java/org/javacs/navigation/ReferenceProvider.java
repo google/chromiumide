@@ -1,5 +1,6 @@
 package org.javacs.navigation;
 
+import com.sun.source.tree.MethodTree;
 import com.sun.source.util.TreePath;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -75,7 +76,12 @@ public class ReferenceProvider {
         }
         var locations = new ArrayList<Location>();
         for (var p : paths) {
-            locations.add(FindHelper.location(task, p));
+            if (p.getLeaf() instanceof MethodTree) {
+                var method = (MethodTree) p.getLeaf();
+                locations.add(FindHelper.location(task, p, method.getName()));
+            } else {
+                locations.add(FindHelper.location(task, p));
+            }
         }
         return locations;
     }
