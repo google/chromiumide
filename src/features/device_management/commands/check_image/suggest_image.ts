@@ -176,7 +176,7 @@ async function showAllMatchingImagesQuickPick(
           Array.from({length: maxSkew}, (_, k) => chromeosMajorVersion - k - 1)
         );
         let finishedCount = 0;
-        // Since `listPrebuiltVersions` has to be called separately for each version (`gsutil ls`
+        // Since `listPrebuiltVersions` has to be called separately for each version (`gcloud storage ls`
         // does not take regex for pattern matching, only wildcard), update the list using event
         // emitter instead of waiting for all calls to finish.
         const onFetchedImageVersionsEmitter = new vscode.EventEmitter<

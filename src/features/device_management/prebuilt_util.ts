@@ -37,8 +37,9 @@ export async function listPrebuiltVersions(
   // gs://chromeos-image-archive/ contains prebuilt image files.
   // https://chromium.googlesource.com/chromiumos/docs/+/HEAD/gsutil.md
   const result = await chrootService.exec(
-    'gsutil',
+    'gcloud',
     [
+      'storage',
       'ls',
       `gs://chromeos-image-archive/${board}-${imageType}/${versionPattern}/image.zip`,
     ],
