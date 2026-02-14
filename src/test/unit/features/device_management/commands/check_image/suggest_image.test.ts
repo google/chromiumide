@@ -109,15 +109,16 @@ describe('Create quick pick to choose image within correct version range', () =>
     installChrootCommandHandler(
       fakeExec,
       tempDir.path,
-      'gsutil',
+      'gcloud',
       [
+        'storage',
         'ls',
         `gs://chromeos-image-archive/${BOARD_NAME}-release/*-${version}.*/image.zip`,
       ],
       async args => {
         return noMatch
           ? new AbnormalExitError(
-              'gsutil',
+              'gcloud',
               args,
               1,
               '',
@@ -138,7 +139,7 @@ describe('Create quick pick to choose image within correct version range', () =>
   });
 
   it('first shows current CrOS major version', async () => {
-    // Fake `gsutil ls` to fetch one match for release image with current CrOS major version 2.
+    // Fake `gcloud storage ls` to fetch one match for release image with current CrOS major version 2.
     handleFetchPrebuiltVersions(2, false);
 
     const option = showAllMatchingImagesQuickPick(
@@ -168,7 +169,7 @@ describe('Create quick pick to choose image within correct version range', () =>
   });
 
   it('expands to all images when user requests', async () => {
-    // Fake `gsutil ls` to fetch exactly one match for release image with CrOS major version 1 to 3.
+    // Fake `gcloud storage ls` to fetch exactly one match for release image with CrOS major version 1 to 3.
     handleFetchPrebuiltVersions(1, false);
     handleFetchPrebuiltVersions(2, false);
     handleFetchPrebuiltVersions(3, false);
@@ -211,7 +212,7 @@ describe('Create quick pick to choose image within correct version range', () =>
   });
 
   it('prompt to return to image type selection when there is no match', async () => {
-    // Fake `gsutil ls` to return no match for all versions.
+    // Fake `gcloud storage ls` to return no match for all versions.
     handleFetchPrebuiltVersions(1, true);
     handleFetchPrebuiltVersions(2, true);
     handleFetchPrebuiltVersions(3, true);

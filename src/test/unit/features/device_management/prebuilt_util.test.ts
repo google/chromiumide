@@ -27,8 +27,8 @@ gs://chromeos-image-archive/xyz-release/R99-9901.0.0/image.zip
     fakes.installChrootCommandHandler(
       fakeExec,
       tempDir.path,
-      'gsutil',
-      ['ls', 'gs://chromeos-image-archive/xyz-release/*/image.zip'],
+      'gcloud',
+      ['storage', 'ls', 'gs://chromeos-image-archive/xyz-release/*/image.zip'],
       () => FAKE_STDOUT
     );
 
@@ -61,8 +61,8 @@ gs://chromeos-image-archive/xyz-postsubmit/R102-10010.0.0-10100-1000000000000100
     fakes.installChrootCommandHandler(
       fakeExec,
       tempDir.path,
-      'gsutil',
-      ['ls', 'gs://chromeos-image-archive/xyz-postsubmit/*/image.zip'],
+      'gcloud',
+      ['storage', 'ls', 'gs://chromeos-image-archive/xyz-postsubmit/*/image.zip'],
       () => FAKE_STDOUT
     );
 
@@ -87,11 +87,11 @@ gs://chromeos-image-archive/xyz-postsubmit/R102-10010.0.0-10100-1000000000000100
     fakes.installChrootCommandHandler(
       fakeExec,
       tempDir.path,
-      'gsutil',
-      ['ls', 'gs://chromeos-image-archive/xyz-postsubmit/*/image.zip'],
+      'gcloud',
+      ['storage', 'ls', 'gs://chromeos-image-archive/xyz-postsubmit/*/image.zip'],
       async args =>
         new AbnormalExitError(
-          'gsutil',
+          'gcloud',
           args,
           1,
           '',
