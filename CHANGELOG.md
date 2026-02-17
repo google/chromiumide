@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.52.0
+
+- Java: Include implementations in Find References for interface methods
+
 ## 0.50.0 (January 2026)
 
 - Fix Java format issues
