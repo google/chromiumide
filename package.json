@@ -1704,9 +1704,9 @@
     "@mui/icons-material": "^5.14.19",
     "@mui/material": "^5.10.9",
     "@novnc/novnc": "^1.4.0",
-    "axios": "^1.8.4",
+    "axios": "^1.13.2",
     "date-fns": "^2.30.0",
-    "glob": "^8.1.0",
+    "glob": "^9.0.0",
     "js-base64": "^3.7.5",
     "minimatch": "^5.1.2",
     "p-limit": "^3.1.0",
@@ -1719,7 +1719,7 @@
     "tree-kill": "^1.2.2",
     "uuid": "^9.0.1",
     "vscode-languageclient": "^9.0.1",
-    "ws": "^8.15.0"
+    "ws": "^8.17.1"
   },
   "devDependencies": {
     "@swc/core": "^1.3.100",
@@ -1744,7 +1744,7 @@
     "axios-mock-adapter": "1.22",
     "copy-webpack-plugin": "^11.0.0",
     "dedent": "^1.5.1",
-    "esbuild": "^0.19.9",
+    "esbuild": "^0.25.0",
     "eslint": "^8.55.0",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-react-hooks": "^4.6.0",
@@ -1759,7 +1759,7 @@
     "typescript": "^5.3.3",
     "vscode-tmgrammar-test": "^0.1.2",
     "vscode-uri": "^3.0.8",
-    "webpack": "^5.89.0",
+    "webpack": "^5.104.1",
     "wireit": "^0.14.1"
   }
 }
