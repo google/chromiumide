@@ -1523,6 +1523,7 @@
     "check": "wireit",
     "test": "wireit",
     "cq-test": "wireit",
+    "java-test": "wireit",
     "unit-test": "wireit",
     "unit-test-parallel": "wireit",
     "integration-test": "wireit",
@@ -1643,16 +1644,14 @@
       "dependencies": [
         "unit-test",
         "integration-test",
+        "java-test",
         "check",
         "lint"
       ]
     },
     "cq-test": {
       "dependencies": [
-        "unit-test",
-        "integration-test",
-        "check",
-        "lint"
+        "test"
       ]
     },
     "unit-test": {
@@ -1687,6 +1686,9 @@
       "output": [
         ".vscode-test/user-data"
       ]
+    },
+    "java-test": {
+      "command": "cd third_party/java-language-server && mvn test"
     },
     "preupload": {
       "dependencies": [
